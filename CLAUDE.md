@@ -5,7 +5,7 @@ Read `AGENTS.md`, `README.md`, and `docs/architecture.md` before changing the pr
 ## Product contracts
 
 - Preserve the desktop-first editorial single-frame Scout composition and the selected market-ticket-first mobile swipe deck.
-- On mobile, keep Saved beside the Cutline wordmark; left passes, right saves, and the middle Later action stores an item for Review through Saved. Gestures must retain accessible button and keyboard equivalents.
+- On mobile, keep Saved beside the Cutline wordmark. Swipes and arrow keys only browse between cards; they never save, pass, or defer an idea. Pass, Later, and Save are explicit labeled button decisions, and Later stores an item for Review through Saved.
 - Movie art and market context come first; explainable scores and synthesis follow; Save, Later, and Pass remain decisive.
 - Saved Ideas must continue to work.
 - Reviewed movie-specific scores come from `src/data/markets/*.json`, generated from `config/markets/*.json` by `scripts/historical_model.py`. Unconfigured live events use `src/data/automatic-prior.json` plus the conservative `src/data/target-enrichment.json` exact-title/release-window resolver through `src/lib/automatic-model.js`; preserve tier, freshness, match status, specificity, sample, imputation, and price-independence labels.

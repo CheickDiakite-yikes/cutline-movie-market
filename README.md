@@ -70,7 +70,7 @@ Cutline is designed to make that reasoning visible. It is a research and decisio
 
 The current prototype supports a repeatable multi-movie research loop:
 
-1. **Select or swipe to an active movie market.** The KXRT slate comes from Kalshi's public, unauthenticated market-data API and refreshes every 60 seconds while the application is open. On mobile, swipe left to pass, tap Later to hold the idea for another pass, or swipe right to save and advance; the visible buttons provide the same actions.
+1. **Select or swipe to an active movie market.** The KXRT slate comes from Kalshi's public, unauthenticated market-data API and refreshes every 60 seconds while the application is open. On mobile, swiping only browses backward or forward through movie cards. Pass, Later, and Save decisions happen only through their labeled buttons.
 2. **Orient on the release.** See configured or exact-match snapshot art and a higher-specificity research pack when available; every other event receives a visibly graded baseline prior while live target enrichment is pending.
 3. **Inspect the evidence.** Open Historical fit, Live heat, Talent prior, or Data coverage to trace the underlying evidence and source status.
 4. **Read the synthesis.** Cutline explains what the historical and critic layers support and what they cannot yet conclude.

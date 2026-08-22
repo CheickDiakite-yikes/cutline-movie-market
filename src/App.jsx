@@ -548,14 +548,25 @@ function MobileSwipeCard({
     setThreshold(options[(index + 1) % options.length]);
   };
 
-  const completeSwipe = (direction) => {
+  const completeDecision = (decision) => {
     if (isAnimating) return;
     setIsAnimating(true);
-    setDragX(direction === "right" ? window.innerWidth * 1.15 : window.innerWidth * -1.15);
+    setDragX(decision === "save" ? window.innerWidth * 1.15 : window.innerWidth * -1.15);
     animationTimerRef.current = window.setTimeout(() => {
-      if (direction === "right") onSave({ threshold, market });
+      if (decision === "save") onSave({ threshold, market });
       else onPass({ threshold, market });
       onAdvance(1);
+      setDragX(0);
+      setIsAnimating(false);
+    }, 190);
+  };
+
+  const completeBrowse = (direction) => {
+    if (isAnimating) return;
+    setIsAnimating(true);
+    setDragX(direction === "next" ? window.innerWidth * -1.15 : window.innerWidth * 1.15);
+    animationTimerRef.current = window.setTimeout(() => {
+      onAdvance(direction === "next" ? 1 : -1);
       setDragX(0);
       setIsAnimating(false);
     }, 190);
@@ -597,8 +608,7 @@ function MobileSwipeCard({
     if (!gesture || gesture.id !== pointerEvent.pointerId || isAnimating) return;
     gestureRef.current = null;
     const result = classifySwipe(gesture.deltaX, gesture.deltaY);
-    if (result === "save") completeSwipe("right");
-    else if (result === "pass") completeSwipe("left");
+    if (result === "next" || result === "previous") completeBrowse(result);
     else setDragX(0);
   };
 
@@ -623,11 +633,11 @@ function MobileSwipeCard({
         onPointerUp={handlePointerUp}
         onPointerCancel={() => { gestureRef.current = null; setDragX(0); }}
         onKeyDown={(keyEvent) => {
-          if (keyEvent.key === "ArrowLeft") completeSwipe("left");
-          if (keyEvent.key === "ArrowRight") completeSwipe("right");
+          if (keyEvent.key === "ArrowLeft") completeBrowse("previous");
+          if (keyEvent.key === "ArrowRight") completeBrowse("next");
         }}
         tabIndex="0"
-        aria-label={`${title}. Swipe left to pass, use Later to come back, or swipe right to save.`}
+        aria-label={`${title}. Swipe left or right to browse movies. Use the buttons to pass, review later, or save.`}
       >
         <div className={model?.market.artwork ? "mobile-movie-art" : "mobile-movie-art unmodeled"}>
           {model?.market.artwork ? (
@@ -683,11 +693,11 @@ function MobileSwipeCard({
           </section>
 
           <div className="mobile-actions" aria-label="Trade idea actions">
-            <button className="mobile-pass" onClick={() => completeSwipe("left")}><strong>PASS</strong><span>SKIP THIS ONE</span></button>
+            <button className="mobile-pass" onClick={() => completeDecision("pass")}><strong>PASS</strong><span>SKIP THIS ONE</span></button>
             <button className={deferred ? "mobile-later deferred" : "mobile-later"} onClick={completeLater}><strong>LATER</strong><span>{deferred ? "IN IDEA BOOK" : "REVIEW LATER"}</span></button>
-            <button className={saved ? "mobile-save saved" : "mobile-save"} onClick={() => completeSwipe("right")}><strong>{saved ? "SAVED" : "SAVE"}</strong><span>{saved ? "IN IDEA BOOK" : "WATCH THIS"}</span></button>
+            <button className={saved ? "mobile-save saved" : "mobile-save"} onClick={() => completeDecision("save")}><strong>{saved ? "SAVED" : "SAVE"}</strong><span>{saved ? "IN IDEA BOOK" : "WATCH THIS"}</span></button>
           </div>
-          <div className="mobile-swipe-cue" aria-hidden="true"><ArrowLeft weight="bold" /><span>SWIPE LEFT / RIGHT</span><ArrowRight weight="bold" /></div>
+          <div className="mobile-swipe-cue" aria-hidden="true"><ArrowLeft weight="bold" /><span>SWIPE TO BROWSE</span><ArrowRight weight="bold" /></div>
         </div>
       </article>
     </section>

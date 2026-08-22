@@ -5,5 +5,5 @@ export function classifySwipe(deltaX, deltaY, threshold = 72) {
   if (Math.abs(deltaX) < threshold || Math.abs(deltaX) <= Math.abs(deltaY) * 1.15) {
     return "none";
   }
-  return deltaX > 0 ? "save" : "pass";
+  return deltaX > 0 ? "previous" : "next";
 }
