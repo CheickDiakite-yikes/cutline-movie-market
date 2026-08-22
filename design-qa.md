@@ -1,55 +1,65 @@
-# Design QA
+# Cutline design QA
 
-## Evidence surface
+## Evidence
 
-- Browser: Codex in-app Browser
-- URL: local Vite prototype at `http://127.0.0.1:5173/`
-- Browser viewport available for this pass: 1280 × 720, device pixel ratio 1
-- Document size on the final Scout view: 1280 × 798; no horizontal overflow
-- Desktop product target retained in CSS and contribution guidance: 1440 × 900
-- States inspected: live Resident Evil / Above 80, live Resident Evil / Above 75, Live heat source drawer, unmodeled Mutiny market-only state, Saved Ideas with modeled and unmodeled items, remove and migration behavior
-- Console: no warning or error entries; only Vite connection messages and the React development-tools notice
-- Captured product image: `docs/assets/cutline-scout-live.jpg`
+- Source visual truth: `/var/folders/vv/nxhl855j0mxb1r8c6qdtfhnw0000gn/T/codex-clipboard-0c4ff1e2-7b2f-4085-a6d1-78e94284f84a.png`
+- Browser-rendered implementation: `docs/assets/cutline-mobile-scout.png`
+- Side-by-side normalized comparison: `docs/assets/cutline-mobile-comparison.png`
+- Selected state: mobile Scout, Resident Evil, Above 80, unsaved, live Kalshi market context, historical model connected.
+- Source pixels: 853 × 1844. Source was normalized to 390 × 844 without a device frame.
+- Implementation CSS viewport: 390 × 844 at device scale factor 1. The in-app browser has a fixed desktop panel, so a same-origin 390 × 844 iframe was used only as the capture viewport. Browser DOM measurements verified `window.innerWidth = 390`, `window.innerHeight = 844`, card `361 × 788`, document `390 × 844`, actions at y=746–816, and swipe cue at y=816–844. The browser screenshot was cropped to the verified 390 × 844 content viewport.
+- Desktop regression surface: 1280 × 720 in the same in-app browser. The document measured 1280 pixels wide with no horizontal overflow; desktop Scout remained visible and mobile Scout remained hidden.
 
-The in-app Browser surface could not be resized during this run, so this document does not upgrade the 1280 × 720 observation into a claimed 1440 × 900 capture. At the smaller viewport the page has 78 pixels of vertical overflow and no horizontal overflow; the 1440 × 900 desktop target remains the release contract.
+## Full-view comparison
 
-## Visual result
+The final side-by-side comparison uses equal-size, content-only mobile frames. The implementation preserves the selected mock's dominant movie art, oversized title, flat editorial market ticket, live price versus historical score split, paired recommendation and synthesis, three tappable evidence rows, persistent Pass and Save actions, swipe cue, and next-card peek. The requested Saved tab is intentionally added beside the Cutline wordmark.
 
-The multi-source changes preserve the editorial single-frame direction: movie art and market context dominate the first band; source scores, synthesis, and decision actions remain in the second band; Save and Pass stay decisive. The continuous-market selector is a compact editorial strip rather than a dashboard sidebar.
+The implementation uses the repository's real Resident Evil artwork rather than recreating the generated poster. Its crop is therefore not pixel-identical to the ImageGen composition, but the revised 78% focal position keeps the red title, release line, character, and fire visible in the same hero region. The next event is a truthful market-only state without configured artwork, so its peek uses the real live title on an ink surface rather than borrowing or inventing a poster.
 
-The main frame now distinguishes four truthful states:
+## Focused-region comparison
 
-- live Kalshi last trade, bid/ask, close time, and observation freshness;
-- reproducible Kaggle/TMDB historical priors for configured movies;
-- an audited 278-label Rotten Tomatoes benchmark with calibration explicitly pending; and
-- unconfigured live events rendered as `MARKET ONLY`, with a designed poster placeholder and all historical scores withheld.
+- Header: Cutline, Saved 00, and 01 / 20 fit on one line with no overflow. Saved is a working navigation control, as requested.
+- Market ticket: Above 80, 74¢, bid/ask, historical 63, and Trace Score preserve the mock's hierarchy and accurately distinguish live market context from a historical prior.
+- Recommendation: Pass for now and the critic-calibration boundary remain visible before action.
+- Evidence rows: Fit 63, Talent 66, and Coverage 88 are individually tappable and open the existing provenance drawer.
+- Actions: Pass and Save remain in the persistent bottom thumb zone. The complete swipe cue is visible at y=816–844.
+- Icons: Phosphor caret and arrow icons are used consistently; no text glyphs, inline SVG art, or CSS-drawn icons replace the source controls.
 
-In the captured Resident Evil state, the Kalshi API returned 20 active KXRT events. The selected Above 80 contract showed a 74% last trade and 75¢ / 77¢ bid/ask at that moment. Those values are time-sensitive browser observations, not committed fixtures or model outputs.
+## Required fidelity surfaces
 
-## Source rationale QA
+- Fonts and typography: Anton supplies the condensed display weight; IBM Plex Sans Condensed supplies labels and navigation; Georgia remains limited to synthesis text. Sizes, line heights, tracking, and wrapping were checked at 390 pixels. No app-specific text clips or overlaps.
+- Spacing and layout rhythm: the 56-pixel header plus 788-pixel card fit exactly in the 844-pixel viewport. Thin rules, flat surfaces, two-column splits, three evidence rows, 70-pixel actions, and 28-pixel gesture cue match the source hierarchy.
+- Colors and visual tokens: implementation uses Cutline's paper, ink, brick red, and pale blue tokens. The saved state changes the Save surface without presenting a trade state.
+- Image quality and asset fidelity: the checked-in 2000 × 3000 poster is sharp, correctly cropped, and not stretched. The generated mock's fictional next-card imagery is intentionally not reproduced for an unconfigured event.
+- Copy and content: live market price, historical score, no-calibrated-edge language, and decision-support boundary remain truthful. The UI does not expose a Buy or Trade control.
 
-The Live heat drawer exposes:
+## Interaction and browser QA
 
-- Kalshi as `CONNECTED`, with an observation timestamp and the fetched contract sample;
-- Rotten Tomatoes history as `BENCHMARK ONLY`, with 278 eligible labels and 12 exact TMDB joins;
-- trailer, search, and social as `NOT CONNECTED`;
-- no composite live score;
-- the critic dataset provenance link; and
-- the direct guardrail that market price is context, not a model feature.
+- Trace Score opened the Historical fit drawer; the drawer showed the comparable-film cohort and critic benchmark boundary, then closed successfully.
+- Saved 00 opened the mobile Saved Ideas empty state and the Cutline wordmark returned to Scout.
+- Save created the Resident Evil research snapshot, advanced to the next live event, and updated Saved to 01. The saved row was visible and removable.
+- Pass advanced from Resident Evil to Insidious: Out of the Further.
+- ArrowRight on the focused card exercised the accessible keyboard-equivalent save-and-advance path.
+- Unit tests cover decisive right/save, left/pass, short drag, tap, and vertical-scroll classification.
+- A reload check observed no console or page-error event.
+- Desktop Scout remained visually unchanged at 1280 × 720 with the live 20-event slate and existing score/synthesis layout.
 
-The historical rationale continues to expose the 77-film cohort, factor weights and contributions, samples, example films, financial completeness, February 17, 2026 freshness, and TMDB attribution.
+## Comparison history
 
-## Interaction QA
+1. Initial browser pass — blocked.
+   - [P2] Hero crop emphasized the fog field and placed the Resident Evil title at the lower edge, losing the mock's title-plus-character focal read.
+   - [P2] Market question was arranged as a split horizontal row instead of the mock's stacked editorial label and question.
+   - Fixes: moved the real poster focal position from 32% to 78%; stacked the market label above the tappable threshold; isolated the comparison origin so the source and implementation both used the unsaved state.
+2. Final browser pass — passed.
+   - Post-fix comparison shows the real title, date line, central character, and fire in the hero; the market question now follows the selected hierarchy; the complete action and swipe zones fit inside the measured viewport.
 
-- The KXRT selector listed configured and unconfigured active movies in one continuous slate.
-- Above 75 / 80 / 85 controls changed the selected live contract and values without producing a critic probability or edge.
-- Selecting Mutiny displayed its own live market context, a non-invented artwork placeholder, and four unavailable historical scores. It did not borrow Resident Evil data.
-- All score buttons opened the corresponding source rationale; the visible Close control worked.
-- Saving Mutiny produced a second Saved Ideas row with its saved market snapshot and no historical score.
-- Removing that QA item restored the pre-existing Resident Evil idea.
-- The original Resident Evil local-storage shape migrated to the current artwork, release label, and 63 historical-fit context.
-- Export and Import controls were visible; their versioning, validation, merge, and deduplication behavior is covered by automated tests.
+## Findings
 
-## Final result
+No actionable P0, P1, or P2 findings remain.
 
-Passed for the tested 1280 × 720 browser surface and interaction states. No actionable P0, P1, or P2 visual, truth-labeling, or interaction defect remains. A fresh 1440 × 900 capture should still be included in any later release process that provides a resizable browser surface.
+## Follow-up polish
+
+- [P3] Configure real artwork for additional live events so the next-card peek can show a cinematic image rather than the honest market-only title treatment.
+- [P3] Validate touch drag feel on a physical iPhone before treating gesture velocity and threshold as release-calibrated.
+
+final result: passed

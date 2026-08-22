@@ -20,3 +20,4 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - Keep source layers separate: configured Kaggle/TMDB historical priors, the audited Rotten Tomatoes benchmark, live Kalshi market context, and future critic/trailer/search/social signals must retain their own provenance and freshness. A market price is never a model feature by default.
 - Saved ideas must remain portable between teammates. Preserve versioned JSON export/import even if authenticated shared storage is added later.
 - Product is decision support only. It may link to Kalshi but must not imply guaranteed returns or place trades.
+- Mobile Scout uses a single-viewport, market-ticket-first swipe deck based on the selected August 2026 mock: left passes, right saves, accessible buttons mirror both actions, and the Saved tab sits beside the Cutline wordmark. Preserve the existing desktop composition.

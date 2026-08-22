@@ -20,9 +20,11 @@ npm test
 For visible UI changes, also inspect:
 
 - the 1440 × 900 Scout view;
+- the 390 × 844 mobile Scout deck, including the next-card cue and persistent action area;
 - all score-rationale states, especially unavailable signals;
 - Above 75 / 80 / 85 switching;
-- Save, Remove, Pass, and Saved Ideas navigation; and
+- Save, Remove, Pass, and Saved Ideas navigation;
+- left-to-pass, right-to-save, and keyboard-equivalent deck movement; and
 - browser console warnings and errors.
 
 ## Data changes

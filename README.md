@@ -2,13 +2,15 @@
 
 **Explainable movie-market intelligence for researching how upcoming releases may perform.**
 
-Cutline brings a continuously refreshed slate of movie prediction markets, historical evidence, and research decisions into one cinematic desktop frame. Instead of returning a mysterious score, it lets a user open every signal and inspect the sample, weights, contribution, freshness, comparable films, and source provenance behind it.
+Cutline brings a continuously refreshed slate of movie prediction markets, historical evidence, and research decisions into one cinematic desktop frame and a one-card mobile swipe deck. Instead of returning a mysterious score, it lets a user open every signal and inspect the sample, weights, contribution, freshness, comparable films, and source provenance behind it.
 
 [Current Sites preview](https://cutline-movie-market.cheicolate.chatgpt.site/) · [Architecture](docs/architecture.md) · [Historical methodology](docs/historical-data.md) · [Contributing](CONTRIBUTING.md)
 
 > **Repository status:** `main` contains the configuration-driven historical pipeline, audited critic benchmark, public Kalshi market adapter, and portable Saved Ideas workflow. Resident Evil remains the first fully modeled fixture; other active KXRT events appear as truthful **live market only** states until a movie configuration is generated.
 
 ![Cutline Scout view showing the live Resident Evil market, historical scores, critic benchmark boundary, and decision actions](docs/assets/cutline-scout-live.jpg)
+
+![Cutline mobile Scout view showing the live market ticket, explainable historical signals, Saved tab, and Pass and Save actions](docs/assets/cutline-mobile-scout.png)
 
 ## Why Cutline exists
 
@@ -26,7 +28,7 @@ Cutline is designed to make that reasoning visible. It is a research and decisio
 
 The current prototype supports a repeatable multi-movie research loop:
 
-1. **Select an active movie market.** The KXRT slate comes from Kalshi's public, unauthenticated market-data API and refreshes every 60 seconds while the application is open.
+1. **Select or swipe to an active movie market.** The KXRT slate comes from Kalshi's public, unauthenticated market-data API and refreshes every 60 seconds while the application is open. On mobile, swipe left to pass or right to save and advance; the visible buttons provide the same actions.
 2. **Orient on the release.** See configured movie art and historical context when available; unconfigured events remain visibly market-only.
 3. **Inspect the evidence.** Open Historical fit, Live heat, Talent prior, or Data coverage to trace the underlying evidence and source status.
 4. **Read the synthesis.** Cutline explains what the historical and critic layers support and what they cannot yet conclude.
@@ -364,7 +366,7 @@ The current suite verifies:
 - scoped Kalshi proxy success and fail-closed behavior; and
 - required Sites packaging files.
 
-Visible UI changes should also be checked in a real browser at the 1440 × 900 desktop target, including threshold switching, all score drawers, Save, Remove, Pass, Saved Ideas, layout overflow, and console errors.
+Visible UI changes should also be checked in a real browser at the 1440 × 900 desktop target and the 390 × 844 mobile target, including threshold switching, score drawers, Save, Remove, Pass, Saved navigation, swipe or keyboard-equivalent movement, layout overflow, and console errors.
 
 ## Contribution workflow
 

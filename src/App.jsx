@@ -1,4 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import "@fontsource/anton";
+import "@fontsource/ibm-plex-sans-condensed/400.css";
+import "@fontsource/ibm-plex-sans-condensed/600.css";
+import "@fontsource/ibm-plex-sans-condensed/700.css";
+import { ArrowLeft, ArrowRight, CaretRight } from "@phosphor-icons/react";
 import criticBenchmark from "./data/critic-benchmark.json";
 import {
   chooseThresholds,
@@ -14,6 +19,7 @@ import {
   normalizeIdeas,
   parseIdeasExport,
 } from "./lib/ideas.js";
+import { classifySwipe } from "./lib/swipe.js";
 
 const marketModules = import.meta.glob("./data/markets/*.json", {
   eager: true,
@@ -245,7 +251,7 @@ function createLiveScore(liveConnected, liveCached, liveState, criticCount, crit
   };
 }
 
-function Header({ view, setView, savedCount, liveState }) {
+function Header({ view, setView, savedCount, liveState, position, total }) {
   const freshness =
     liveState.status === "live"
       ? `KALSHI LIVE · ${compactDate(liveState.slate?.source?.observedAt)}`
@@ -254,17 +260,25 @@ function Header({ view, setView, savedCount, liveState }) {
         : "KALSHI CONNECTING";
   return (
     <header className="topbar">
-      <button className="brand" onClick={() => setView("scout")} aria-label="Open Cutline scout">
-        <span className="brand-mark">CUTLINE</span>
-        <span className="brand-sub">MOVIE MARKET INTELLIGENCE</span>
-      </button>
+      <div className="brand-cluster">
+        <button className="brand" onClick={() => setView("scout")} aria-label="Open Cutline scout">
+          <span className="brand-mark">CUTLINE</span>
+          <span className="brand-sub">MOVIE MARKET INTELLIGENCE</span>
+        </button>
+        <button className={view === "saved" ? "mobile-saved-tab active" : "mobile-saved-tab"} onClick={() => setView("saved")}>
+          Saved <span>{String(savedCount).padStart(2, "0")}</span>
+        </button>
+      </div>
       <nav className="primary-nav" aria-label="Primary navigation">
-        <button className={view === "scout" ? "nav-link active" : "nav-link"} onClick={() => setView("scout")}>Scout</button>
-        <button className={view === "saved" ? "nav-link active" : "nav-link"} onClick={() => setView("saved")}>Saved ideas <span className="nav-count">{String(savedCount).padStart(2, "0")}</span></button>
+        <button className={view === "scout" ? "nav-link nav-scout active" : "nav-link nav-scout"} onClick={() => setView("scout")}>Scout</button>
+        <button className={view === "saved" ? "nav-link nav-saved active" : "nav-link nav-saved"} onClick={() => setView("saved")}>Saved ideas <span className="nav-count">{String(savedCount).padStart(2, "0")}</span></button>
       </nav>
       <div className={`freshness ${liveState.status}`}>
         <span className="freshness-dot" aria-hidden="true" />
         {freshness}
+      </div>
+      <div className="mobile-progress" aria-label={view === "scout" ? `Trade idea ${position} of ${total}` : `${savedCount} saved ideas`}>
+        {view === "scout" ? <><strong>{String(position).padStart(2, "0")}</strong><span>/</span>{String(total).padStart(2, "0")}</> : <><strong>{String(savedCount).padStart(2, "0")}</strong><span>SAVED</span></>}
       </div>
     </header>
   );
@@ -376,7 +390,198 @@ function MoviePanel({ event, model, position, total }) {
   );
 }
 
-function ScoutView({ event, model, events, liveState, scoreDetails, saved, onSave, onPass, onOpenScore }) {
+function MobileSwipeCard({
+  event,
+  model,
+  events,
+  threshold,
+  setThreshold,
+  saved,
+  onSave,
+  onPass,
+  onAdvance,
+  onOpenScore,
+}) {
+  const [dragX, setDragX] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const gestureRef = useRef(null);
+  const animationTimerRef = useRef(null);
+  const eventIndex = Math.max(0, events.findIndex((item) => item.eventTicker === event?.eventTicker));
+  const nextEvent = events.length > 1 ? events[(eventIndex + 1) % events.length] : null;
+  const nextModel = MODEL_BY_EVENT.get(nextEvent?.eventTicker) || null;
+  const options = chooseThresholds(event, model?.market.kalshi.thresholds || [75, 80, 85]);
+  const market = event?.markets.find((item) => item.threshold === threshold);
+  const midpoint = market?.yesBid !== null && market?.yesAsk !== null
+    ? Math.round((market.yesBid + market.yesAsk) / 2)
+    : null;
+  const price = market?.lastPrice ?? midpoint;
+  const scoreRows = [
+    {
+      key: "historical",
+      label: "FIT",
+      value: model?.scores.historicalFit.value ?? null,
+      detail: model ? `${model.cohort.sampleSize} comparable releases anchor the prior.` : "Movie-specific historical cohort not generated.",
+    },
+    {
+      key: "talent",
+      label: "TALENT",
+      value: model?.scores.talentPrior.value ?? null,
+      detail: model ? "Cast, director, and producer track record." : "Named-talent joins are not generated.",
+    },
+    {
+      key: "coverage",
+      label: "COVERAGE",
+      value: model?.scores.dataCoverage.value ?? null,
+      detail: model ? "Availability only — not model confidence." : "Target data coverage is not assessed.",
+    },
+  ];
+
+  useEffect(() => {
+    setDragX(0);
+    setIsAnimating(false);
+  }, [event?.eventTicker]);
+
+  useEffect(() => () => window.clearTimeout(animationTimerRef.current), []);
+
+  const cycleThreshold = () => {
+    const index = options.indexOf(threshold);
+    setThreshold(options[(index + 1) % options.length]);
+  };
+
+  const completeSwipe = (direction) => {
+    if (isAnimating) return;
+    setIsAnimating(true);
+    setDragX(direction === "right" ? window.innerWidth * 1.15 : window.innerWidth * -1.15);
+    animationTimerRef.current = window.setTimeout(() => {
+      if (direction === "right") onSave({ threshold, market });
+      else onPass();
+      onAdvance(1);
+      setDragX(0);
+      setIsAnimating(false);
+    }, 190);
+  };
+
+  const handlePointerDown = (pointerEvent) => {
+    if (pointerEvent.pointerType === "mouse" && pointerEvent.button !== 0) return;
+    if (pointerEvent.target.closest("button, a")) return;
+    gestureRef.current = {
+      id: pointerEvent.pointerId,
+      startX: pointerEvent.clientX,
+      startY: pointerEvent.clientY,
+      deltaX: 0,
+      deltaY: 0,
+    };
+    pointerEvent.currentTarget.setPointerCapture(pointerEvent.pointerId);
+  };
+
+  const handlePointerMove = (pointerEvent) => {
+    const gesture = gestureRef.current;
+    if (!gesture || gesture.id !== pointerEvent.pointerId || isAnimating) return;
+    gesture.deltaX = pointerEvent.clientX - gesture.startX;
+    gesture.deltaY = pointerEvent.clientY - gesture.startY;
+    if (Math.abs(gesture.deltaX) > Math.abs(gesture.deltaY)) setDragX(gesture.deltaX);
+  };
+
+  const handlePointerUp = (pointerEvent) => {
+    const gesture = gestureRef.current;
+    if (!gesture || gesture.id !== pointerEvent.pointerId || isAnimating) return;
+    gestureRef.current = null;
+    const result = classifySwipe(gesture.deltaX, gesture.deltaY);
+    if (result === "save") completeSwipe("right");
+    else if (result === "pass") completeSwipe("left");
+    else setDragX(0);
+  };
+
+  const title = model?.market.title || event?.title || "Unconfigured movie";
+  const synthesis = model
+    ? "Market is live; historical fit is moderate; critic probability is withheld."
+    : "Market is live; movie-specific historical evidence is not generated."
+  const recommendation = model ? "PASS FOR NOW" : "RESEARCH ONLY";
+
+  return (
+    <section className="mobile-scout" aria-label="Swipe through movie trade ideas">
+      {nextEvent && (
+        <div className={nextModel ? "mobile-next-peek" : "mobile-next-peek unmodeled"} aria-hidden="true">
+          {nextModel ? <img src={nextModel.market.artwork} alt="" /> : <span>{nextEvent.title}</span>}
+        </div>
+      )}
+      <article
+        className={isAnimating ? "mobile-trade-card animating" : "mobile-trade-card"}
+        style={{ "--drag-x": `${dragX}px`, "--drag-rotate": `${dragX / 30}deg` }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={() => { gestureRef.current = null; setDragX(0); }}
+        onKeyDown={(keyEvent) => {
+          if (keyEvent.key === "ArrowLeft") completeSwipe("left");
+          if (keyEvent.key === "ArrowRight") completeSwipe("right");
+        }}
+        tabIndex="0"
+        aria-label={`${title}. Swipe left to pass or right to save.`}
+      >
+        <div className={model ? "mobile-movie-art" : "mobile-movie-art unmodeled"}>
+          {model ? (
+            <img src={model.market.artwork} alt={model.market.artworkAlt} draggable="false" />
+          ) : (
+            <div><span>LIVE MARKET ONLY</span><strong>{title}</strong><small>POSTER + HISTORICAL MODEL QUEUED</small></div>
+          )}
+        </div>
+
+        <div className="mobile-ticket">
+          <section className="mobile-title-block">
+            <p>{model?.market.releaseDateLabel || shortDate(event?.closeTime)} <span>·</span> {model?.market.genreLabel || "LIVE MARKET"}</p>
+            <h1>{title}</h1>
+            <span className="mobile-market-source">KALSHI <i>·</i> ROTTEN TOMATOES</span>
+          </section>
+
+          <section className="mobile-market-ticket" aria-label="Active market snapshot">
+            <button className="mobile-market-question" onClick={cycleThreshold} aria-label="Change Rotten Tomatoes score threshold">
+              <span>MARKET QUESTION</span>
+              <strong>ABOVE {threshold}?</strong>
+            </button>
+            <div className="mobile-market-columns">
+              <div className="mobile-live-price">
+                <span>LIVE MARKET</span>
+                <strong className={price == null ? "unavailable-value" : ""}>{price == null ? "—" : `${price}¢`}</strong>
+                <p>{market ? `${market.yesBid ?? "—"}¢ / ${market.yesAsk ?? "—"}¢` : "— / —"}</p>
+                <small>BID / ASK</small>
+              </div>
+              <div className="mobile-model-score">
+                <span>HISTORICAL MODEL</span>
+                <strong>{displayScore(model?.scores.historicalFit.value ?? null)}</strong>
+                <button onClick={() => onOpenScore("historical")}>TRACE SCORE <CaretRight aria-hidden="true" weight="bold" /></button>
+              </div>
+            </div>
+          </section>
+
+          <section className="mobile-callout">
+            <div><span>RECOMMENDATION</span><strong>{recommendation}</strong><p>{model ? "No calibrated critic edge." : "Historical score withheld."}</p></div>
+            <div><span>SYNTHESIS</span><p>{synthesis}</p></div>
+          </section>
+
+          <section className="mobile-score-list" aria-label="Explainable model scores">
+            {scoreRows.map((row) => (
+              <button key={row.key} onClick={() => onOpenScore(row.key)}>
+                <span>{row.label}</span>
+                <strong>{displayScore(row.value)}</strong>
+                <p>{row.detail}</p>
+                <CaretRight aria-hidden="true" weight="bold" />
+              </button>
+            ))}
+          </section>
+
+          <div className="mobile-actions" aria-label="Trade idea actions">
+            <button className="mobile-pass" onClick={() => completeSwipe("left")}><strong>PASS</strong><span>NO EDGE</span></button>
+            <button className={saved ? "mobile-save saved" : "mobile-save"} onClick={() => completeSwipe("right")}><strong>{saved ? "SAVED" : "SAVE"}</strong><span>{saved ? "IN IDEA BOOK" : "ADD TO IDEAS"}</span></button>
+          </div>
+          <div className="mobile-swipe-cue" aria-hidden="true"><ArrowLeft weight="bold" /><span>SWIPE LEFT / RIGHT</span><ArrowRight weight="bold" /></div>
+        </div>
+      </article>
+    </section>
+  );
+}
+
+function ScoutView({ event, model, events, liveState, scoreDetails, saved, onSave, onPass, onAdvance, onOpenScore }) {
   const options = chooseThresholds(event, model?.market.kalshi.thresholds || [75, 80, 85]);
   const preferred = model?.market.kalshi.defaultThreshold;
   const [threshold, setThreshold] = useState(preferred && options.includes(preferred) ? preferred : options[0]);
@@ -392,11 +597,12 @@ function ScoutView({ event, model, events, liveState, scoreDetails, saved, onSav
 
   return (
     <main className="scout-view">
-      <section className="feature-grid" aria-label="Featured movie trade idea">
+      <MobileSwipeCard event={event} model={model} events={events} threshold={threshold} setThreshold={setThreshold} saved={saved} onSave={onSave} onPass={onPass} onAdvance={onAdvance} onOpenScore={onOpenScore} />
+      <section className="feature-grid desktop-scout" aria-label="Featured movie trade idea">
         <MoviePanel event={event} model={model} position={eventPosition} total={events.length} />
         <MarketPanel event={event} model={model} threshold={threshold} setThreshold={setThreshold} liveState={liveState} />
       </section>
-      <section className="analysis-grid" aria-label="Cutline analysis">
+      <section className="analysis-grid desktop-scout" aria-label="Cutline analysis">
         <div className="score-rail">
           <div className="score-rail-title"><p className="eyebrow">WHY THIS MODEL MOVED</p><span>SELECT A SCORE TO TRACE IT</span></div>
           <div className="scores">{Object.entries(scoreDetails).map(([key, score]) => <ScoreButton key={key} scoreKey={key} score={score} onOpen={onOpenScore} />)}</div>
@@ -424,7 +630,7 @@ function ScoutView({ event, model, events, liveState, scoreDetails, saved, onSav
           </div>
         </aside>
       </section>
-      <footer className="data-note"><span>KALSHI LIVE MARKET CONTEXT · PUBLIC API</span><span>TMDB PRIORS + RT OUTCOME BENCHMARK · PROBABILITY NOT CALIBRATED</span><span>NOT FINANCIAL ADVICE</span></footer>
+      <footer className="data-note desktop-scout"><span>KALSHI LIVE MARKET CONTEXT · PUBLIC API</span><span>TMDB PRIORS + RT OUTCOME BENCHMARK · PROBABILITY NOT CALIBRATED</span><span>NOT FINANCIAL ADVICE</span></footer>
     </main>
   );
 }
@@ -565,6 +771,7 @@ export function App() {
   const model = MODEL_BY_EVENT.get(selectedEvent?.eventTicker) || null;
   const scoreDetails = useMemo(() => buildScoreDetails(model, liveState), [model, liveState]);
   const saved = savedItems.some((item) => item.eventTicker === selectedEvent?.eventTicker);
+  const selectedPosition = Math.max(1, events.findIndex((item) => item.eventTicker === selectedEvent?.eventTicker) + 1);
 
   useEffect(() => {
     window.localStorage.setItem(IDEA_STORAGE_KEY, JSON.stringify(savedItems));
@@ -632,15 +839,22 @@ export function App() {
     }
   };
 
+  const advanceEvent = (step = 1) => {
+    if (!events.length) return;
+    const currentIndex = Math.max(0, events.findIndex((item) => item.eventTicker === selectedEvent?.eventTicker));
+    const nextIndex = (currentIndex + step + events.length) % events.length;
+    setSelectedEventTicker(events[nextIndex].eventTicker);
+  };
+
   return (
     <div className="app-shell">
-      <Header view={view} setView={setView} savedCount={savedItems.length} liveState={liveState} />
+      <Header view={view} setView={setView} savedCount={savedItems.length} liveState={liveState} position={selectedPosition} total={events.length} />
       {view === "saved" ? (
         <SavedView items={savedItems} onOpenScout={() => setView("scout")} onRemove={(id) => setSavedItems((items) => items.filter((item) => item.id !== id))} onExport={exportIdeas} onImport={importIdeas} />
       ) : (
         <>
           <SlateStrip events={events} selectedEventTicker={selectedEvent?.eventTicker || DEFAULT_EVENT} onSelect={setSelectedEventTicker} modeledCount={MODELS.length} liveState={liveState} />
-          <ScoutView event={selectedEvent} model={model} events={events} liveState={liveState} scoreDetails={scoreDetails} saved={saved} onSave={saveIdea} onPass={() => announce("Passed for now · select another live market")} onOpenScore={setScoreKey} />
+          <ScoutView event={selectedEvent} model={model} events={events} liveState={liveState} scoreDetails={scoreDetails} saved={saved} onSave={saveIdea} onPass={() => announce("Passed for now · moved to the next live market")} onAdvance={advanceEvent} onOpenScore={setScoreKey} />
         </>
       )}
       {scoreKey && <ScoreDrawer scoreKey={scoreKey} scoreDetails={scoreDetails} model={model} liveState={liveState} onClose={() => setScoreKey(null)} />}

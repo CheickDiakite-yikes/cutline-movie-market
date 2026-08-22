@@ -12,15 +12,17 @@
     "data:verify": "python3 scripts/verify_data_cache.py",
     "data:download": "bash scripts/download_all_data.sh",
     "test:historical": "python3 -m unittest discover -s tests -p 'test_*.py' -v",
-    "test:ui-data": "node --test tests/kalshi-adapter.test.mjs tests/ideas.test.mjs",
+    "test:ui-data": "node --test tests/kalshi-adapter.test.mjs tests/ideas.test.mjs tests/swipe.test.mjs",
     "test:sites": "node --test tests/sites-worker.test.mjs",
     "test": "npm run test:historical && npm run test:ui-data && npm run build && npm run test:sites"
   },
   "dependencies": {
+    "@fontsource/anton": "^5.3.0",
+    "@fontsource/ibm-plex-sans-condensed": "^5.3.0",
+    "@phosphor-icons/react": "^2.1.10",
     "@vitejs/plugin-react": "5.0.4",
-    "vite": "6.4.2",
     "react": "19.2.0",
-    "react-dom": "19.2.0"
-  },
-  "devDependencies": {}
+    "react-dom": "19.2.0",
+    "vite": "6.4.2"
+  }
 }
