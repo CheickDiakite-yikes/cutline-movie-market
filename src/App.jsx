@@ -1,70 +1,82 @@
 import { useEffect, useMemo, useState } from "react";
+import historical from "./data/resident-evil-historical.json";
 
 const MARKET_URL = "https://kalshi.com/markets/kxrt/rotten-tomatoes-scores/kxrt-res";
+const DATASET_URL = historical.source.kaggleUrl;
+const TMDB_URL = historical.source.tmdbUrl;
+const cohort = historical.cohort;
+const historicalFit = historical.scores.historicalFit;
+const talentPrior = historical.scores.talentPrior;
+const dataCoverage = historical.scores.dataCoverage;
+
+const displayScore = (value) => (typeof value === "number" ? Math.round(value) : "—");
+const money = (value) => `$${Math.round(value / 1_000_000)}M`;
 
 const scoreDetails = {
-  critical: {
-    kicker: "Signal 01",
-    label: "Critical fit",
-    value: 86,
+  historical: {
+    kicker: "Historical 01",
+    label: "Historical fit",
+    value: historicalFit.value,
+    sampleSize: historicalFit.sampleSize,
     summary:
-      "Zach Cregger’s recent horror track record lifts the prior sharply, while the franchise’s uneven critical history keeps it below certainty.",
-    status: "Model input · illustrative",
-    factors: [
-      { label: "Director horror prior", value: 94, weight: "35%" },
-      { label: "Franchise critic history", value: 46, weight: "20%" },
-      { label: "Creative team fit", value: 88, weight: "25%" },
-      { label: "Distributor positioning", value: 82, weight: "20%" },
-    ],
+      `A reproducible ${displayScore(historicalFit.value)}/100 historical context score from prior TMDB community ratings. It is grounded in a ${cohort.sampleSize}-film comparable cohort, not Rotten Tomatoes critic outcomes.`,
+    status: `Kaggle / TMDB historical prior · ${historical.source.snapshotDate}`,
+    formula:
+      "Each factor is a TMDB community-rating prior on a 0–100 scale. Small filmographies shrink toward the comparable cohort, then the displayed weights are summed.",
+    caveat: "This score is not a Rotten Tomatoes Tomatometer estimate and does not imply a Kalshi threshold probability.",
+    factors: historicalFit.factors,
   },
-  audience: {
-    kicker: "Signal 02",
-    label: "Audience heat",
-    value: 78,
+  live: {
+    kicker: "Live 02",
+    label: "Live heat",
+    value: null,
+    sampleSize: null,
     summary:
-      "A globally recognized franchise and a strong director-led campaign create awareness, but normalized social-volume and sentiment feeds are not connected yet.",
-    status: "Partial data · confidence capped",
-    factors: [
-      { label: "Franchise awareness", value: 96, weight: "30%" },
-      { label: "Trailer velocity", value: 74, weight: "30%" },
-      { label: "Release proximity", value: 79, weight: "20%" },
-      { label: "Social sentiment", value: 58, weight: "20%" },
-    ],
+      "No live score is shown because critic reviews, trailer velocity, search interest, and social chatter are not connected. The manual Kalshi snapshot remains a separate reference input.",
+    status: "Unavailable · live connectors not configured",
+    formula: "No calculation runs until source timestamps, observations, and normalization rules are connected.",
+    caveat: "Unavailable signals contribute zero evidence, not a neutral or estimated score.",
+    factors: historical.unconnectedSignals.map((signal) => ({
+      label: signal.name,
+      value: null,
+      weight: null,
+      contribution: null,
+      sampleSize: null,
+      detail: signal.status,
+      titles: [],
+    })),
   },
   talent: {
-    kicker: "Signal 03",
+    kicker: "Historical 03",
     label: "Talent prior",
-    value: 69,
+    value: talentPrior.value,
+    sampleSize: talentPrior.sampleSize,
     summary:
-      "The cast supports the concept, but the film is being sold on Cregger’s authorship and the property more than conventional star power.",
-    status: "Historical prior · illustrative",
-    factors: [
-      { label: "Lead cast history", value: 66, weight: "30%" },
-      { label: "Ensemble depth", value: 74, weight: "25%" },
-      { label: "Producer history", value: 72, weight: "25%" },
-      { label: "Role / genre fit", value: 65, weight: "20%" },
-    ],
+      `The first four billed cast members, Zach Cregger, and the credited producers resolve to ${talentPrior.sampleSize} unique eligible prior films after deduplication.`,
+    status: `Kaggle / TMDB historical prior · ${historical.source.snapshotDate}`,
+    formula:
+      "Prior-film TMDB community ratings are deduplicated within each factor, shrunk toward the comparable cohort, and combined at the declared weights.",
+    caveat: "This score is not a Rotten Tomatoes Tomatometer estimate and does not imply a Kalshi threshold probability.",
+    factors: talentPrior.factors,
   },
-  confidence: {
-    kicker: "Signal 04",
-    label: "Confidence",
-    value: 71,
+  coverage: {
+    kicker: "Coverage 04",
+    label: "Data coverage",
+    value: dataCoverage.value,
+    sampleSize: dataCoverage.sampleSize,
     summary:
-      "Verified market, release, director and cast data make the direction useful; zero published reviews and partial social coverage still limit conviction.",
-    status: "Data coverage · 71%",
-    factors: [
-      { label: "Historical coverage", value: 91, weight: "35%" },
-      { label: "Market liquidity", value: 73, weight: "25%" },
-      { label: "Early reviews", value: 12, weight: "25%" },
-      { label: "Social recency", value: 61, weight: "15%" },
-    ],
+      "This is an availability score, not trade confidence. Historical ratings and named-talent joins are strong; target budget/runtime and much of the raw financial history are missing.",
+    status: `Availability only · ${historical.audit.rows.moviesParsed.toLocaleString()} parsed movies`,
+    formula: "Field-level completeness percentages are combined at the declared weights. No outcome probability is produced.",
+    caveat: "Coverage measures whether data exists, not whether the model is right.",
+    factors: dataCoverage.factors,
   },
 };
 
 const thresholds = {
-  75: { market: 73, price: 62, model: 81, stance: "LEAN YES", edge: 8 },
-  80: { market: 55, price: 56, model: 64, stance: "WATCH YES", edge: 9 },
-  85: { market: 48, price: 47, model: 44, stance: "NO EDGE", edge: -4 },
+  75: { market: 73, price: 62 },
+  80: { market: 55, price: 56 },
+  85: { market: 48, price: 47 },
 };
 
 function Header({ view, setView, savedCount }) {
@@ -86,7 +98,7 @@ function Header({ view, setView, savedCount }) {
 
       <div className="freshness">
         <span className="freshness-dot" aria-hidden="true" />
-        MARKET SNAPSHOT · AUG 21, 2026
+        MANUAL MARKET REF · AUG 21, 2026
       </div>
     </header>
   );
@@ -94,12 +106,13 @@ function Header({ view, setView, savedCount }) {
 
 function ScoreButton({ scoreKey, onOpen }) {
   const score = scoreDetails[scoreKey];
+  const scoreLabel = displayScore(score.value);
   return (
-    <button className="score-button" onClick={() => onOpen(scoreKey)} aria-label={`Explain ${score.label} score of ${score.value}`}>
-      <span className="score-number">{score.value}</span>
+    <button className={score.value === null ? "score-button unavailable" : "score-button"} onClick={() => onOpen(scoreKey)} aria-label={score.value === null ? `Explain why ${score.label} is unavailable` : `Explain ${score.label} score of ${scoreLabel}`}>
+      <span className="score-number">{scoreLabel}</span>
       <span className="score-copy">
         <span>{score.label}</span>
-        <small>OPEN RATIONALE</small>
+        <small>{score.value === null ? "WHY UNAVAILABLE" : "OPEN RATIONALE"}</small>
       </span>
     </button>
   );
@@ -129,19 +142,19 @@ function MarketPanel({ threshold, setThreshold }) {
 
       <div className="probability-grid">
         <div className="probability-block market-probability">
-          <span>MARKET</span>
+          <span>MARKET SNAPSHOT</span>
           <strong>{market.market}%</strong>
-          <small>YES {market.price}¢</small>
+          <small>MANUAL REF · YES {market.price}¢</small>
         </div>
         <div className="probability-block model-probability">
-          <span>CUTLINE MODEL</span>
-          <strong>{market.model}%</strong>
-          <small>PROTOTYPE ESTIMATE</small>
+          <span>RT PROBABILITY</span>
+          <strong className="unavailable-value">—</strong>
+          <small>CRITIC LABELS NOT CONNECTED</small>
         </div>
         <div className="edge-block">
           <span>MODEL EDGE</span>
-          <strong>{market.edge > 0 ? "+" : ""}{market.edge}</strong>
-          <small>POINTS</small>
+          <strong className="unavailable-value">—</strong>
+          <small>NOT CALCULATED</small>
         </div>
       </div>
 
@@ -151,8 +164,8 @@ function MarketPanel({ threshold, setThreshold }) {
           <strong>SEP 21 · 10:00 AM ET</strong>
         </div>
         <div>
-          <span className="market-meta-label">Status</span>
-          <strong>OPEN · 31 DAYS</strong>
+          <span className="market-meta-label">Snapshot freshness</span>
+          <strong>MANUAL · AUG 21</strong>
         </div>
       </div>
     </section>
@@ -161,7 +174,6 @@ function MarketPanel({ threshold, setThreshold }) {
 
 function ScoutView({ saved, onSave, onPass, onOpenScore }) {
   const [threshold, setThreshold] = useState(80);
-  const market = thresholds[threshold];
 
   return (
     <main className="scout-view">
@@ -200,33 +212,27 @@ function ScoutView({ saved, onSave, onPass, onOpenScore }) {
         <article className="thesis-panel">
           <div className="stance-row">
             <p className="eyebrow">CUTLINE CALL · ABOVE {threshold}</p>
-            <span className={`stance ${market.stance === "NO EDGE" ? "muted" : ""}`}>{market.stance}</span>
+            <span className="stance muted">RESEARCH ONLY</span>
           </div>
-          <h2>
-            {threshold === 80
-              ? "The market may be pricing the franchise’s baggage more heavily than Cregger’s recent form."
-              : threshold === 75
-                ? "The lower threshold offers the cleanest cushion, but the current ask leaves less room."
-                : "The model does not see enough separation above 85 to justify action."}
-          </h2>
+          <h2>Historical context is constructive, but it cannot price a Rotten Tomatoes threshold yet.</h2>
           <p>
-            Cregger’s horror prior and the campaign point above the market, while the franchise’s uneven critic history, zero published reviews and incomplete live social data keep confidence at 71. Save the thesis and watch for YES at or below {threshold === 75 ? "59" : threshold === 80 ? "52" : "42"}¢, or a material rise in verified early sentiment.
+            The reproducible Kaggle/TMDB layer scores historical fit at {displayScore(historicalFit.value)} and talent at {displayScore(talentPrior.value)}, anchored to {cohort.sampleSize} comparable Horror + Science Fiction releases. Those are community-rating priors—not critic outcomes—so Cutline is withholding a probability, edge, and entry price until Rotten Tomatoes calibration and live early indicators are connected.
           </p>
           <div className="source-line">
-            <span>VERIFIED: MARKET · RELEASE · CAST</span>
-            <span>PENDING: LIVE SOCIAL · EARLY REVIEWS</span>
+            <span>HISTORICAL: KAGGLE / TMDB · FEB 17, 2026</span>
+            <span>SEPARATE INPUTS: KALSHI · CRITICS · TRAILER · SEARCH · SOCIAL</span>
           </div>
         </article>
 
         <aside className="decision-panel" aria-label="Trade idea actions">
           <div>
             <p className="eyebrow light">DECISION</p>
-            <span className="decision-price">ENTRY WATCH ≤ {threshold === 75 ? "59" : threshold === 80 ? "52" : "42"}¢</span>
+            <span className="decision-price">NO CALIBRATED ENTRY</span>
             <p className="decision-note">Decision support only. No trade is placed here.</p>
           </div>
           <div className="decision-actions">
             <button className={saved ? "save-button saved" : "save-button"} onClick={() => onSave(threshold)}>
-              {saved ? "Idea saved" : "Save trade idea"}
+              {saved ? "Idea saved" : "Save research idea"}
             </button>
             <button className="pass-button" onClick={onPass}>Pass for now</button>
           </div>
@@ -234,8 +240,8 @@ function ScoutView({ saved, onSave, onPass, onOpenScore }) {
       </section>
 
       <footer className="data-note">
-        <span>LIVE MARKET SNAPSHOT FROM KALSHI</span>
-        <span>PROTOTYPE SCORES ARE ILLUSTRATIVE UNTIL DATA PIPELINES ARE CONNECTED</span>
+        <span>KAGGLE / TMDB HISTORICAL SNAPSHOT · CC BY-NC-SA 4.0</span>
+        <span>TMDB PRIORS ARE REPRODUCIBLE · RT PROBABILITY AND LIVE SIGNALS UNAVAILABLE</span>
         <span>NOT FINANCIAL ADVICE</span>
       </footer>
     </main>
@@ -281,11 +287,11 @@ function SavedView({ items, onOpenScout, onRemove }) {
               </div>
               <div className="idea-thesis">
                 <strong>RT score above {item.threshold}</strong>
-                <span>Director prior leads; reviews remain the unlock.</span>
+                <span>Historical prior saved; critic calibration and live signals remain the unlock.</span>
               </div>
-              <div className="idea-stat"><strong>{thresholds[item.threshold].model}%</strong><span>PROBABILITY</span></div>
-              <div className="idea-stat"><strong>≤ {item.entry}¢</strong><span>YES PRICE</span></div>
-              <div className="idea-status"><span>WATCHING</span><small>SAVED {item.savedAt}</small></div>
+              <div className="idea-stat"><strong>—</strong><span>RT PROBABILITY</span></div>
+              <div className="idea-stat"><strong>—</strong><span>NO ENTRY RULE</span></div>
+              <div className="idea-status"><span>RESEARCH</span><small>SAVED {item.savedAt}</small></div>
               <button className="remove-idea" onClick={() => onRemove(item.id)}>Remove</button>
             </article>
           ))}
@@ -307,6 +313,7 @@ function SavedView({ items, onOpenScout, onRemove }) {
 function ScoreDrawer({ scoreKey, onClose }) {
   const score = scoreDetails[scoreKey];
   if (!score) return null;
+  const financial = cohort.financialContext;
 
   return (
     <div className="drawer-backdrop" role="presentation" onMouseDown={onClose}>
@@ -319,25 +326,76 @@ function ScoreDrawer({ scoreKey, onClose }) {
           <button onClick={onClose} className="drawer-close">Close</button>
         </div>
         <div className="drawer-score">
-          <strong>{score.value}</strong>
-          <span>/ 100</span>
+          <strong className={score.value === null ? "unavailable-value" : ""}>{displayScore(score.value)}</strong>
+          <span>{score.value === null ? "NOT SCORED" : "/ 100"}</span>
         </div>
         <p className="drawer-summary">{score.summary}</p>
+        <div className="drawer-evidence-grid">
+          <div><span>{scoreKey === "live" ? "LIVE OBSERVATIONS" : "HISTORICAL COHORT"}</span><strong>{scoreKey === "live" ? "0 connected" : `${cohort.sampleSize} films`}</strong></div>
+          <div><span>SCORE SAMPLE</span><strong>{score.sampleSize ?? "N/A"}</strong></div>
+          <div><span>FRESHNESS</span><strong>{scoreKey === "live" ? "NOT CONNECTED" : "FEB 17, 2026"}</strong></div>
+          <div><span>OUTCOME</span><strong>{scoreKey === "live" ? "NOT CALCULATED" : "TMDB USER RATING"}</strong></div>
+        </div>
         <div className="factor-list">
           {score.factors.map((factor) => (
             <div className="factor" key={factor.label}>
               <div className="factor-copy">
                 <span>{factor.label}</span>
-                <span>{factor.weight} weight · {factor.value}/100</span>
+                <span>
+                  {factor.value === null
+                    ? "NOT CONNECTED"
+                    : `${factor.weight}% weight · ${factor.value}/100 · +${factor.contribution} pts`}
+                </span>
               </div>
-              <div className="factor-track"><span style={{ width: `${factor.value}%` }} /></div>
+              {factor.value !== null && <div className="factor-track"><span style={{ width: `${factor.value}%` }} /></div>}
+              <p className="factor-detail">{factor.detail} {factor.sampleSize !== null && `Sample n=${factor.sampleSize}.`}</p>
+              {factor.titles?.length > 0 && <p className="factor-titles">Examples: {factor.titles.join(" · ")}</p>}
             </div>
           ))}
         </div>
         <div className="drawer-formula">
           <span>CALCULATION</span>
-          <p>Weighted component scores are normalized to 100, then dampened when evidence is missing or stale.</p>
+          <p>{score.formula}</p>
         </div>
+        {scoreKey === "historical" && (
+          <div className="cohort-context">
+            <div className="cohort-context-head">
+              <span>COMPARABLE-FILM COHORT</span>
+              <strong>N={cohort.sampleSize}</strong>
+            </div>
+            <p>{historical.methodology.cohortRule}</p>
+            <div className="comparable-list">
+              {cohort.recentComparables.map((movie) => (
+                <div key={movie.title}>
+                  <span>{movie.title}</span>
+                  <span>{movie.releaseDate.slice(0, 4)} · {movie.rating.toFixed(1)} / 10 · {movie.votes.toLocaleString()} votes</span>
+                </div>
+              ))}
+            </div>
+            <div className="financial-line">
+              <span>FINANCIAL CONTEXT · N={financial.completeSampleSize}</span>
+              <strong>Median budget {money(financial.medianBudgetUsd)} · revenue {money(financial.medianRevenueUsd)}</strong>
+              <small>{financial.caveat}</small>
+            </div>
+          </div>
+        )}
+        {scoreKey === "live" ? (
+          <div className="drawer-provenance">
+            <span>SOURCE STATUS</span>
+            <p>{score.caveat}</p>
+            <p>The Kaggle historical layer does not fill or estimate these time-sensitive inputs.</p>
+          </div>
+        ) : (
+          <div className="drawer-provenance">
+            <span>PROVENANCE & LIMITS</span>
+            <p>{score.caveat}</p>
+            <p>{historical.source.attribution}</p>
+            <div>
+              <a href={DATASET_URL} target="_blank" rel="noreferrer">Kaggle dataset</a>
+              <a href={TMDB_URL} target="_blank" rel="noreferrer">TMDB source</a>
+            </div>
+          </div>
+        )}
         <div className="drawer-status">{score.status}</div>
       </aside>
     </div>
@@ -371,7 +429,6 @@ export function App() {
   const saved = savedItems.some((item) => item.movie === "Resident Evil");
 
   const saveIdea = (threshold) => {
-    const entry = threshold === 75 ? 59 : threshold === 80 ? 52 : 42;
     setSavedItems((items) => {
       const withoutMovie = items.filter((item) => item.movie !== "Resident Evil");
       return [
@@ -379,7 +436,7 @@ export function App() {
           id: "resident-evil-rt",
           movie: "Resident Evil",
           threshold,
-          entry,
+          entry: null,
           savedAt: "AUG 21",
         },
         ...withoutMovie,

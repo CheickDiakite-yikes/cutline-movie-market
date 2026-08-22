@@ -1,46 +1,53 @@
 # Design QA
 
-## Evidence
+## Evidence surface
 
-- Source visual truth: `qa-source-sketch.png`
-- Source pixels: 3024 x 4032 after orientation correction; the source is a photographed portrait wireframe, not a pixel-fidelity UI mock.
-- Implementation: `qa-implementation-scout-1440.png`
-- Implementation pixels and CSS viewport: 1440 x 900 at device pixel ratio 1.
-- Browser-rendered comparison: `qa-comparison.png`
-- State: Scout view, Resident Evil, Above 80 selected, saved state visible.
-- Full-view evidence: the comparison places the source sketch and final browser capture in one image. The implementation preserves the source hierarchy: primary movie image first, market context beside it, selectable scores below, synthesized recommendation below/adjacent, and persistent decision actions within one frame.
-- Focused-region evidence: a separate crop was not needed because the source is a low-detail wireframe. The browser screenshot is readable at native size, and score detail anatomy was verified by opening the Critical fit drawer.
+- Browser: Codex in-app Browser
+- URL: local Vite prototype at `http://127.0.0.1:5173/`
+- Desktop QA viewport: 1440 × 900, device pixel ratio 1
+- States inspected: Scout / Above 80, Scout / Above 85, Historical fit rationale, unavailable Live heat rationale, Saved Ideas with one saved Resident Evil item
+- Console: no warning or error entries in the final pass
+- Layout metrics: viewport, document, and body all measured exactly 1440 × 900 on the final Scout view; no page overflow
 
-## Findings
+## Visual result
 
-- No actionable P0, P1, or P2 findings remain.
-- Fonts and typography: the condensed utility labels, heavy display numerals, bold editorial headings, and serif analysis copy create a clear hierarchy. Text remains legible and contained at 1440 x 900.
-- Spacing and layout rhythm: the page fits exactly within the 1440 x 900 viewport with no horizontal or vertical overflow. Borders and repeated grid tracks translate the sketch into a disciplined single-frame composition.
-- Colors and visual tokens: paper, ink, cold blue, and blood-red accents follow the Resident Evil artwork and clearly separate verified market data, the prototype model, edge, and actions. Contrast is sufficient on the tested screen.
-- Image quality and asset fidelity: the real Resident Evil promotional image is sharp and correctly cropped. No placeholder, code-drawn illustration, or improvised logo replaces the movie artwork.
-- Copy and content: the exact user-selected Kalshi market is used. Current market values are separated from explicitly illustrative model values, and the decision-support limitation is visible.
-- Interaction states: threshold switching, score rationale drawer, Save Idea, Pass, Saved Ideas navigation, saved-row rendering, and Return to Scout all work.
-- Browser console: no error or warning entries in the final interaction pass.
+The historical-data changes preserve the selected editorial single-frame composition: movie art and market context dominate the first band; score traces, synthesis, and decision actions remain in one second band; Save and Pass stay visually decisive. The data changes do not introduce dashboard-card clutter or disturb the poster crop.
 
-## Comparison History
+The main frame now truthfully distinguishes three visual states:
 
-1. First browser capture: `qa-implementation-scout-1440-before-crop.png`.
-   - [P2] The initial movie-art crop emphasized the empty upper field and partially duplicated the poster title behind the interface title, reducing subject recognition.
-   - Fix: moved the artwork focal point lower so the official title, release line, central courier, vehicles, and fire establish the movie immediately.
-2. Post-fix browser capture: `qa-implementation-scout-1440.png`.
-   - The movie art now has a clear focal subject and the primary interface title remains readable on its dedicated band.
-   - The recomposed comparison in `qa-comparison.png` shows no remaining P0/P1/P2 mismatch against the source hierarchy.
+- manual Kalshi reference data in the market panel;
+- reproducible Kaggle/TMDB historical priors in the score rail; and
+- unavailable RT calibration and live inputs rendered as em dashes rather than estimated values.
 
-## Primary Interactions Tested
+At 1440 × 900 the final primary values are readable without scrolling: Historical fit 63, Live heat unavailable, Talent prior 66, and Data coverage 88. The decision area says `NO CALIBRATED ENTRY`, with decision-support-only copy directly below it.
 
-- Opened the Critical fit score rationale and verified its factor list and calculation explanation.
-- Switched from Above 80 to Above 85 and verified the market values and NO EDGE stance changed, then returned to Above 80.
-- Saved the Resident Evil idea and verified the Saved Ideas count and table row.
-- Returned to Scout and verified Pass for now shows a status message.
-- Confirmed the external market link targets the user-provided Kalshi URL.
+## Score rationale QA
 
-## Follow-up Polish
+The Historical fit drawer exposes:
 
-- P3: once live data connectors exist, replace the prototype signal labels with per-source freshness timestamps and observed sample sizes.
+- 77-film comparable cohort;
+- 151 unique source films contributing across the score's overlapping factors;
+- February 17, 2026 source freshness;
+- TMDB community rating as the historical outcome;
+- each factor's weight, normalized value, point contribution, and sample size;
+- named example films;
+- six recent comparable films;
+- 48-film complete financial sample with median budget and revenue;
+- Kaggle and TMDB provenance links; and
+- a direct warning that the score is not a Rotten Tomatoes or Kalshi threshold probability.
 
-final result: passed
+The Live heat drawer shows `0 connected`, `NOT CONNECTED` freshness, and `NOT CALCULATED` outcome. Kalshi, Rotten Tomatoes critics, trailer velocity, search, and social remain separate, unscored inputs.
+
+## Interaction QA
+
+- Above 75 / 80 / 85 threshold controls update the market question and preserve the uncalibrated model state.
+- All four score buttons open the correct rationale.
+- The Historical fit drawer is keyboard-dismissable with Escape and closes through its visible Close control.
+- Save research idea persists the selected threshold to Saved Ideas.
+- Saved Ideas shows no probability or entry rule, uses `RESEARCH` status, and preserves Return to Scout / Remove behavior.
+- Pass for now preserves its status toast.
+- External market and provenance links target the expected URLs.
+
+## Final result
+
+Passed. No actionable P0, P1, or P2 visual or interaction defects remain in the tested desktop surface.

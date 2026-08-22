@@ -14,4 +14,6 @@ Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts
 - Preserve the user's sketch structure: movie art and market context first; explainable signal scores and synthesized recommendation below; decisive Save Idea and Pass actions; a separate Saved Ideas view.
 - Use an editorial, cinematic visual system rather than generic dashboard cards.
 - Prototype model values must be identified as illustrative until a live scoring pipeline is connected. Never present estimated signals as verified market facts.
+- This is a non-commercial prototype; the February 2026 Kaggle/TMDB snapshot licensed CC BY-NC-SA 4.0 may be used as long as attribution and the non-commercial limitation stay explicit.
+- Keep the repository portable for teammates using Codex, Claude Code, or ordinary local tooling: preserve standard React/Vite/Python workflows, the Sites packaging contract, and truthful documentation of the current backend boundary.
 - Product is decision support only. It may link to Kalshi but must not imply guaranteed returns or place trades.

@@ -1,0 +1,354 @@
+{
+  "schemaVersion": 1,
+  "generatedFromSnapshot": "2026-02-17T19:30:06.547Z",
+  "target": {
+    "movieId": 1423191,
+    "title": "Resident Evil",
+    "releaseDateInDataset": "2026-09-09",
+    "language": "en",
+    "genres": [
+      "Horror",
+      "Science Fiction"
+    ],
+    "director": [
+      "Zach Cregger"
+    ],
+    "leadCast": [
+      "Austin Abrams",
+      "Paul Walter Hauser",
+      "Zach Cherry",
+      "Kali Reis"
+    ],
+    "producers": [
+      "Victor Hadida",
+      "Robert Kulzer",
+      "Roy Lee",
+      "Miri Yoon",
+      "Asad Qizilbash",
+      "Carter Swan"
+    ],
+    "targetOutcomeUsed": false
+  },
+  "source": {
+    "name": "The Movie Database (TMDB) Comprehensive Dataset",
+    "kaggleSlug": "rishabhkumar2003/the-movie-database-tmdb-comprehensive-dataset",
+    "kaggleUrl": "https://www.kaggle.com/datasets/rishabhkumar2003/the-movie-database-tmdb-comprehensive-dataset",
+    "tmdbUrl": "https://www.themoviedb.org/",
+    "version": 1,
+    "snapshotDate": "2026-02-17",
+    "lastUpdated": "2026-02-17T19:30:06.547Z",
+    "license": "CC BY-NC-SA 4.0",
+    "commercialUse": "Not permitted by the dataset license without separate permission; replace or license before production use.",
+    "attribution": "This product uses TMDB data but is not endorsed or certified by TMDB.",
+    "checksums": {
+      "movies.csv": "a7c2e7dcfba6b51f5052e0d182d568ec2a3ef7d69996dcb0079e92a1f9144d38",
+      "cast.csv": "26321e0c017f238e1ec8c3a03df224868ff439ede33a893399c503759ba7c1e7",
+      "crew.csv": "aa2c0f45413797c73682af107db4fe0ec26f3a10462b418fac1d0a17058bfe6c",
+      "genres.csv": "16ffc13ca26ec9afda0e6656e8eb4c0282ab91a200d37f14e5f482a366467c10",
+      "reviews.csv": "2260f51fe0b0505111b5ec7fda96915c1c4254a0be72e924e07d9a6e003627a9"
+    }
+  },
+  "audit": {
+    "rows": {
+      "moviesRaw": 9771,
+      "moviesParsed": 9770,
+      "cast": 150044,
+      "crew": 63632,
+      "genres": 19,
+      "reviews": 13073
+    },
+    "malformedMovieRowsSkipped": 1,
+    "duplicateMovieIds": 0,
+    "orphanCastRows": 0,
+    "orphanCrewRows": 0,
+    "missingnessPercent": {
+      "releaseDate": 0.6,
+      "runtime": 4.5,
+      "budget": 58.9,
+      "revenue": 58.8,
+      "voteAverage": 11.5,
+      "voteCount": 11.5,
+      "genres": 2.8,
+      "originalLanguage": 0.0
+    },
+    "schemaAssessment": "Relational joins are intact and IDs are unique after skipping one malformed movies.csv row. Zero budget/revenue values are treated as missing."
+  },
+  "methodology": {
+    "outcomeMetric": "TMDB vote_average (community rating), scaled from 0-10 to 0-100",
+    "notAProxyFor": "Rotten Tomatoes Tomatometer or Kalshi threshold probability",
+    "eligibility": [
+      "Released between 2000-01-01 and the 2026-02-17 snapshot",
+      "At least 100 TMDB votes and a positive vote_average",
+      "Target movie ID 1423191 is excluded from all outcomes"
+    ],
+    "cohortRule": "English-language films tagged both Horror and Science Fiction, released since 2000, with at least 100 TMDB votes by the snapshot date.",
+    "shrinkage": "Talent and franchise averages use empirical-Bayes shrinkage equivalent to 5 comparable-cohort films.",
+    "leakageControls": [
+      "No target-film vote, popularity, review, budget, or revenue value is used.",
+      "No release after the dataset snapshot is used as an outcome.",
+      "Popularity, reviews, trailer, search, social, critic, and Kalshi fields are not model inputs.",
+      "Historical revenue is descriptive only because the target budget is unavailable."
+    ]
+  },
+  "cohort": {
+    "sampleSize": 77,
+    "ratingMean": 6.144,
+    "ratingMedian": 6.252,
+    "ratingRange": [
+      3.924,
+      7.443
+    ],
+    "septemberSampleSize": 10,
+    "recentComparables": [
+      {
+        "title": "28 Years Later: The Bone Temple",
+        "releaseDate": "2026-01-14",
+        "rating": 7.274,
+        "votes": 323
+      },
+      {
+        "title": "The Long Walk",
+        "releaseDate": "2025-09-10",
+        "rating": 6.954,
+        "votes": 1140
+      },
+      {
+        "title": "Osiris",
+        "releaseDate": "2025-07-25",
+        "rating": 6.053,
+        "votes": 180
+      },
+      {
+        "title": "28 Years Later",
+        "releaseDate": "2025-06-18",
+        "rating": 6.617,
+        "votes": 2196
+      },
+      {
+        "title": "Companion",
+        "releaseDate": "2025-01-22",
+        "rating": 7.021,
+        "votes": 2068
+      },
+      {
+        "title": "Y2K",
+        "releaseDate": "2024-12-06",
+        "rating": 5.116,
+        "votes": 259
+      }
+    ],
+    "financialContext": {
+      "completeSampleSize": 48,
+      "medianBudgetUsd": 34000000,
+      "medianRevenueUsd": 68465816,
+      "revenueAboveBudgetCount": 34,
+      "revenueAboveBudgetPercent": 70.8,
+      "caveat": "Revenue exceeding production budget is not the same as profitability; marketing and distribution costs are unavailable."
+    }
+  },
+  "scores": {
+    "historicalFit": {
+      "value": 63.2,
+      "sampleSize": 151,
+      "factors": [
+        {
+          "label": "Director prior",
+          "value": 64.1,
+          "weight": 30,
+          "contribution": 19.2,
+          "sampleSize": 2,
+          "detail": "Prior released films directed by the target director; small samples shrink toward the comparable cohort.",
+          "titles": [
+            "Weapons",
+            "Barbarian"
+          ]
+        },
+        {
+          "label": "Producer prior",
+          "value": 63.9,
+          "weight": 20,
+          "contribution": 12.8,
+          "sampleSize": 78,
+          "detail": "Unique prior released films credited to the target producers; duplicate producer credits count once.",
+          "titles": [
+            "Return to Silent Hill",
+            "Regretting You",
+            "The Strangers: Chapter 2",
+            "V/H/S/Halloween",
+            "The Long Walk"
+          ]
+        },
+        {
+          "label": "Franchise prior",
+          "value": 63.9,
+          "weight": 15,
+          "contribution": 9.6,
+          "sampleSize": 5,
+          "detail": "Prior eligible Resident Evil titles in the dataset.",
+          "titles": [
+            "Resident Evil: Death Island",
+            "Resident Evil: Welcome to Raccoon City",
+            "Resident Evil: Vendetta",
+            "Resident Evil: Apocalypse",
+            "Resident Evil"
+          ]
+        },
+        {
+          "label": "Genre cohort",
+          "value": 61.4,
+          "weight": 25,
+          "contribution": 15.3,
+          "sampleSize": 77,
+          "detail": "English-language Horror + Science Fiction releases since 2000 with at least 100 TMDB votes.",
+          "titles": [
+            "28 Years Later: The Bone Temple",
+            "The Long Walk",
+            "Osiris",
+            "28 Years Later",
+            "Companion"
+          ]
+        },
+        {
+          "label": "September context",
+          "value": 62.9,
+          "weight": 10,
+          "contribution": 6.3,
+          "sampleSize": 10,
+          "detail": "Comparable-cohort titles released in September.",
+          "titles": [
+            "The Long Walk",
+            "The Substance",
+            "No One Will Save You",
+            "Margaux",
+            "The Girl with All the Gifts"
+          ]
+        }
+      ]
+    },
+    "talentPrior": {
+      "value": 65.5,
+      "sampleSize": 94,
+      "factors": [
+        {
+          "label": "Lead cast prior",
+          "value": 66.9,
+          "weight": 50,
+          "contribution": 33.5,
+          "sampleSize": 18,
+          "detail": "Unique prior eligible films for the target film's top four billed cast members.",
+          "titles": [
+            "Mercy",
+            "Springsteen: Deliver Me from Nowhere",
+            "Weapons",
+            "The Naked Gun",
+            "The Fantastic 4: First Steps"
+          ]
+        },
+        {
+          "label": "Director prior",
+          "value": 64.1,
+          "weight": 30,
+          "contribution": 19.2,
+          "sampleSize": 2,
+          "detail": "Prior eligible films directed by the target director.",
+          "titles": [
+            "Weapons",
+            "Barbarian"
+          ]
+        },
+        {
+          "label": "Producer prior",
+          "value": 63.9,
+          "weight": 20,
+          "contribution": 12.8,
+          "sampleSize": 78,
+          "detail": "Unique prior eligible films credited to the target producers.",
+          "titles": [
+            "Return to Silent Hill",
+            "Regretting You",
+            "The Strangers: Chapter 2",
+            "V/H/S/Halloween",
+            "The Long Walk"
+          ]
+        }
+      ]
+    },
+    "dataCoverage": {
+      "value": 87.9,
+      "sampleSize": 77,
+      "factors": [
+        {
+          "label": "Historical ratings",
+          "value": 100.0,
+          "weight": 30,
+          "contribution": 30.0,
+          "sampleSize": 77,
+          "detail": "Every comparable film passes the rating and vote-count eligibility rule.",
+          "titles": []
+        },
+        {
+          "label": "Named talent priors",
+          "value": 100.0,
+          "weight": 25,
+          "sampleSize": 11,
+          "detail": "11 of 11 named cast, director, and producer identities have at least one eligible prior film.",
+          "titles": [],
+          "contribution": 25.0
+        },
+        {
+          "label": "Budget completeness",
+          "value": 70.1,
+          "weight": 15,
+          "sampleSize": 54,
+          "detail": "Positive production budgets in the comparable cohort; zero is treated as missing.",
+          "titles": [],
+          "contribution": 10.5
+        },
+        {
+          "label": "Revenue completeness",
+          "value": 74.0,
+          "weight": 15,
+          "sampleSize": 57,
+          "detail": "Positive theatrical revenue in the comparable cohort; zero is treated as missing.",
+          "titles": [],
+          "contribution": 11.1
+        },
+        {
+          "label": "Target feature fields",
+          "value": 75.0,
+          "weight": 15,
+          "sampleSize": 6,
+          "detail": "Release, language, genres, runtime, budget, director, lead cast, and producer groups present for the target. Target runtime and budget are unavailable in this snapshot.",
+          "titles": [],
+          "contribution": 11.2
+        }
+      ]
+    }
+  },
+  "thresholdCalibration": {
+    "status": "unavailable",
+    "reason": "This Kaggle source has TMDB community ratings, not Rotten Tomatoes critic outcomes. It cannot honestly estimate P(Tomatometer > threshold)."
+  },
+  "unconnectedSignals": [
+    {
+      "name": "Kalshi market",
+      "status": "separate manual snapshot"
+    },
+    {
+      "name": "Rotten Tomatoes critics",
+      "status": "not connected"
+    },
+    {
+      "name": "Trailer velocity",
+      "status": "not connected"
+    },
+    {
+      "name": "Search interest",
+      "status": "not connected"
+    },
+    {
+      "name": "Social chatter and sentiment",
+      "status": "not connected"
+    }
+  ]
+}
