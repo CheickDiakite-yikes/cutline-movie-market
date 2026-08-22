@@ -616,7 +616,7 @@ function MobileSwipeCard({
         </div>
       )}
       <article
-        className={isAnimating ? "mobile-trade-card animating" : "mobile-trade-card"}
+        className={`mobile-trade-card${nextEvent ? " has-next" : ""}${isAnimating ? " animating" : ""}`}
         style={{ "--drag-x": `${dragX}px`, "--drag-rotate": `${dragX / 30}deg` }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -674,7 +674,9 @@ function MobileSwipeCard({
               <button key={row.key} onClick={() => onOpenScore(row.key)}>
                 <span>{row.label}</span>
                 <strong>{row.meaning.label}</strong>
-                <p>{row.value == null ? row.detail : `${displayScore(row.value)}/100 · ${row.detail}`}</p>
+                <p>
+                  {row.value == null ? row.detail : <><b>{displayScore(row.value)}/100</b><span> · {row.detail}</span></>}
+                </p>
                 <CaretRight aria-hidden="true" weight="bold" />
               </button>
             ))}
