@@ -150,6 +150,36 @@ test("uses Kalshi's supported compatibility host when the primary host is rate l
   assert.equal(payload.markets[0].event_ticker, "KXRT-VER");
 });
 
+test("uses the scheduled public snapshot when both Kalshi hosts rate-limit Sites", async () => {
+  const upstreamUrls = [];
+  const response = await worker.fetch(new Request("https://example.test/api/kalshi/markets"), {
+    KALSHI_FETCH: async (url) => {
+      upstreamUrls.push(url);
+      if (new URL(url).host !== "cheickdiakite-yikes.github.io") {
+        return new Response("rate limited", { status: 429 });
+      }
+      return Response.json({
+        source: {
+          observedAt: new Date().toISOString(),
+          upstreamHost: "external-api.kalshi.com",
+        },
+        markets: [
+          { ticker: "KXRT-VER-80", event_ticker: "KXRT-VER", floor_strike: 80 },
+          { ticker: "KXRT-DIG-75", event_ticker: "KXRT-DIG", floor_strike: 75 },
+        ],
+      });
+    },
+    ASSETS: { fetch: async () => new Response("missing", { status: 404 }) },
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(upstreamUrls.length, 3);
+  const payload = await response.json();
+  assert.equal(payload.source.mode, "live");
+  assert.equal(payload.source.transport, "scheduled GitHub Pages mirror");
+  assert.deepEqual(payload.markets.map((market) => market.event_ticker), ["KXRT-VER", "KXRT-DIG"]);
+});
+
 test("reuses a fresh server-side Kalshi response instead of polling upstream per visitor", async () => {
   let upstreamCalls = 0;
   const env = {

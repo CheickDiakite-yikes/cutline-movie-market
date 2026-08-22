@@ -5,6 +5,7 @@ import {
   fetchKalshiSlate,
   groupKalshiEvents,
   normalizeKalshiPayload,
+  sourceStatus,
 } from "../src/lib/kalshi.js";
 
 const rawMarket = (event, threshold, title = "Film Rotten Tomatoes score?") => ({
@@ -29,6 +30,12 @@ test("normalizes public Kalshi dollar fields without treating them as model outp
   assert.equal(slate.markets[0].yesBid, 72);
   assert.equal(slate.markets[0].yesAsk, 76);
   assert.equal(slate.source.mode, "live");
+});
+
+test("keeps mirrored or cached market snapshots visibly stale when their source says so", () => {
+  assert.equal(sourceStatus({ source: { mode: "live" } }), "live");
+  assert.equal(sourceStatus({ source: { mode: "stale mirror" } }), "stale");
+  assert.equal(sourceStatus({ source: { mode: "stale cache" } }), "stale");
 });
 
 test("groups a continuous slate by event and selects configured thresholds", () => {

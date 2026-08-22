@@ -15,7 +15,7 @@
     "data:download": "bash scripts/download_all_data.sh",
     "db:generate": "drizzle-kit generate",
     "test:historical": "python3 -m unittest discover -s tests -p 'test_*.py' -v",
-    "test:ui-data": "node --test tests/kalshi-adapter.test.mjs tests/automatic-model.test.mjs tests/ideas.test.mjs tests/plain-language.test.mjs tests/responsive-layout.test.mjs tests/swipe.test.mjs",
+    "test:ui-data": "node --test tests/kalshi-adapter.test.mjs tests/kalshi-snapshot.test.mjs tests/automatic-model.test.mjs tests/ideas.test.mjs tests/plain-language.test.mjs tests/responsive-layout.test.mjs tests/swipe.test.mjs",
     "test:sites": "node --test tests/sites-worker.test.mjs",
     "test": "npm run test:historical && npm run test:ui-data && npm run build && npm run test:sites"
   },

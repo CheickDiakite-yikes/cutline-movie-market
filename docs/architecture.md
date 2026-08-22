@@ -76,7 +76,7 @@ worker /api/kalshi/markets -------------->+
                                 versioned JSON export/import
 ```
 
-The historical, enrichment, and critic pipelines are deterministic offline batches. The Sites worker is the only live server boundary: it serves static assets, provides SPA fallback, proxies a fixed unauthenticated Kalshi market-data request, and exposes owner-scoped idea APIs. Sites supplies identity headers after ChatGPT sign-in; the browser never chooses the user ID. The worker does not accept arbitrary upstream URLs, store credentials, expose one user's records to another, or place trades.
+The historical, enrichment, and critic pipelines are deterministic offline batches. The Sites worker is the application server boundary: it serves static assets, provides SPA fallback, proxies a fixed unauthenticated Kalshi market-data request, and exposes owner-scoped idea APIs. A scheduled GitHub Actions job provides a public snapshot transport for the same official KXRT response when Kalshi rate-limits Sites' shared cloud egress. Sites supplies identity headers after ChatGPT sign-in; the browser never chooses the user ID. The worker does not accept arbitrary upstream URLs, store credentials, expose one user's records to another, or place trades.
 
 ## Multi-movie lifecycle
 
@@ -134,7 +134,7 @@ Target metadata comes only from the audited February 17, 2026 snapshot. The targ
 
 ## Truth and failure contracts
 
-- Kalshi values carry an observation timestamp and a `live`, `stale cache`, or `unavailable` mode.
+- Kalshi values carry an observation timestamp and a `live`, `stale mirror`, `stale cache`, or `unavailable` mode.
 - The open application refreshes the paginated KXRT slate every 60 seconds and again when its browser tab becomes visible.
 - A failed Kalshi refresh may expose the last cached response only when it is visibly labeled stale.
 - Market price is never inserted into the historical or critic score.
@@ -159,7 +159,7 @@ Any host can serve `dist/client` with an SPA fallback. To preserve live markets,
 
 ### Claude Code and local development
 
-The repository uses standard React, Vite, Node, and Python files. Vite proxies `/api/kalshi/markets` to Kalshi's public endpoint in local development. In Sites, the worker shares a successful response across visitors for 60 seconds, tries Kalshi's officially supported compatibility host when the recommended host is rate-limited, and can expose a successful cached slate as stale for up to 15 minutes only when both upstream hosts fail. Claude Code or another agent can work directly from the repository without a Sites-specific local runtime.
+The repository uses standard React, Vite, Node, and Python files. Vite proxies `/api/kalshi/markets` to Kalshi's public endpoint in local development. In Sites, the worker shares a successful response across visitors for 60 seconds and tries both officially supported production hosts. If both rate-limit Sites, it reads the latest validated GitHub Pages snapshot generated from the same API by `.github/workflows/refresh-kalshi-snapshot.yml`; the source timestamp determines whether the UI says live or stale. Claude Code or another agent can work directly from the repository without a Sites-specific local runtime.
 
 ## Next service boundaries
 

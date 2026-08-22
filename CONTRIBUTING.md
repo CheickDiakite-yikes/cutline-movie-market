@@ -45,6 +45,8 @@ For visible UI changes, also inspect:
 
 Live Kalshi events receive either a conservative exact/date-consistent snapshot enrichment or the baseline automatic prior before a configured artifact exists. Preserve the tier, source date, match status, specificity, imputation, and price-independence language until these steps are complete.
 
+The live market transport is deterministic, not AI. The Sites worker tries Kalshi's two officially supported public API hosts and then the scheduled GitHub Pages snapshot produced by `.github/workflows/refresh-kalshi-snapshot.yml`. If you change this boundary, preserve the fixed KXRT scope, source observation time, stale-state behavior, pagination validation, and fail-closed tests. Do not replace unavailable market data with fixtures in production.
+
 ## Runtime AI contributions
 
 AI-assisted coding is not the same as runtime AI. The shipped application is currently deterministic: market intake, grouping, target resolution, scores, synthesis copy, and research dispositions do not call an LLM or trained prediction service.

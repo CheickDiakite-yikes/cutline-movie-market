@@ -14,7 +14,7 @@ Cutline brings a continuously refreshed slate of movie prediction markets, histo
 
 ![Cutline mobile Scout view showing the live market ticket, explainable historical signals, Saved tab, and Pass, Later, and Save actions](docs/assets/cutline-mobile-scout.png)
 
-The denominator is not a fixed catalog size. It is the current number of grouped, open KXRT Rotten Tomatoes events returned by Kalshi. Cutline refreshes that slate on initial load, every 60 seconds while open, and whenever the tab becomes visible again; newly opened or closed events can therefore change the total automatically. Movie-specific historical packs update separately through the reviewed configuration and data-build workflow.
+The denominator is not a fixed catalog size. It is the current number of grouped, open KXRT Rotten Tomatoes events returned by Kalshi. Cutline checks its market boundary on initial load, every 60 seconds while open, and whenever the tab becomes visible again. Sites normally reads Kalshi directly; because shared cloud egress can be rate-limited, a public GitHub Actions snapshot of the same official API is also scheduled every five minutes. GitHub may delay scheduled jobs, so every response keeps its real observation time and becomes visibly stale after 15 minutes. Movie-specific historical packs update separately through the reviewed configuration and data-build workflow.
 
 ### Automatic model coverage
 
@@ -24,7 +24,7 @@ Every live event receives a model immediately. A configured pack can use manuall
 
 ### How new trade ideas enter Cutline
 
-1. The Sites worker reads only open markets in Kalshi's public `KXRT` Rotten Tomatoes series. It shares a successful response across visitors for 60 seconds and can fall back to Kalshi's officially supported compatibility host when the recommended host is rate-limited.
+1. The Sites worker reads only open markets in Kalshi's public `KXRT` Rotten Tomatoes series. It shares a successful response across visitors for 60 seconds, tries both officially supported Kalshi production hosts, then uses the last validated GitHub Pages snapshot generated from that same API when Sites egress is rate-limited.
 2. The client paginates the response and groups all threshold contracts with the same event ticker into one movie idea.
 3. The slate refreshes on load, every 60 seconds, and when the browser tab becomes visible; newly opened events therefore appear without a code change.
 4. A reviewed event ticker first receives its configured model. Otherwise Cutline attempts the conservative snapshot title/release match. If that fails, the global/month/title-family prior is generated immediately.
@@ -38,7 +38,7 @@ Cutline does **not** currently call an LLM or a trained predictive-ML service at
 
 | Product behavior | Current implementation |
 | --- | --- |
-| Discover new trade ideas | Deterministic 60-second Kalshi polling |
+| Discover new trade ideas | Deterministic 60-second app polling; five-minute scheduled official-API snapshot fallback in Sites |
 | Combine threshold contracts | Deterministic grouping by Kalshi event ticker |
 | Resolve movie identity | Deterministic configured-ticker precedence, then exact normalized title and release-window checks |
 | Calculate historical and talent scores | Deterministic eligibility rules, declared weights, and empirical-Bayes shrinkage |
@@ -70,7 +70,7 @@ Cutline is designed to make that reasoning visible. It is a research and decisio
 
 The current prototype supports a repeatable multi-movie research loop:
 
-1. **Select or swipe to an active movie market.** The KXRT slate comes from Kalshi's public, unauthenticated market-data API and refreshes every 60 seconds while the application is open. On mobile, swiping only browses backward or forward through movie cards. Pass, Later, and Save decisions happen only through their labeled buttons.
+1. **Select or swipe to an active movie market.** The KXRT slate comes from Kalshi's public, unauthenticated market-data API. The application checks every 60 seconds; the Sites fallback snapshot targets five-minute updates and always carries its actual observation time. On mobile, swiping only browses backward or forward through movie cards. Pass, Later, and Save decisions happen only through their labeled buttons.
 2. **Orient on the release.** See configured or exact-match snapshot art and a higher-specificity research pack when available; every other event receives a visibly graded baseline prior while live target enrichment is pending.
 3. **Inspect the evidence.** Open Historical fit, Live heat, Talent prior, or Data coverage to trace the underlying evidence and source status.
 4. **Read the synthesis.** Cutline explains what the historical and critic layers support and what they cannot yet conclude.
@@ -413,7 +413,7 @@ All environments should preserve the same contracts: standard React/Vite/Python 
 
 ## Next backend layers
 
-The first read-only live boundary is now connected: `worker/index.js` fetches active KXRT markets from Kalshi's public API, timestamps the response, shares a short server-side cache across visitors, and fails closed. Both the recommended Kalshi API host and its officially supported compatibility host are used; a successful cached slate may be served as visibly stale for up to 15 minutes only when both hosts are unavailable. The critic outcome store is also present as a benchmark, but not as a probability model.
+The first read-only live boundary is now connected: `worker/index.js` fetches active KXRT markets from Kalshi's public API, timestamps the response, shares a short server-side cache across visitors, and fails closed. Both officially supported Kalshi API hosts are tried. Because both can rate-limit Sites' shared egress, `.github/workflows/refresh-kalshi-snapshot.yml` independently publishes a validated snapshot of the same official KXRT response to GitHub Pages on a five-minute schedule. The worker uses that mirror only after direct failures, preserves the original observation time, and labels data older than 15 minutes stale. The critic outcome store is also present as a benchmark, but not as a probability model.
 
 Recommended next layers:
 
@@ -446,7 +446,7 @@ A connector failure must not silently reuse stale data as current.
 
 ## Testing and continuous integration
 
-GitHub Actions runs `npm ci` followed by `npm test` on every push to `main` and every pull request.
+GitHub Actions runs `npm ci` followed by `npm test` on every push to `main` and every pull request. A separate scheduled workflow refreshes the public Kalshi snapshot used only as the Sites egress fallback; its generator validates pagination, non-empty usable markets, provenance, and observation time before deployment.
 
 The current suite verifies:
 

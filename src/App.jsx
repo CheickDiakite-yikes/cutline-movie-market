@@ -19,6 +19,7 @@ import {
   fetchKalshiSlate,
   groupKalshiEvents,
   readCachedSlate,
+  sourceStatus,
   writeCachedSlate,
 } from "./lib/kalshi.js";
 import {
@@ -120,7 +121,7 @@ function useKalshiSlate() {
         .then((slate) => {
           if (!active) return;
           writeCachedSlate(slate);
-          setState({ status: "live", slate, error: null });
+          setState({ status: sourceStatus(slate), slate, error: null });
         })
         .catch((error) => {
           if (!active) return;

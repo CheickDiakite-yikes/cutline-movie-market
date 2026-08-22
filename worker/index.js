@@ -2,6 +2,8 @@ const KALSHI_MARKETS_URLS = [
   "https://external-api.kalshi.com/trade-api/v2/markets?series_ticker=KXRT&status=open&limit=200",
   "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXRT&status=open&limit=200",
 ];
+const KALSHI_SNAPSHOT_URL =
+  "https://cheickdiakite-yikes.github.io/cutline-movie-market/kalshi-live.json";
 const KALSHI_CACHE_FRESH_MS = 60_000;
 const KALSHI_CACHE_STALE_SECONDS = 15 * 60;
 
@@ -220,7 +222,13 @@ async function handleAccountApi(request, env, url) {
   return json({ status: "method not allowed" }, 405, { allow: "PUT, DELETE" });
 }
 
-function kalshiResponse(payload, observedAt, mode = "live", upstreamHost = null) {
+function kalshiResponse(
+  payload,
+  observedAt,
+  mode = "live",
+  upstreamHost = null,
+  transport = "direct API",
+) {
   return json(
     {
       source: {
@@ -228,6 +236,7 @@ function kalshiResponse(payload, observedAt, mode = "live", upstreamHost = null)
         observedAt,
         mode,
         upstreamHost,
+        transport,
         documentation: "https://docs.kalshi.com/getting_started/quick_start_market_data",
       },
       cursor: payload.cursor || null,
@@ -300,6 +309,35 @@ async function fetchKalshiPayload(upstreamFetch, cursor) {
   return { payload: null, upstreamHost: null, failures };
 }
 
+async function fetchKalshiSnapshot(upstreamFetch) {
+  const snapshotUrl = new URL(KALSHI_SNAPSHOT_URL);
+  snapshotUrl.searchParams.set("bucket", String(Math.floor(Date.now() / 300_000)));
+  try {
+    const response = await upstreamFetch(snapshotUrl.toString(), {
+      headers: { accept: "application/json", "user-agent": "Cutline/0.2 market research" },
+    });
+    if (!response.ok) return { snapshot: null, failure: `${snapshotUrl.host}:${response.status}` };
+    const snapshot = await response.json();
+    const observedAt = snapshot?.source?.observedAt;
+    if (!Array.isArray(snapshot?.markets) || !snapshot.markets.length || !observedAt) {
+      return { snapshot: null, failure: `${snapshotUrl.host}:invalid response` };
+    }
+    const ageMs = Date.now() - Date.parse(observedAt);
+    return {
+      snapshot: {
+        payload: { cursor: null, markets: snapshot.markets },
+        observedAt,
+        mode: Number.isFinite(ageMs) && ageMs <= 15 * 60_000 ? "live" : "stale mirror",
+        upstreamHost: snapshot.source?.upstreamHost || "external-api.kalshi.com",
+        transport: "scheduled GitHub Pages mirror",
+      },
+      failure: null,
+    };
+  } catch {
+    return { snapshot: null, failure: `${snapshotUrl.host}:unreachable` };
+  }
+}
+
 export async function handleKalshiMarkets(env, cursor = null, origin = "https://cutline.local") {
   const upstreamFetch = env.KALSHI_FETCH || fetch;
   const cache = env.KALSHI_CACHE || globalThis.caches?.default || null;
@@ -307,7 +345,13 @@ export async function handleKalshiMarkets(env, cursor = null, origin = "https://
   const cached = await readKalshiCache(cache, cacheKey);
   const cachedAt = cached ? Date.parse(cached.observedAt) : Number.NaN;
   if (cached && Number.isFinite(cachedAt) && Date.now() - cachedAt <= KALSHI_CACHE_FRESH_MS) {
-    return kalshiResponse(cached.payload, cached.observedAt, "live", cached.upstreamHost);
+    return kalshiResponse(
+      cached.payload,
+      cached.observedAt,
+      cached.mode || "live",
+      cached.upstreamHost,
+      cached.transport,
+    );
   }
 
   const result = await fetchKalshiPayload(upstreamFetch, cursor);
@@ -315,20 +359,43 @@ export async function handleKalshiMarkets(env, cursor = null, origin = "https://
     const observedAt = new Date().toISOString();
     await writeKalshiCache(cache, cacheKey, {
       observedAt,
+      mode: "live",
       upstreamHost: result.upstreamHost,
+      transport: "direct API",
       payload: result.payload,
     });
     return kalshiResponse(result.payload, observedAt, "live", result.upstreamHost);
   }
 
+  const mirror = await fetchKalshiSnapshot(upstreamFetch);
+  if (mirror.snapshot) {
+    await writeKalshiCache(cache, cacheKey, mirror.snapshot);
+    return kalshiResponse(
+      mirror.snapshot.payload,
+      mirror.snapshot.observedAt,
+      mirror.snapshot.mode,
+      mirror.snapshot.upstreamHost,
+      mirror.snapshot.transport,
+    );
+  }
+
   if (cached) {
-    return kalshiResponse(cached.payload, cached.observedAt, "stale cache", cached.upstreamHost);
+    return kalshiResponse(
+      cached.payload,
+      cached.observedAt,
+      "stale cache",
+      cached.upstreamHost,
+      cached.transport,
+    );
   }
 
   return json(
     {
       status: "unavailable",
-      reason: `Kalshi market data could not be reached (${result.failures.join(", ")})`,
+      reason: `Kalshi market data could not be reached (${[
+        ...result.failures,
+        mirror.failure,
+      ].filter(Boolean).join(", ")})`,
     },
     502,
     { "cache-control": "no-store" },

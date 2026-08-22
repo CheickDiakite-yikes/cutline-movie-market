@@ -88,6 +88,10 @@ export function writeCachedSlate(slate, storage = window.localStorage) {
   storage.setItem(CACHE_KEY, JSON.stringify(slate));
 }
 
+export function sourceStatus(slate) {
+  return slate?.source?.mode === "live" ? "live" : "stale";
+}
+
 export async function fetchKalshiSlate(fetcher = fetch) {
   const rawMarkets = [];
   let cursor = null;
