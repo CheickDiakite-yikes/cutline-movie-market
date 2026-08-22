@@ -6,7 +6,7 @@ Cutline brings a continuously refreshed slate of movie prediction markets, histo
 
 [Current Sites preview](https://cutline-movie-market.cheicolate.chatgpt.site/) · [Architecture](docs/architecture.md) · [Historical methodology](docs/historical-data.md) · [Contributing](CONTRIBUTING.md)
 
-> **Repository status:** `main` contains two historical-model tiers, an audited critic benchmark, a public Kalshi market adapter, and portable Saved Ideas. Resident Evil remains the first fully configured movie-specific fixture. Every other active KXRT event now receives an automatic hierarchical prior with an explicit specificity and coverage grade.
+> **Repository status:** `main` contains three truthful historical-model tiers, an audited critic benchmark, a public Kalshi market adapter, and portable Saved Ideas. Resident Evil remains the first fully configured movie-specific fixture. Exact, date-consistent upcoming-film matches receive snapshot enrichment; every remaining active KXRT event receives the lower-specificity automatic baseline prior.
 
 ![Cutline Scout view showing the live Resident Evil market, historical scores, critic benchmark boundary, and decision actions](docs/assets/cutline-scout-live.jpg)
 
@@ -20,7 +20,17 @@ The denominator is not a fixed catalog size. It is the current number of grouped
 
 ![Cutline mobile automatic model showing a numeric historical prior, explicit talent imputation, data coverage, and medium-low specificity](docs/assets/cutline-mobile-auto-model.png)
 
-Every live event receives a model immediately. A configured pack can use verified genres, cast, director, producers, franchise history, and release context. When those target fields are not yet verified, Cutline generates a lower-specificity hierarchical prior from 2,993 eligible English-language historical releases, settlement-month context, and optional strongly-shrunk lexical title-family evidence. Missing target talent is visibly imputed to the global baseline with sample `n=0`; it is never described as that movie's actual talent track record.
+Every live event receives a model immediately. A configured pack can use manually reviewed genres, cast, director, producers, franchise history, and release context. The automatic resolver next checks a 66-film upcoming-title catalog generated from the audited February 2026 snapshot. One unique normalized title within 550 days of the market settlement date unlocks snapshot genres, release date, artwork, and ID-joined talent histories. Ambiguous, absent, or distant matches fail closed to the 2,993-film baseline prior; missing talent remains visibly imputed with sample `n=0`.
+
+### How new trade ideas enter Cutline
+
+1. The Sites worker reads only open markets in Kalshi's public `KXRT` Rotten Tomatoes series.
+2. The client paginates the response and groups all threshold contracts with the same event ticker into one movie idea.
+3. The slate refreshes on load, every 60 seconds, and when the browser tab becomes visible; newly opened events therefore appear without a code change.
+4. A reviewed event ticker first receives its configured model. Otherwise Cutline attempts the conservative snapshot title/release match. If that fails, the global/month/title-family prior is generated immediately.
+5. Save, Later, and Pass are research dispositions only. They do not submit an order or modify Kalshi.
+
+The market feed is live; the enrichment catalog is not. A film added after the February 17, 2026 snapshot will still appear and receive a numeric baseline model, but it cannot receive current cast, crew, artwork, or genre enrichment until a live metadata provider is connected.
 
 ## Why Cutline exists
 
@@ -39,7 +49,7 @@ Cutline is designed to make that reasoning visible. It is a research and decisio
 The current prototype supports a repeatable multi-movie research loop:
 
 1. **Select or swipe to an active movie market.** The KXRT slate comes from Kalshi's public, unauthenticated market-data API and refreshes every 60 seconds while the application is open. On mobile, swipe left to pass, tap Later to hold the idea for another pass, or swipe right to save and advance; the visible buttons provide the same actions.
-2. **Orient on the release.** See configured movie art and a high-specificity research pack when available; every other event receives a visibly graded automatic prior while target enrichment is pending.
+2. **Orient on the release.** See configured or exact-match snapshot art and a higher-specificity research pack when available; every other event receives a visibly graded baseline prior while live target enrichment is pending.
 3. **Inspect the evidence.** Open Historical fit, Live heat, Talent prior, or Data coverage to trace the underlying evidence and source status.
 4. **Read the synthesis.** Cutline explains what the historical and critic layers support and what they cannot yet conclude.
 5. **Make a research decision.** Save the idea, pass, or hold it for Later without placing a trade. Later items appear in Saved Ideas with a Review action that returns to the original market.
@@ -66,6 +76,7 @@ The first end-to-end case is the Kalshi market for whether **Resident Evil** fin
 | Movie, cast, director, producer, genre, release, budget, revenue, and rating history | Connected historical snapshot | Kaggle/TMDB, February 17, 2026 |
 | Historical score calculations | Connected and reproducible | Python standard-library pipeline |
 | Automatic historical coverage for every live event | Connected | Checked-in 2,993-film baseline plus deterministic runtime title/month selection |
+| Upcoming-film snapshot enrichment | Connected | 66 dated candidates; unique normalized title plus 550-day release-window gate |
 | Comparable-film cohort | Connected | 77 English-language Horror + Science Fiction releases |
 | Movie-specific score rationales | Connected for configured movies | Checked-in normalized JSON artifacts under `src/data/markets/` |
 | Active Rotten Tomatoes market slate | Connected live at runtime | Kalshi public market-data API through a scoped Sites worker route |
@@ -108,6 +119,12 @@ Budget and revenue are missing for roughly 59% of the broader movie table. Cutli
 | Lexical title-family prior | 20% | First non-stopword title key when at least two historical titles match; shrunk toward the baseline with prior strength 10 |
 
 The talent value is a 100% global-baseline imputation until verified cast, director, and producer identities are joined. Its sample remains `n=0`. Data coverage scores the presence of event identity, timing proxy, title-family evidence, genres, talent, and artwork; it is availability, not confidence. Kalshi price, bid/ask, volume, critic data, trailers, search, and social signals are not inputs.
+
+### Automatic snapshot enrichment
+
+`scripts/target_enrichment.py` builds a compact catalog from `movies.csv`, `cast.csv`, and `crew.csv`. Candidate targets must have a dated release on or after the dataset snapshot, fall within the bounded upcoming window, and have an eligible production status. Runtime resolution requires exactly one normalized title match and a target release within 550 days of Kalshi settlement. Ambiguity fails closed.
+
+For a resolved target, Historical fit combines a 30% verified genre cohort, 15% target release-month context, 15% strongly-shrunk lexical title family, 20% lead-cast prior, 10% director prior, and 10% producer prior. Talent uses 50% cast, 30% director, and 20% producers. Talent filmographies shrink toward the target genre cohort with prior strength five. The target movie's own rating, popularity, vote count, budget, and revenue are never used.
 
 ### Rotten Tomatoes outcome benchmark
 
@@ -178,9 +195,12 @@ flowchart LR
     B --> D[One versioned artifact per movie]
     C --> M[Automatic prior builder]
     M --> N[Checked-in global/month/title-family prior]
+    C --> O[Upcoming target-enrichment builder]
+    O --> P[Checked-in exact-title target catalog]
     E[RT critic outcome snapshot] --> F[Audited benchmark cache]
     D --> G[React / Vite Scout]
     N --> G
+    P --> G
     F --> G
     H[Kalshi public market API] --> I[Scoped Sites worker adapter]
     I --> G
@@ -190,14 +210,15 @@ flowchart LR
     L[Trailer / search / social] -. not connected .-> G
 ```
 
-Cutline currently has four backend-like surfaces:
+Cutline currently has five backend-like surfaces:
 
 1. `scripts/historical_model.py` is the configuration-driven TMDB batch scoring layer.
 2. `scripts/automatic_prior.py` creates the reproducible hierarchical fallback used for every unconfigured live event.
-3. `scripts/critic_outcomes.py` audits critic labels and proves why calibration remains unavailable.
-4. `worker/index.js` serves Sites assets, browser-route fallbacks, and a scoped read-only Kalshi market adapter.
+3. `scripts/target_enrichment.py` generates the conservative upcoming-title, genre, artwork, and talent-join catalog.
+4. `scripts/critic_outcomes.py` audits critic labels and proves why calibration remains unavailable.
+5. `worker/index.js` serves Sites assets, browser-route fallbacks, and a scoped read-only Kalshi market adapter.
 
-There is no authenticated team database, target-metadata enrichment service, calibrated critic model, or trade-execution service. The automatic historical fallback runs deterministically in the client for every refreshed live event. Recommended service boundaries are documented in [docs/architecture.md](docs/architecture.md).
+There is no authenticated team database, live target-metadata provider, calibrated critic model, or trade-execution service. Snapshot matching and historical scoring run deterministically for every refreshed event. Recommended service boundaries are documented in [docs/architecture.md](docs/architecture.md).
 
 ## Repository map
 
@@ -215,12 +236,14 @@ cutline-movie-market/
 │   ├── lib/                       # Kalshi, automatic-model, and portable idea contracts
 │   └── data/
 │       ├── automatic-prior.json   # Generated global/month/title-family historical prior
+│       ├── target-enrichment.json # Generated upcoming-title, genre, art, and talent catalog
 │       ├── markets/*.json         # Generated historical artifacts
 │       ├── market-index.json      # Generated modeled-market registry
 │       └── critic-benchmark.json  # Generated, non-calibrated RT label audit
 ├── scripts/
 │   ├── historical_model.py       # Normalization, audit, cohorts, and scores
 │   ├── automatic_prior.py        # Automatic fallback prior builder
+│   ├── target_enrichment.py       # Conservative target identity and talent enrichment builder
 │   ├── critic_outcomes.py         # Outcome audit and calibration gate
 │   ├── verify_data_cache.py       # Full raw-source reproducibility check
 │   ├── download_all_data.sh       # Checksummed source download and verification
@@ -277,6 +300,7 @@ npm test
 | `npm test` | Run the complete verification suite |
 | `npm run data:historical` | Build all configured movie artifacts from existing TMDB CSVs |
 | `npm run data:auto` | Rebuild the automatic global/month/title-family prior |
+| `npm run data:enrichment` | Rebuild the upcoming-target enrichment catalog |
 | `npm run data:critic` | Rebuild the critic benchmark from its existing raw CSV |
 | `npm run data:verify` | Recompute every artifact and compare it with the committed version |
 | `npm run data:download` | Download both audited snapshots, verify checksums, rebuild, and compare |
@@ -301,7 +325,7 @@ npm run data:critic
 npm run data:verify
 ```
 
-Do not hand-edit computed values under `src/data/markets/` or in `src/data/critic-benchmark.json`.
+Do not hand-edit computed values under `src/data/markets/` or in `src/data/automatic-prior.json`, `src/data/target-enrichment.json`, or `src/data/critic-benchmark.json`.
 
 ### Add another movie
 
@@ -311,7 +335,7 @@ Do not hand-edit computed values under `src/data/markets/` or in `src/data/criti
 4. Review the generated cohort, talent resolution, samples, contributions, and provenance before accepting the artifact.
 5. Run `npm run data:verify` and `npm test`.
 
-An active Kalshi event does not need a configured artifact to receive a model. Until this workflow is completed, the interface uses the automatic hierarchical prior and visibly marks its lower specificity, target-metadata gaps, and imputed talent sample.
+An active Kalshi event does not need a configured artifact to receive a model. The exact snapshot resolver runs first; if it cannot establish one unique, date-consistent candidate, the interface uses the lower-specificity automatic baseline and visibly marks target-metadata gaps and imputed talent.
 
 ## Sites and other environments
 
@@ -354,12 +378,13 @@ The first read-only live boundary is now connected: `worker/index.js` fetches ac
 
 Recommended next layers:
 
-1. **Larger critic crosswalk** — obtain a rights-cleared movie identifier mapping and reconstruct features using only data available before each historical release.
-2. **Forward calibration** — train and validate Tomatometer threshold probabilities on chronological splits before exposing probability or edge.
-3. **Early-signal jobs** — collect trailer, search, and social observations with provider, query, geography, window, and freshness metadata.
-4. **Scoring service** — version feature definitions, weights, transformations, and contribution traces across multiple configured movies.
-5. **Team idea store** — replace local browser storage only after identity and access rules are defined; retain JSON export/import for portability.
-6. **Scheduler and alerts** — refresh markets and recompute validated features under explicit user rules.
+1. **Live target metadata provider** — use server-side TMDB application authentication to search a title, require an unambiguous release-consistent match, fetch details and credits, and retain provider observation time. Never expose the token to the browser.
+2. **Larger critic crosswalk** — obtain a rights-cleared movie identifier mapping and reconstruct features using only data available before each historical release.
+3. **Forward calibration** — train and validate Tomatometer threshold probabilities on chronological splits before exposing probability or edge.
+4. **Early-signal jobs** — collect trailer, search, and social observations with provider, query, geography, window, and freshness metadata.
+5. **Scoring service** — version feature definitions, weights, transformations, and contribution traces across multiple configured movies.
+6. **Team idea store** — replace local browser storage only after identity and access rules are defined; retain JSON export/import for portability.
+7. **Scheduler and alerts** — refresh markets and recompute validated features under explicit user rules.
 
 Every live response should preserve at least:
 

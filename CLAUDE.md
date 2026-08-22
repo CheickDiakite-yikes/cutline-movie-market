@@ -8,7 +8,7 @@ Read `AGENTS.md`, `README.md`, and `docs/architecture.md` before changing the pr
 - On mobile, keep Saved beside the Cutline wordmark; left passes, right saves, and the middle Later action stores an item for Review through Saved. Gestures must retain accessible button and keyboard equivalents.
 - Movie art and market context come first; explainable scores and synthesis follow; Save, Later, and Pass remain decisive.
 - Saved Ideas must continue to work.
-- Reviewed movie-specific scores come from `src/data/markets/*.json`, generated from `config/markets/*.json` by `scripts/historical_model.py`. Unconfigured live events use `src/data/automatic-prior.json` through `src/lib/automatic-model.js`; preserve its specificity, sample, imputation, and price-independence labels.
+- Reviewed movie-specific scores come from `src/data/markets/*.json`, generated from `config/markets/*.json` by `scripts/historical_model.py`. Unconfigured live events use `src/data/automatic-prior.json` plus the conservative `src/data/target-enrichment.json` exact-title/release-window resolver through `src/lib/automatic-model.js`; preserve tier, freshness, match status, specificity, sample, imputation, and price-independence labels.
 - The runtime Kalshi slate is market context from the public API. It must never silently become a model probability or remain labeled live after a failed refresh.
 - `src/data/critic-benchmark.json` is an audited outcome benchmark, not a calibrated prediction model.
 - Never invent or interpolate Kalshi, Rotten Tomatoes, critic, trailer, search, or social observations.
@@ -47,6 +47,6 @@ Before handing off any change, run `npm test`. For visible UI changes, also insp
 ## Data and repository hygiene
 
 - Raw Kaggle archives and CSVs stay under gitignored `data/downloads/` and `data/raw/`.
-- The small normalized market and critic benchmark JSON caches are committed.
+- The small normalized market, automatic prior, target-enrichment, and critic benchmark JSON caches are committed.
 - Preserve unrelated changes and do not broadly clean the worktree.
 - Do not publish, deploy, alter the canonical Sites project, or add third-party credentials without explicit authorization.

@@ -6,6 +6,7 @@ import "@fontsource/ibm-plex-sans-condensed/700.css";
 import { ArrowLeft, ArrowRight, CaretRight } from "@phosphor-icons/react";
 import automaticPrior from "./data/automatic-prior.json";
 import criticBenchmark from "./data/critic-benchmark.json";
+import targetEnrichment from "./data/target-enrichment.json";
 import { buildAutomaticModel } from "./lib/automatic-model.js";
 import {
   chooseThresholds,
@@ -32,9 +33,14 @@ const MODEL_BY_EVENT = new Map(MODELS.map((model) => [model.market.kalshi.eventT
 const DEFAULT_EVENT = MODELS[0]?.market.kalshi.eventTicker || "KXRT-RES";
 const resolveModel = (event) => {
   if (!event) return null;
-  return MODEL_BY_EVENT.get(event.eventTicker) || buildAutomaticModel(event, automaticPrior);
+  return MODEL_BY_EVENT.get(event.eventTicker) || buildAutomaticModel(event, automaticPrior, targetEnrichment);
 };
 const isAutomaticModel = (model) => model?.automation?.mode === "automatic-hierarchical-prior";
+const isEnrichedModel = (model) => model?.automation?.enrichmentMode === "audited-snapshot-exact-match";
+const modelTierLabel = (event) => {
+  if (MODEL_BY_EVENT.has(event?.eventTicker)) return "configured model";
+  return isEnrichedModel(resolveModel(event)) ? "snapshot-enriched prior" : "automatic baseline prior";
+};
 
 const hydrateIdeas = (items) =>
   normalizeIdeas(items).map((item) => {
@@ -169,6 +175,7 @@ function buildScoreDetails(model, liveState) {
   const dataCoverage = model.scores.dataCoverage;
   const cohort = model.cohort;
   const automatic = isAutomaticModel(model);
+  const enriched = isEnrichedModel(model);
   const specificity = model.automation?.specificity?.toUpperCase();
   return {
     historical: {
@@ -177,13 +184,17 @@ function buildScoreDetails(model, liveState) {
       value: historicalFit.value,
       sampleSize: historicalFit.sampleSize,
       summary: automatic
-        ? `An automatic ${displayScore(historicalFit.value)}/100 historical context prior built from ${cohort.sampleSize.toLocaleString()} eligible releases, settlement-month context, and optional strongly-shrunk title-family evidence.`
+        ? enriched
+          ? `A snapshot-enriched ${displayScore(historicalFit.value)}/100 historical prior built from an exact target-title match, ${cohort.sampleSize.toLocaleString()} genre comparables, release context, and joined talent history.`
+          : `An automatic ${displayScore(historicalFit.value)}/100 historical context prior built from ${cohort.sampleSize.toLocaleString()} eligible releases, settlement-month context, and optional strongly-shrunk title-family evidence.`
         : `A reproducible ${displayScore(historicalFit.value)}/100 historical context score from prior TMDB community ratings, grounded in a ${cohort.sampleSize}-film comparable cohort.`,
       status: automatic
-        ? `Automatic hierarchical prior · ${specificity} specificity · ${model.source.snapshotDate}`
+        ? `${enriched ? "Snapshot-enriched automatic prior" : "Automatic hierarchical prior"} · ${specificity} specificity · ${model.source.snapshotDate}`
         : `Kaggle / TMDB historical prior · ${model.source.snapshotDate}`,
       formula: automatic
-        ? "The global historical baseline receives 55%, settlement-month context 25%, and strongly-shrunk lexical title-family context 20%. Missing evidence stays at the baseline and lowers coverage."
+        ? enriched
+          ? "The verified genre cohort receives 30%, target release-month context 15%, title-family context 15%, lead cast 20%, director 10%, and producers 10%. Missing role history is explicitly imputed and lowers coverage."
+          : "The global historical baseline receives 55%, settlement-month context 25%, and strongly-shrunk lexical title-family context 20%. Missing evidence stays at the baseline and lowers coverage."
         : "Each factor is a TMDB community-rating prior on a 0–100 scale. Small filmographies shrink toward the comparable cohort, then the configured weights are summed.",
       caveat: automatic
         ? model.automation.caveat
@@ -197,16 +208,24 @@ function buildScoreDetails(model, liveState) {
       value: talentPrior.value,
       sampleSize: talentPrior.sampleSize,
       summary: automatic
-        ? "Target cast, director, and producer identities are not connected yet. The visible talent value is an explicit global-baseline imputation, not invented filmography evidence."
+        ? enriched
+          ? `The exact snapshot target joins named cast, director, and producer identities to ${talentPrior.sampleSize} prior-film observations after per-factor deduplication.`
+          : "Target cast, director, and producer identities are not connected yet. The visible talent value is an explicit global-baseline imputation, not invented filmography evidence."
         : `The configured lead cast, director, and credited producers resolve to ${talentPrior.sampleSize} unique eligible prior films after deduplication.`,
       status: automatic
-        ? `Imputed baseline · target talent enrichment pending · ${model.source.snapshotDate}`
+        ? enriched
+          ? `Snapshot ID joins · ${specificity} specificity · ${model.source.snapshotDate}`
+          : `Imputed baseline · target talent enrichment pending · ${model.source.snapshotDate}`
         : `Kaggle / TMDB historical prior · ${model.source.snapshotDate}`,
       formula: automatic
-        ? "Until verified target identities are joined, the eligible-release baseline is carried forward at 100% and the talent sample remains n=0."
+        ? enriched
+          ? "Lead cast receives 50%, director 30%, and credited producers 20%. Prior films are deduplicated within each factor and small samples shrink toward the verified genre cohort."
+          : "Until verified target identities are joined, the eligible-release baseline is carried forward at 100% and the talent sample remains n=0."
         : "Prior-film TMDB community ratings are deduplicated within each factor, shrunk toward the comparable cohort, and combined at the declared weights.",
       caveat: automatic
-        ? "The talent value is a missing-feature imputation and must not be described as the target cast or crew track record."
+        ? enriched
+          ? model.automation.caveat
+          : "The talent value is a missing-feature imputation and must not be described as the target cast or crew track record."
         : "This score is not a Tomatometer estimate and does not imply a Kalshi threshold probability.",
       factors: talentPrior.factors,
     },
@@ -216,7 +235,9 @@ function buildScoreDetails(model, liveState) {
       value: dataCoverage.value,
       sampleSize: dataCoverage.sampleSize,
       summary: automatic
-        ? `This ${displayScore(dataCoverage.value)}/100 availability score exposes which automatic inputs are present. Target genre, talent, and artwork remain enrichment gaps.`
+        ? enriched
+          ? `This ${displayScore(dataCoverage.value)}/100 availability score traces the exact target match, release, genres, talent history, and snapshot artwork that were actually present.`
+          : `This ${displayScore(dataCoverage.value)}/100 availability score exposes which automatic inputs are present. Target genre, talent, and artwork remain enrichment gaps.`
         : "This is an availability score, not trade confidence. It measures historical fields, named-talent joins, and target context.",
       status: automatic
         ? `Availability only · ${specificity} specificity · automatic model ${model.automation.modelVersion}`
@@ -310,20 +331,20 @@ function Header({ view, setView, savedCount, liveState, position, total }) {
   );
 }
 
-function SlateStrip({ events, selectedEventTicker, onSelect, configuredCount, liveState }) {
-  const automaticCount = Math.max(0, events.length - configuredCount);
+function SlateStrip({ events, selectedEventTicker, onSelect, configuredCount, enrichedCount, liveState }) {
+  const baselineCount = Math.max(0, events.length - configuredCount - enrichedCount);
   return (
     <section className="slate-strip" aria-label="Movie market slate">
       <div>
         <p className="eyebrow">CONTINUOUS KXRT SLATE</p>
-        <span>{events.length} MODELED EVENTS · {configuredCount} CONFIGURED · {automaticCount} AUTOMATIC</span>
+        <span>{events.length} MODELED EVENTS · {configuredCount} CONFIGURED · {enrichedCount} ENRICHED · {baselineCount} BASELINE</span>
       </div>
       <label>
         <span>SELECT MOVIE MARKET</span>
         <select value={selectedEventTicker} onChange={(event) => onSelect(event.target.value)}>
           {events.map((item) => (
             <option key={item.eventTicker} value={item.eventTicker}>
-              {item.title} — {MODEL_BY_EVENT.has(item.eventTicker) ? "configured model" : "automatic prior"}
+              {item.title} — {modelTierLabel(item)}
             </option>
           ))}
         </select>
@@ -398,13 +419,14 @@ function MoviePanel({ event, model, position, total }) {
   const title = model?.market.title || event?.title || "Unconfigured movie";
   const hasArtwork = Boolean(model?.market.artwork);
   const automatic = isAutomaticModel(model);
+  const enriched = isEnrichedModel(model);
   return (
     <article className={hasArtwork ? "movie-panel" : "movie-panel unmodeled"}>
       {hasArtwork ? (
         <img src={model.market.artwork} alt={model.market.artworkAlt} />
       ) : (
         <div className="unmodeled-art" aria-label={`${title} artwork is not configured`}>
-          <span>{automatic ? "AUTOMATIC HISTORICAL PRIOR" : "MARKET CONNECTED"}</span><strong>{title}</strong><small>{automatic ? `${model.automation.specificity.toUpperCase()} SPECIFICITY · TARGET ENRICHMENT PENDING` : "POSTER + RESEARCH PACK NOT BUILT"}</small>
+          <span>{automatic ? enriched ? "SNAPSHOT-ENRICHED PRIOR" : "AUTOMATIC HISTORICAL PRIOR" : "MARKET CONNECTED"}</span><strong>{title}</strong><small>{automatic ? enriched ? `${model.automation.specificity.toUpperCase()} SPECIFICITY · EXACT TARGET MATCH` : `${model.automation.specificity.toUpperCase()} SPECIFICITY · TARGET ENRICHMENT PENDING` : "POSTER + RESEARCH PACK NOT BUILT"}</small>
         </div>
       )}
       <div className="movie-overlay">
@@ -412,7 +434,7 @@ function MoviePanel({ event, model, position, total }) {
         <div className="movie-meta">
           <span>{model?.market.releaseDateLabel || shortDate(event?.closeTime)}</span>
           <span>{model?.market.genreLabel || "LIVE MARKET"}</span>
-          <span>{automatic ? "AUTO MODEL" : model ? "CONFIGURED MODEL" : "MARKET ONLY"}</span>
+          <span>{automatic ? enriched ? "ENRICHED AUTO" : "AUTO MODEL" : model ? "CONFIGURED MODEL" : "MARKET ONLY"}</span>
         </div>
       </div>
     </article>
@@ -441,6 +463,7 @@ function MobileSwipeCard({
   const nextEvent = events.length > 1 ? events[(eventIndex + 1) % events.length] : null;
   const nextModel = resolveModel(nextEvent);
   const automatic = isAutomaticModel(model);
+  const enriched = isEnrichedModel(model);
   const options = chooseThresholds(event, model?.market.kalshi.thresholds || [75, 80, 85]);
   const market = event?.markets.find((item) => item.threshold === threshold);
   const midpoint = market?.yesBid !== null && market?.yesAsk !== null
@@ -452,13 +475,13 @@ function MobileSwipeCard({
       key: "historical",
       label: "FIT",
       value: model?.scores.historicalFit.value ?? null,
-      detail: automatic ? `${model.cohort.sampleSize.toLocaleString()} releases anchor the automatic prior.` : model ? `${model.cohort.sampleSize} comparable releases anchor the prior.` : "Historical cohort not generated.",
+      detail: automatic ? enriched ? `${model.cohort.sampleSize.toLocaleString()} genre comparables anchor the enriched prior.` : `${model.cohort.sampleSize.toLocaleString()} releases anchor the automatic prior.` : model ? `${model.cohort.sampleSize} comparable releases anchor the prior.` : "Historical cohort not generated.",
     },
     {
       key: "talent",
       label: "TALENT",
       value: model?.scores.talentPrior.value ?? null,
-      detail: automatic ? "Global imputation; target talent enrichment is pending." : model ? "Cast, director, and producer track record." : "Named-talent joins are not generated.",
+      detail: automatic ? enriched ? "Exact snapshot cast and crew joins with shrunk prior-film histories." : "Global imputation; target talent enrichment is pending." : model ? "Cast, director, and producer track record." : "Named-talent joins are not generated.",
     },
     {
       key: "coverage",
@@ -536,7 +559,9 @@ function MobileSwipeCard({
 
   const title = model?.market.title || event?.title || "Unconfigured movie";
   const synthesis = automatic
-    ? "Automatic prior is live; target enrichment and critic probability are withheld."
+    ? enriched
+      ? "Exact snapshot target match is connected; live metadata and critic probability remain withheld."
+      : "Automatic prior is live; target enrichment and critic probability are withheld."
     : model
       ? "Market is live; historical fit is moderate; critic probability is withheld."
     : "Market is live; movie-specific historical evidence is not generated."
@@ -567,7 +592,7 @@ function MobileSwipeCard({
           {model?.market.artwork ? (
             <img src={model.market.artwork} alt={model.market.artworkAlt} draggable="false" />
           ) : (
-            <div><span>{automatic ? "AUTOMATIC HISTORICAL PRIOR" : "LIVE MARKET ONLY"}</span><strong>{title}</strong><small>{automatic ? `${model.automation.specificity.toUpperCase()} SPECIFICITY · ENRICHMENT PENDING` : "POSTER + RESEARCH PACK NOT BUILT"}</small></div>
+            <div><span>{automatic ? enriched ? "SNAPSHOT-ENRICHED PRIOR" : "AUTOMATIC HISTORICAL PRIOR" : "LIVE MARKET ONLY"}</span><strong>{title}</strong><small>{automatic ? enriched ? `${model.automation.specificity.toUpperCase()} SPECIFICITY · EXACT TARGET MATCH` : `${model.automation.specificity.toUpperCase()} SPECIFICITY · ENRICHMENT PENDING` : "POSTER + RESEARCH PACK NOT BUILT"}</small></div>
           )}
         </div>
 
@@ -591,7 +616,7 @@ function MobileSwipeCard({
                 <small>BID / ASK</small>
               </div>
               <div className="mobile-model-score">
-                <span>{automatic ? "AUTO HISTORICAL MODEL" : "HISTORICAL MODEL"}</span>
+                <span>{automatic ? enriched ? "ENRICHED HISTORICAL MODEL" : "AUTO HISTORICAL MODEL" : "HISTORICAL MODEL"}</span>
                 <strong className={model ? "" : "status-label"}>{model ? displayScore(model.scores.historicalFit.value) : "NOT BUILT"}</strong>
                 <button onClick={() => onOpenScore("historical")}>{model ? "TRACE SCORE" : "WHY UNAVAILABLE"} <CaretRight aria-hidden="true" weight="bold" /></button>
               </div>
@@ -640,6 +665,7 @@ function ScoutView({ event, model, events, liveState, scoreDetails, ideaDisposit
   const title = model?.market.title || event?.title || event?.eventTicker;
   const eventPosition = Math.max(1, events.findIndex((item) => item.eventTicker === event?.eventTicker) + 1);
   const automatic = isAutomaticModel(model);
+  const enriched = isEnrichedModel(model);
 
   return (
     <main className="scout-view">
@@ -657,8 +683,10 @@ function ScoutView({ event, model, events, liveState, scoreDetails, ideaDisposit
           <div className="stance-row"><p className="eyebrow">CUTLINE CALL · ABOVE {threshold}</p><span className="stance muted">RESEARCH ONLY</span></div>
           {automatic ? (
             <>
-              <h2>Every live market receives an automatic prior; this one is {model.automation.specificity}-specificity.</h2>
-              <p>The automatic layer scores historical context at {displayScore(historicalFit)} from {model.cohort.sampleSize.toLocaleString()} eligible releases, settlement-month context, and any strongly-shrunk title-family evidence. The talent value is explicitly imputed until verified cast and crew metadata is joined. No critic probability or edge is produced.</p>
+              <h2>{enriched ? "An exact audited target match upgraded this automatic prior" : "Every live market receives an automatic prior"}; this one is {model.automation.specificity}-specificity.</h2>
+              <p>{enriched
+                ? `The snapshot resolved ${model.target.title}, its release date, genres, artwork, and named talent. Historical fit ${displayScore(historicalFit)} uses ${model.cohort.sampleSize.toLocaleString()} genre comparables plus shrunk cast and crew histories; talent scores ${displayScore(talentPrior)}. This is still not a live metadata refresh, critic probability, or edge.`
+                : `The automatic layer scores historical context at ${displayScore(historicalFit)} from ${model.cohort.sampleSize.toLocaleString()} eligible releases, settlement-month context, and any strongly-shrunk title-family evidence. The talent value is explicitly imputed until verified cast and crew metadata is joined. No critic probability or edge is produced.`}</p>
             </>
           ) : model ? (
             <>
@@ -755,7 +783,7 @@ function ScoreDrawer({ scoreKey, scoreDetails, model, liveState, onClose }) {
         <div className="drawer-formula"><span>CALCULATION</span><p>{score.formula}</p></div>
         {scoreKey === "historical" && cohort && (
           <div className="cohort-context">
-            <div className="cohort-context-head"><span>{isAutomaticModel(model) ? "AUTOMATIC REFERENCE COHORT" : "COMPARABLE-FILM COHORT"}</span><strong>N={cohort.sampleSize}</strong></div>
+            <div className="cohort-context-head"><span>{isEnrichedModel(model) ? "SNAPSHOT-ENRICHED GENRE COHORT" : isAutomaticModel(model) ? "AUTOMATIC REFERENCE COHORT" : "COMPARABLE-FILM COHORT"}</span><strong>N={cohort.sampleSize}</strong></div>
             <p>{model.methodology.cohortRule}</p>
             <div className="comparable-list">{cohort.recentComparables.map((movie) => <div key={movie.title}><span>{movie.title}</span><span>{movie.releaseDate.slice(0, 4)} · {movie.rating.toFixed(1)} / 10 · {movie.votes.toLocaleString()} votes</span></div>)}</div>
             <div className="financial-line"><span>FINANCIAL CONTEXT · N={financial.completeSampleSize}</span><strong>Median budget {money(financial.medianBudgetUsd)} · revenue {money(financial.medianRevenueUsd)}</strong><small>{financial.caveat}</small></div>
@@ -849,7 +877,7 @@ export function App() {
       marketUrl: model?.market.kalshi.marketUrl || marketUrl(selectedEvent.eventTicker),
       artwork: model?.market.artwork || null,
       releaseLabel: model?.market.releaseDateLabel || shortDate(selectedEvent.closeTime),
-      modelStatus: isAutomaticModel(model) ? `automatic prior · ${model.automation.specificity} specificity` : model ? "configured historical prior" : "unavailable",
+      modelStatus: isAutomaticModel(model) ? `${isEnrichedModel(model) ? "snapshot-enriched automatic prior" : "automatic baseline prior"} · ${model.automation.specificity} specificity` : model ? "configured historical prior" : "unavailable",
       historicalFit: model?.scores.historicalFit.value ?? null,
       talentPrior: model?.scores.talentPrior.value ?? null,
       marketSnapshot: market
@@ -909,7 +937,14 @@ export function App() {
         <SavedView items={savedItems} onOpenScout={() => setView("scout")} onReview={(item) => { setSelectedEventTicker(item.eventTicker); setView("scout"); }} onRemove={(id) => setSavedItems((items) => items.filter((item) => item.id !== id))} onExport={exportIdeas} onImport={importIdeas} />
       ) : (
         <>
-          <SlateStrip events={events} selectedEventTicker={selectedEvent?.eventTicker || DEFAULT_EVENT} onSelect={setSelectedEventTicker} configuredCount={events.filter((event) => MODEL_BY_EVENT.has(event.eventTicker)).length} liveState={liveState} />
+          <SlateStrip
+            events={events}
+            selectedEventTicker={selectedEvent?.eventTicker || DEFAULT_EVENT}
+            onSelect={setSelectedEventTicker}
+            configuredCount={events.filter((event) => MODEL_BY_EVENT.has(event.eventTicker)).length}
+            enrichedCount={events.filter((event) => !MODEL_BY_EVENT.has(event.eventTicker) && isEnrichedModel(resolveModel(event))).length}
+            liveState={liveState}
+          />
           <ScoutView event={selectedEvent} model={model} events={events} liveState={liveState} scoreDetails={scoreDetails} ideaDisposition={selectedIdea?.disposition || null} onSave={saveIdea} onLater={saveForLater} onPass={() => announce("Passed for now · moved to the next live market")} onAdvance={advanceEvent} onOpenScore={setScoreKey} />
         </>
       )}

@@ -17,6 +17,7 @@ from historical_model import (  # noqa: E402
     weighted_score,
 )
 from automatic_prior import AUTO_MODEL_VERSION, title_family_key  # noqa: E402
+from target_enrichment import ENRICHMENT_MODEL_VERSION, normalize_title  # noqa: E402
 
 
 def movie(movie_id, rating, votes=500, released=date(2020, 1, 1), status="Released"):
@@ -90,6 +91,21 @@ class HistoricalModelTests(unittest.TestCase):
     def test_title_family_key_is_stable_and_not_a_franchise_claim(self):
         self.assertEqual(title_family_key("The Avengers: Doomsday"), "avengers")
         self.assertEqual(title_family_key("Dune: Part Three"), "dune")
+
+    def test_checked_in_target_enrichment_is_exact_and_leakage_controlled(self):
+        enrichment = json.loads((ROOT / "src/data/target-enrichment.json").read_text())
+        self.assertEqual(enrichment["modelVersion"], ENRICHMENT_MODEL_VERSION)
+        self.assertEqual(enrichment["source"]["license"], "CC BY-NC-SA 4.0")
+        self.assertGreater(enrichment["resolution"]["candidateCount"], 50)
+        avengers_ids = enrichment["titleIndex"][normalize_title("Avengers: Doomsday")]
+        self.assertEqual(len(avengers_ids), 1)
+        avengers = enrichment["records"][str(avengers_ids[0])]
+        self.assertEqual(avengers["movieId"], 1003596)
+        self.assertGreater(avengers["genreContext"]["sampleSize"], 0)
+        self.assertGreater(avengers["talent"]["cast"]["sampleSize"], 0)
+        leakage = " ".join(enrichment["methodology"]["leakageControls"])
+        self.assertIn("Target-film rating", leakage)
+        self.assertIn("Kalshi price", leakage)
 
 
 if __name__ == "__main__":

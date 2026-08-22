@@ -112,7 +112,23 @@ The 278 eligible labels support descriptive strict-threshold base rates. The 12-
 
 Until a target is enriched with verified identities, the Talent prior carries the global baseline with sample `n=0`. This is a standard missing-feature imputation, not evidence about that movie's cast or crew. The coverage score records the missing genre, named talent, and artwork fields. Kalshi prices do not enter any factor.
 
-At the August 22, 2026 browser QA snapshot, all 20 live events produced numeric Historical fit, Talent prior, and Data coverage outputs: one configured Resident Evil model and 19 automatic priors. The count and movie list are time-sensitive because the live slate refreshes.
+At the August 22, 2026 live-slate QA snapshot, all 20 events produced numeric Historical fit, Talent prior, and Data coverage outputs: one configured Resident Evil model, five snapshot-enriched automatic priors, and fourteen baseline automatic priors. The count and movie list are time-sensitive because the Kalshi slate refreshes.
+
+## Conservative upcoming-target enrichment
+
+`scripts/target_enrichment.py` derives `src/data/target-enrichment.json` from the same checked-in snapshot. It indexes 66 dated candidates released on or after the snapshot through the bounded upcoming window, then joins target genres, artwork paths, first-billed cast, directors, and credited producers. The artifact also stores historical filmography priors computed only from the same 2,993 eligible pre-snapshot English-language outcomes.
+
+At runtime, a live Kalshi title is enriched only when:
+
+1. its fully normalized title resolves to exactly one candidate;
+2. both the candidate release date and Kalshi settlement date are present; and
+3. the dates are no more than 550 days apart.
+
+An ambiguous title, missing date, or distant date fails closed to the baseline automatic tier. This is deliberately stricter than fuzzy search. The snapshot target match is automatic rather than manually reviewed, and its freshness remains February 17, 2026.
+
+For resolved targets, Historical fit uses 30% verified genre cohort, 15% release-month context, 15% strongly-shrunk lexical title context, 20% lead-cast history, 10% director history, and 10% producer history. Talent uses 50% cast, 30% director, and 20% producer history. Role histories are deduplicated within each factor and shrunk toward the genre cohort with prior strength five. Coverage records the fraction of named people with eligible history instead of treating an identity join as automatic confidence.
+
+The target movie contributes identity and context only. Its rating, votes, popularity, budget, revenue, reviews, and any post-snapshot outcome are excluded. Market prices remain separate.
 
 ## Movie-specific configuration
 
@@ -188,4 +204,4 @@ Run the focused scoring tests with:
 npm run test:historical
 ```
 
-The data scripts use only Python's standard library. Their committed outputs are `src/data/automatic-prior.json`, `src/data/markets/*.json`, `src/data/market-index.json`, and `src/data/critic-benchmark.json`.
+The data scripts use only Python's standard library. Their committed outputs are `src/data/automatic-prior.json`, `src/data/target-enrichment.json`, `src/data/markets/*.json`, `src/data/market-index.json`, and `src/data/critic-benchmark.json`.

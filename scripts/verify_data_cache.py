@@ -9,6 +9,7 @@ from pathlib import Path
 from automatic_prior import build_automatic_prior
 from critic_outcomes import build_benchmark
 from historical_model import build_model, load_market_config
+from target_enrichment import build_target_enrichment
 
 
 TMDB_DIR = Path("data/raw/tmdb-comprehensive-v1")
@@ -63,10 +64,17 @@ def main() -> None:
         checked_json(Path("src/data/automatic-prior.json")),
     )
 
+    target_enrichment = build_target_enrichment(TMDB_DIR)
+    verify_equal(
+        "src/data/target-enrichment.json",
+        target_enrichment,
+        checked_json(Path("src/data/target-enrichment.json")),
+    )
+
     critic = build_benchmark(CRITIC_FILE, tmdb_movies_path=TMDB_DIR / "movies.csv")
     verify_equal("src/data/critic-benchmark.json", critic, checked_json(Path("src/data/critic-benchmark.json")))
     print(
-        f"Verified {len(expected_index)} configured market cache(s), the automatic prior, the market index, and the critic benchmark against raw source checksums."
+        f"Verified {len(expected_index)} configured market cache(s), the automatic prior, the target-enrichment catalog, the market index, and the critic benchmark against raw source checksums."
     )
 
 

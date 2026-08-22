@@ -32,6 +32,17 @@ src/data/automatic-prior.json              |
         |                                  |
         +----------------------------------+
                                            |
+audited Kaggle/TMDB CSV snapshot           |
+        |                                  |
+        v                                  |
+scripts/target_enrichment.py               |
+  - indexes dated upcoming targets         |
+  - joins genres, artwork, cast, and crew  |
+  - calculates leakage-safe filmographies |
+        |                                  |
+        v                                  |
+src/data/target-enrichment.json -----------+
+                                           |
 audited Rotten Tomatoes CSV snapshot       |
         |                                  |
         v                                  |
@@ -59,18 +70,19 @@ worker /api/kalshi/markets -------------->+
                                 versioned JSON export/import
 ```
 
-The historical and critic pipelines are deterministic offline batches. The Sites worker is the only live server boundary: it serves static assets, provides SPA fallback, and proxies a fixed unauthenticated Kalshi market-data request. It does not accept arbitrary upstream URLs, store credentials, or place trades.
+The historical, enrichment, and critic pipelines are deterministic offline batches. The Sites worker is the only live server boundary: it serves static assets, provides SPA fallback, and proxies a fixed unauthenticated Kalshi market-data request. It does not accept arbitrary upstream URLs, store credentials, or place trades.
 
 ## Multi-movie lifecycle
 
-Active KXRT events appear automatically from Kalshi. An event can exist in one of two explicit model tiers:
+Active KXRT events appear automatically from Kalshi. An event can exist in one of three explicit model tiers:
 
 | State | Available | Withheld |
 | --- | --- | --- |
-| Live + automatic prior | Event, thresholds, price context, numeric historical prior, explicit talent imputation, coverage, specificity, factor trace, Save/Later/Pass | Verified target genres, cast, crew, poster, critic probability, and edge |
+| Live + baseline automatic prior | Event, thresholds, price context, numeric historical prior, explicit talent imputation, coverage, specificity, factor trace, Save/Later/Pass | Target genres, cast, crew, poster, critic probability, and edge |
+| Live + snapshot-enriched prior | Baseline context plus one exact/date-consistent target identity, genres, release, artwork when present, and ID-joined cast/director/producer histories | Live target freshness, manual review, critic probability, and edge |
 | Live + configured model | All live context plus a reviewed `config/markets/*.json` artifact, verified target joins, artwork, and explainable historical scores | Probability and edge remain unavailable until critic calibration passes |
 
-Every live event receives the automatic tier immediately. Adding a configured movie does not require a React edit: the builder emits a JSON artifact, Vite discovers it under `src/data/markets/`, and that richer artifact takes precedence over the automatic prior.
+Every live event receives a numeric tier immediately. A configured artifact takes precedence. Otherwise the runtime requires one normalized title candidate within 550 days of settlement before using snapshot enrichment; ambiguity or distance falls back to baseline. Adding a configured movie does not require a React edit: Vite discovers the generated artifact under `src/data/markets/`.
 
 The automatic tier is deterministic and hierarchical:
 
@@ -80,6 +92,17 @@ The automatic tier is deterministic and hierarchical:
 
 Missing target talent is a visible global-baseline imputation with sample `n=0`. The coverage score falls when title-family, genre, talent, or artwork evidence is absent.
 
+The snapshot-enriched tier uses:
+
+- 30% verified target-genre cohort;
+- 15% audited target release month;
+- 15% strongly-shrunk lexical title-family context;
+- 20% lead-cast history;
+- 10% director history; and
+- 10% producer history.
+
+Target metadata comes only from the audited February 17, 2026 snapshot. The target movie's rating, votes, popularity, budget, and revenue are excluded. A target match is automatic and must not be described as manually reviewed or live.
+
 ## Source-of-truth boundaries
 
 | Concern | Source of truth |
@@ -88,6 +111,7 @@ Missing target talent is a visible global-baseline imputation with sample `n=0`.
 | Data versions, rights, and archive checksums | `config/data-sources.json` |
 | Historical calculations | `scripts/historical_model.py` |
 | Automatic fallback calculation | `scripts/automatic_prior.py` and `src/lib/automatic-model.js` |
+| Snapshot target identity and talent catalog | `scripts/target_enrichment.py` and `src/data/target-enrichment.json` |
 | Critic benchmark and calibration gate | `scripts/critic_outcomes.py` |
 | Checked-in movie artifacts | `src/data/markets/*.json` |
 | Checked-in automatic prior | `src/data/automatic-prior.json` |
@@ -106,7 +130,9 @@ Missing target talent is a visible global-baseline imputation with sample `n=0`.
 - The open application refreshes the paginated KXRT slate every 60 seconds and again when its browser tab becomes visible.
 - A failed Kalshi refresh may expose the last cached response only when it is visibly labeled stale.
 - Market price is never inserted into the historical or critic score.
-- A live event without a configured movie artifact receives the audited automatic prior; it never borrows another target movie's cohort, artwork, talent history, or configured score.
+- A live event without a configured movie artifact receives either an exact/date-consistent snapshot enrichment or the audited baseline prior; it never borrows another target movie's cohort, artwork, talent history, or configured score.
+- Ambiguous titles, missing release dates, and release-window mismatches fail closed to the baseline tier.
+- Snapshot enrichment carries the dataset freshness date and never claims to be a live TMDB refresh.
 - The critic benchmark remains descriptive until a larger identifier crosswalk and forward-time validation succeed.
 - Missing target data reduces coverage. A documented global-baseline imputation may be shown only with sample `n=0`, its factor contribution, and an enrichment-pending label.
 - No runtime path places orders or accepts brokerage credentials.
@@ -127,7 +153,7 @@ The repository uses standard React, Vite, Node, and Python files. Vite proxies `
 
 ## Next service boundaries
 
-1. **Target metadata enrichment** — resolve stable movie IDs, genres, verified release date, artwork, cast, director, and producers for each new event; promote only reviewed matches above the automatic tier.
+1. **Live target metadata enrichment** — use a server-side provider token to resolve stable movie IDs, genres, current release date, artwork, cast, director, and producers for post-snapshot events; require one release-consistent match and retain observation time.
 2. **Critic identifier crosswalk** — map a larger rights-cleared critic label set to stable movie IDs.
 3. **Forward calibration** — recreate each film's features as of its release date and validate threshold probabilities chronologically.
 4. **Early-signal collectors** — collect trailer, search, and social observations with provider, query, geography, window, and timestamp.

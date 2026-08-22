@@ -10,7 +10,8 @@
       "rawDirectory": "data/raw/tmdb-comprehensive-v1",
       "derivedArtifacts": {
         "configuredMarkets": "src/data/markets/*.json",
-        "automaticPrior": "src/data/automatic-prior.json"
+        "automaticPrior": "src/data/automatic-prior.json",
+        "targetEnrichment": "src/data/target-enrichment.json"
       }
     },
     "rottenTomatoesBenchmark": {
