@@ -7,7 +7,11 @@
       "snapshotDate": "2026-02-17",
       "license": "CC BY-NC-SA 4.0",
       "archiveSha256": "395888227be599a3181084bda47defe38be5e6198f12c6e76656c0a39d6bf3a7",
-      "rawDirectory": "data/raw/tmdb-comprehensive-v1"
+      "rawDirectory": "data/raw/tmdb-comprehensive-v1",
+      "derivedArtifacts": {
+        "configuredMarkets": "src/data/markets/*.json",
+        "automaticPrior": "src/data/automatic-prior.json"
+      }
     },
     "rottenTomatoesBenchmark": {
       "slug": "crawlfeeds/rotten-tomatoes-movies-1000-films-dataset-2024",

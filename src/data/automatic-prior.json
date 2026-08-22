@@ -1,0 +1,4660 @@
+{
+  "schemaVersion": 1,
+  "modelVersion": "1.0.0",
+  "generatedFromSnapshot": "2026-02-17T19:30:06.547Z",
+  "source": {
+    "name": "The Movie Database (TMDB) Comprehensive Dataset",
+    "kaggleSlug": "rishabhkumar2003/the-movie-database-tmdb-comprehensive-dataset",
+    "kaggleUrl": "https://www.kaggle.com/datasets/rishabhkumar2003/the-movie-database-tmdb-comprehensive-dataset",
+    "tmdbUrl": "https://www.themoviedb.org/",
+    "version": 1,
+    "snapshotDate": "2026-02-17",
+    "lastUpdated": "2026-02-17T19:30:06.547Z",
+    "license": "CC BY-NC-SA 4.0",
+    "commercialUse": "Not permitted by the dataset license without separate permission; replace or license before production use.",
+    "attribution": "This product uses TMDB data but is not endorsed or certified by TMDB.",
+    "checksums": {
+      "movies.csv": "a7c2e7dcfba6b51f5052e0d182d568ec2a3ef7d69996dcb0079e92a1f9144d38"
+    }
+  },
+  "eligibility": {
+    "language": "en",
+    "minReleaseYear": 2000,
+    "maxReleaseDate": "2026-02-17",
+    "minVoteCount": 100,
+    "status": "Released"
+  },
+  "baseline": {
+    "sampleSize": 2993,
+    "value": 65.6,
+    "median": 65.8
+  },
+  "months": {
+    "1": {
+      "sampleSize": 185,
+      "value": 63.5,
+      "median": 63.4,
+      "name": "January"
+    },
+    "2": {
+      "sampleSize": 193,
+      "value": 64.8,
+      "median": 65.3,
+      "name": "February"
+    },
+    "3": {
+      "sampleSize": 249,
+      "value": 65.0,
+      "median": 64.7,
+      "name": "March"
+    },
+    "4": {
+      "sampleSize": 184,
+      "value": 65.3,
+      "median": 66.2,
+      "name": "April"
+    },
+    "5": {
+      "sampleSize": 237,
+      "value": 65.0,
+      "median": 65.3,
+      "name": "May"
+    },
+    "6": {
+      "sampleSize": 245,
+      "value": 65.5,
+      "median": 66.3,
+      "name": "June"
+    },
+    "7": {
+      "sampleSize": 242,
+      "value": 65.4,
+      "median": 65.6,
+      "name": "July"
+    },
+    "8": {
+      "sampleSize": 254,
+      "value": 64.7,
+      "median": 65.0,
+      "name": "August"
+    },
+    "9": {
+      "sampleSize": 313,
+      "value": 66.1,
+      "median": 66.4,
+      "name": "September"
+    },
+    "10": {
+      "sampleSize": 324,
+      "value": 66.4,
+      "median": 66.3,
+      "name": "October"
+    },
+    "11": {
+      "sampleSize": 272,
+      "value": 67.1,
+      "median": 67.4,
+      "name": "November"
+    },
+    "12": {
+      "sampleSize": 295,
+      "value": 67.2,
+      "median": 68.2,
+      "name": "December"
+    }
+  },
+  "titleFamilies": {
+    "abigail": {
+      "sampleSize": 2,
+      "rawValue": 64.3,
+      "value": 65.4,
+      "titles": [
+        "Abigail",
+        "Abigail"
+      ]
+    },
+    "addams": {
+      "sampleSize": 2,
+      "rawValue": 67.5,
+      "value": 65.9,
+      "titles": [
+        "The Addams Family 2",
+        "The Addams Family"
+      ]
+    },
+    "adventures": {
+      "sampleSize": 2,
+      "rawValue": 60.6,
+      "value": 64.8,
+      "titles": [
+        "The Adventures of Tintin",
+        "The Adventures of Sharkboy and Lavagirl"
+      ]
+    },
+    "after": {
+      "sampleSize": 7,
+      "rawValue": 67.1,
+      "value": 66.2,
+      "titles": [
+        "After the Hunt",
+        "After Everything",
+        "After Ever Happy",
+        "After We Fell",
+        "After We Collided"
+      ]
+    },
+    "air": {
+      "sampleSize": 2,
+      "rawValue": 66.2,
+      "value": 65.7,
+      "titles": [
+        "Air",
+        "Air Buddies"
+      ]
+    },
+    "alice": {
+      "sampleSize": 2,
+      "rawValue": 66.0,
+      "value": 65.7,
+      "titles": [
+        "Alice Through the Looking Glass",
+        "Alice in Wonderland"
+      ]
+    },
+    "alien": {
+      "sampleSize": 3,
+      "rawValue": 66.2,
+      "value": 65.7,
+      "titles": [
+        "Alien: Romulus",
+        "Alien Xmas",
+        "Alien: Covenant"
+      ]
+    },
+    "all": {
+      "sampleSize": 2,
+      "rawValue": 75.0,
+      "value": 67.2,
+      "titles": [
+        "All of Us Strangers",
+        "To All the Boys I've Loved Before"
+      ]
+    },
+    "alvin": {
+      "sampleSize": 4,
+      "rawValue": 58.0,
+      "value": 63.4,
+      "titles": [
+        "Alvin and the Chipmunks: The Road Chip",
+        "Alvin and the Chipmunks: Chipwrecked",
+        "Alvin and the Chipmunks: The Squeakquel",
+        "Alvin and the Chipmunks"
+      ]
+    },
+    "amateur": {
+      "sampleSize": 2,
+      "rawValue": 62.3,
+      "value": 65.1,
+      "titles": [
+        "The Amateur",
+        "Amateur Night"
+      ]
+    },
+    "amazing": {
+      "sampleSize": 2,
+      "rawValue": 66.3,
+      "value": 65.7,
+      "titles": [
+        "The Amazing Spider-Man 2",
+        "The Amazing Spider-Man"
+      ]
+    },
+    "american": {
+      "sampleSize": 13,
+      "rawValue": 65.1,
+      "value": 65.3,
+      "titles": [
+        "American Pie Presents: Girls' Rules",
+        "American Made",
+        "American Assassin",
+        "American Ultra",
+        "American Sniper"
+      ]
+    },
+    "anaconda": {
+      "sampleSize": 2,
+      "rawValue": 63.8,
+      "value": 65.3,
+      "titles": [
+        "Anaconda",
+        "Anaconda"
+      ]
+    },
+    "anchorman": {
+      "sampleSize": 2,
+      "rawValue": 64.2,
+      "value": 65.4,
+      "titles": [
+        "Anchorman 2: The Legend Continues",
+        "Anchorman: The Legend of Ron Burgundy"
+      ]
+    },
+    "angry": {
+      "sampleSize": 2,
+      "rawValue": 66.3,
+      "value": 65.7,
+      "titles": [
+        "The Angry Birds Movie 2",
+        "The Angry Birds Movie"
+      ]
+    },
+    "animal": {
+      "sampleSize": 2,
+      "rawValue": 51.1,
+      "value": 63.2,
+      "titles": [
+        "Animal",
+        "The Animal"
+      ]
+    },
+    "anna": {
+      "sampleSize": 2,
+      "rawValue": 66.0,
+      "value": 65.7,
+      "titles": [
+        "Anna",
+        "Anna"
+      ]
+    },
+    "annabelle": {
+      "sampleSize": 3,
+      "rawValue": 62.6,
+      "value": 64.9,
+      "titles": [
+        "Annabelle Comes Home",
+        "Annabelle: Creation",
+        "Annabelle"
+      ]
+    },
+    "ant": {
+      "sampleSize": 3,
+      "rawValue": 63.7,
+      "value": 65.2,
+      "titles": [
+        "Ant-Man and the Wasp: Quantumania",
+        "Ant-Man",
+        "The Ant Bully"
+      ]
+    },
+    "aquaman": {
+      "sampleSize": 2,
+      "rawValue": 67.1,
+      "value": 65.8,
+      "titles": [
+        "Aquaman and the Lost Kingdom",
+        "Aquaman"
+      ]
+    },
+    "army": {
+      "sampleSize": 2,
+      "rawValue": 65.1,
+      "value": 65.5,
+      "titles": [
+        "Army of Thieves",
+        "Army of the Dead"
+      ]
+    },
+    "avatar": {
+      "sampleSize": 3,
+      "rawValue": 75.0,
+      "value": 67.8,
+      "titles": [
+        "Avatar: Fire and Ash",
+        "Avatar: The Way of Water",
+        "Avatar"
+      ]
+    },
+    "avengers": {
+      "sampleSize": 4,
+      "rawValue": 79.1,
+      "value": 69.5,
+      "titles": [
+        "Avengers: Endgame",
+        "Avengers: Infinity War",
+        "Avengers: Age of Ultron",
+        "The Avengers"
+      ]
+    },
+    "babysitter": {
+      "sampleSize": 2,
+      "rawValue": 62.5,
+      "value": 65.1,
+      "titles": [
+        "The Babysitter: Killer Queen",
+        "The Babysitter"
+      ]
+    },
+    "back": {
+      "sampleSize": 2,
+      "rawValue": 65.5,
+      "value": 65.6,
+      "titles": [
+        "Back in Action",
+        "Back to Black"
+      ]
+    },
+    "bad": {
+      "sampleSize": 11,
+      "rawValue": 67.5,
+      "value": 66.6,
+      "titles": [
+        "The Bad Guys 2",
+        "Bad Boys: Ride or Die",
+        "The Bad Guys",
+        "Bad Boys for Life",
+        "Bad Times at the El Royale"
+      ]
+    },
+    "bait": {
+      "sampleSize": 2,
+      "rawValue": 57.1,
+      "value": 64.2,
+      "titles": [
+        "Bait",
+        "Bait"
+      ]
+    },
+    "ballerina": {
+      "sampleSize": 2,
+      "rawValue": 72.3,
+      "value": 66.7,
+      "titles": [
+        "Ballerina",
+        "Ballerina"
+      ]
+    },
+    "barbie": {
+      "sampleSize": 3,
+      "rawValue": 68.7,
+      "value": 66.3,
+      "titles": [
+        "Barbie",
+        "Barbie Mariposa",
+        "Barbie Fairytopia: Mermaidia"
+      ]
+    },
+    "batman": {
+      "sampleSize": 4,
+      "rawValue": 72.9,
+      "value": 67.7,
+      "titles": [
+        "The Batman",
+        "Batman v Superman: Dawn of Justice",
+        "Batman: Under the Red Hood",
+        "Batman Begins"
+      ]
+    },
+    "beautiful": {
+      "sampleSize": 4,
+      "rawValue": 67.3,
+      "value": 66.1,
+      "titles": [
+        "Beautiful Wedding",
+        "Beautiful Boy",
+        "Beautiful Boy",
+        "A Beautiful Mind"
+      ]
+    },
+    "better": {
+      "sampleSize": 2,
+      "rawValue": 73.8,
+      "value": 67.0,
+      "titles": [
+        "Better Man",
+        "A Better Life"
+      ]
+    },
+    "big": {
+      "sampleSize": 11,
+      "rawValue": 65.8,
+      "value": 65.7,
+      "titles": [
+        "A Big Bold Beautiful Journey",
+        "Big George Foreman",
+        "The Big Short",
+        "Big Eyes",
+        "Big Hero 6"
+      ]
+    },
+    "black": {
+      "sampleSize": 12,
+      "rawValue": 71.2,
+      "value": 68.7,
+      "titles": [
+        "Black Phone 2",
+        "Black Bag",
+        "Black Panther: Wakanda Forever",
+        "Black Adam",
+        "The Black Phone"
+      ]
+    },
+    "blade": {
+      "sampleSize": 3,
+      "rawValue": 66.7,
+      "value": 65.8,
+      "titles": [
+        "Blade Runner 2049",
+        "Blade: Trinity",
+        "Blade II"
+      ]
+    },
+    "blonde": {
+      "sampleSize": 2,
+      "rawValue": 51.9,
+      "value": 63.3,
+      "titles": [
+        "Blonde",
+        "Blonde Ambition"
+      ]
+    },
+    "blood": {
+      "sampleSize": 3,
+      "rawValue": 71.0,
+      "value": 66.8,
+      "titles": [
+        "Blood",
+        "Blood and Bone",
+        "Blood Diamond"
+      ]
+    },
+    "blue": {
+      "sampleSize": 4,
+      "rawValue": 66.9,
+      "value": 66.0,
+      "titles": [
+        "Blue Moon",
+        "Blue Beetle",
+        "Blue Lagoon: The Awakening",
+        "Blue Valentine"
+      ]
+    },
+    "bob": {
+      "sampleSize": 2,
+      "rawValue": 67.9,
+      "value": 66.0,
+      "titles": [
+        "Bob Marley: One Love",
+        "The Bob's Burgers Movie"
+      ]
+    },
+    "book": {
+      "sampleSize": 3,
+      "rawValue": 65.5,
+      "value": 65.6,
+      "titles": [
+        "The Book of Life",
+        "The Book of Eli",
+        "Book of Blood"
+      ]
+    },
+    "boss": {
+      "sampleSize": 2,
+      "rawValue": 70.8,
+      "value": 66.5,
+      "titles": [
+        "The Boss Baby: Family Business",
+        "Boss Level"
+      ]
+    },
+    "bourne": {
+      "sampleSize": 4,
+      "rawValue": 71.2,
+      "value": 67.2,
+      "titles": [
+        "The Bourne Legacy",
+        "The Bourne Ultimatum",
+        "The Bourne Supremacy",
+        "The Bourne Identity"
+      ]
+    },
+    "boy": {
+      "sampleSize": 3,
+      "rawValue": 67.0,
+      "value": 65.9,
+      "titles": [
+        "The Boy",
+        "Boy Wonder",
+        "The Boy in the Striped Pyjamas"
+      ]
+    },
+    "bride": {
+      "sampleSize": 3,
+      "rawValue": 61.0,
+      "value": 64.5,
+      "titles": [
+        "Bride Hard",
+        "Bride Wars",
+        "Bride & Prejudice"
+      ]
+    },
+    "bridge": {
+      "sampleSize": 2,
+      "rawValue": 72.7,
+      "value": 66.8,
+      "titles": [
+        "Bridge of Spies",
+        "Bridge to Terabithia"
+      ]
+    },
+    "bridget": {
+      "sampleSize": 2,
+      "rawValue": 65.5,
+      "value": 65.6,
+      "titles": [
+        "Bridget Jones: Mad About the Boy",
+        "Bridget Jones's Diary"
+      ]
+    },
+    "broken": {
+      "sampleSize": 2,
+      "rawValue": 64.2,
+      "value": 65.4,
+      "titles": [
+        "Broken City",
+        "Broken"
+      ]
+    },
+    "brooklyn": {
+      "sampleSize": 2,
+      "rawValue": 68.1,
+      "value": 66.0,
+      "titles": [
+        "Brooklyn",
+        "Brooklyn's Finest"
+      ]
+    },
+    "brothers": {
+      "sampleSize": 2,
+      "rawValue": 66.1,
+      "value": 65.7,
+      "titles": [
+        "Brothers",
+        "Brothers"
+      ]
+    },
+    "burn": {
+      "sampleSize": 2,
+      "rawValue": 63.6,
+      "value": 65.3,
+      "titles": [
+        "Burn",
+        "Burn After Reading"
+      ]
+    },
+    "call": {
+      "sampleSize": 2,
+      "rawValue": 78.1,
+      "value": 67.7,
+      "titles": [
+        "The Call of the Wild",
+        "Call Me by Your Name"
+      ]
+    },
+    "candy": {
+      "sampleSize": 2,
+      "rawValue": 66.1,
+      "value": 65.7,
+      "titles": [
+        "Candy Jar",
+        "Candy"
+      ]
+    },
+    "captain": {
+      "sampleSize": 8,
+      "rawValue": 70.8,
+      "value": 67.9,
+      "titles": [
+        "Captain America: Brave New World",
+        "Captain Marvel",
+        "Captain Underpants: The First Epic Movie",
+        "Captain Fantastic",
+        "Captain America: Civil War"
+      ]
+    },
+    "cars": {
+      "sampleSize": 2,
+      "rawValue": 69.4,
+      "value": 66.2,
+      "titles": [
+        "Cars 3",
+        "Cars"
+      ]
+    },
+    "cat": {
+      "sampleSize": 2,
+      "rawValue": 54.9,
+      "value": 63.8,
+      "titles": [
+        "Cat Person",
+        "The Cat in the Hat"
+      ]
+    },
+    "catch": {
+      "sampleSize": 3,
+      "rawValue": 66.3,
+      "value": 65.8,
+      "titles": [
+        "To Catch a Killer",
+        "Catch.44",
+        "Catch Me If You Can"
+      ]
+    },
+    "chaos": {
+      "sampleSize": 2,
+      "rawValue": 63.1,
+      "value": 65.2,
+      "titles": [
+        "Chaos Theory",
+        "Chaos"
+      ]
+    },
+    "charlie": {
+      "sampleSize": 3,
+      "rawValue": 64.3,
+      "value": 65.3,
+      "titles": [
+        "Charlie's Angels",
+        "Charlie and the Chocolate Factory",
+        "Charlie's Angels"
+      ]
+    },
+    "chicken": {
+      "sampleSize": 3,
+      "rawValue": 65.6,
+      "value": 65.6,
+      "titles": [
+        "Chicken Run: Dawn of the Nugget",
+        "Chicken Little",
+        "Chicken Run"
+      ]
+    },
+    "child": {
+      "sampleSize": 2,
+      "rawValue": 61.4,
+      "value": 64.9,
+      "titles": [
+        "Child's Play",
+        "Child 44"
+      ]
+    },
+    "chronicles": {
+      "sampleSize": 3,
+      "rawValue": 67.4,
+      "value": 66.0,
+      "titles": [
+        "The Chronicles of Narnia: The Voyage of the Dawn Treader",
+        "The Chronicles of Narnia: Prince Caspian",
+        "The Chronicles of Narnia: The Lion, the Witch and the Wardrobe"
+      ]
+    },
+    "cinderella": {
+      "sampleSize": 4,
+      "rawValue": 64.6,
+      "value": 65.3,
+      "titles": [
+        "Cinderella",
+        "Cinderella",
+        "A Cinderella Story",
+        "Cinderella II: Dreams Come True"
+      ]
+    },
+    "cleaner": {
+      "sampleSize": 2,
+      "rawValue": 62.0,
+      "value": 65.0,
+      "titles": [
+        "Cleaner",
+        "Cleaner"
+      ]
+    },
+    "cloudy": {
+      "sampleSize": 2,
+      "rawValue": 65.6,
+      "value": 65.6,
+      "titles": [
+        "Cloudy with a Chance of Meatballs 2",
+        "Cloudy with a Chance of Meatballs"
+      ]
+    },
+    "cloverfield": {
+      "sampleSize": 3,
+      "rawValue": 64.4,
+      "value": 65.3,
+      "titles": [
+        "The Cloverfield Paradox",
+        "10 Cloverfield Lane",
+        "Cloverfield"
+      ]
+    },
+    "clown": {
+      "sampleSize": 2,
+      "rawValue": 59.5,
+      "value": 64.6,
+      "titles": [
+        "Clown in a Cornfield",
+        "Clown"
+      ]
+    },
+    "collateral": {
+      "sampleSize": 2,
+      "rawValue": 72.3,
+      "value": 66.7,
+      "titles": [
+        "Collateral Beauty",
+        "Collateral"
+      ]
+    },
+    "conjuring": {
+      "sampleSize": 4,
+      "rawValue": 72.8,
+      "value": 67.7,
+      "titles": [
+        "The Conjuring: Last Rites",
+        "The Conjuring: The Devil Made Me Do It",
+        "The Conjuring 2",
+        "The Conjuring"
+      ]
+    },
+    "crawlspace": {
+      "sampleSize": 2,
+      "rawValue": 52.9,
+      "value": 63.5,
+      "titles": [
+        "Crawlspace",
+        "Crawlspace"
+      ]
+    },
+    "crazy": {
+      "sampleSize": 3,
+      "rawValue": 69.9,
+      "value": 66.6,
+      "titles": [
+        "Crazy Rich Asians",
+        "Crazy, Stupid, Love.",
+        "Crazy/Beautiful"
+      ]
+    },
+    "creed": {
+      "sampleSize": 3,
+      "rawValue": 71.8,
+      "value": 67.0,
+      "titles": [
+        "Creed III",
+        "Creed II",
+        "Creed"
+      ]
+    },
+    "croods": {
+      "sampleSize": 2,
+      "rawValue": 71.8,
+      "value": 66.6,
+      "titles": [
+        "The Croods: A New Age",
+        "The Croods"
+      ]
+    },
+    "curse": {
+      "sampleSize": 2,
+      "rawValue": 58.0,
+      "value": 64.3,
+      "titles": [
+        "The Curse of La Llorona",
+        "Curse of Chucky"
+      ]
+    },
+    "d": {
+      "sampleSize": 2,
+      "rawValue": 62.0,
+      "value": 65.0,
+      "titles": [
+        "D-Railed",
+        "D.E.B.S."
+      ]
+    },
+    "daddy": {
+      "sampleSize": 2,
+      "rawValue": 63.0,
+      "value": 65.2,
+      "titles": [
+        "Daddy's Home 2",
+        "Daddy's Home"
+      ]
+    },
+    "damsel": {
+      "sampleSize": 2,
+      "rawValue": 61.5,
+      "value": 64.9,
+      "titles": [
+        "Damsel",
+        "Damsel"
+      ]
+    },
+    "dangerous": {
+      "sampleSize": 2,
+      "rawValue": 62.2,
+      "value": 65.0,
+      "titles": [
+        "Dangerous Animals",
+        "Dangerous"
+      ]
+    },
+    "dark": {
+      "sampleSize": 6,
+      "rawValue": 69.5,
+      "value": 67.1,
+      "titles": [
+        "Dark Waters",
+        "Dark Phoenix",
+        "The Dark Tower",
+        "The Dark Knight Rises",
+        "Dark Shadows"
+      ]
+    },
+    "darkest": {
+      "sampleSize": 2,
+      "rawValue": 63.3,
+      "value": 65.2,
+      "titles": [
+        "Darkest Hour",
+        "The Darkest Hour"
+      ]
+    },
+    "date": {
+      "sampleSize": 2,
+      "rawValue": 51.9,
+      "value": 63.3,
+      "titles": [
+        "Date Night",
+        "Date Movie"
+      ]
+    },
+    "dawn": {
+      "sampleSize": 2,
+      "rawValue": 71.9,
+      "value": 66.7,
+      "titles": [
+        "Dawn of the Planet of the Apes",
+        "Dawn of the Dead"
+      ]
+    },
+    "day": {
+      "sampleSize": 5,
+      "rawValue": 68.6,
+      "value": 66.6,
+      "titles": [
+        "The Day the Earth Blew Up: A Looney Tunes Movie",
+        "Day Shift",
+        "Day & Night",
+        "The Day the Earth Stood Still",
+        "The Day After Tomorrow"
+      ]
+    },
+    "days": {
+      "sampleSize": 4,
+      "rawValue": 67.6,
+      "value": 66.2,
+      "titles": [
+        "3 Days to Kill",
+        "(500) Days of Summer",
+        "30 Days of Night",
+        "28 Days Later"
+      ]
+    },
+    "dead": {
+      "sampleSize": 3,
+      "rawValue": 61.1,
+      "value": 64.6,
+      "titles": [
+        "Dead of Winter",
+        "The Dead Don't Die",
+        "Dead Silence"
+      ]
+    },
+    "deadpool": {
+      "sampleSize": 3,
+      "rawValue": 75.6,
+      "value": 67.9,
+      "titles": [
+        "Deadpool & Wolverine",
+        "Deadpool 2",
+        "Deadpool"
+      ]
+    },
+    "death": {
+      "sampleSize": 9,
+      "rawValue": 61.7,
+      "value": 63.8,
+      "titles": [
+        "Death of a Unicorn",
+        "Death on the Nile",
+        "Death Race: Beyond Anarchy",
+        "Death Wish",
+        "The Death of Stalin"
+      ]
+    },
+    "deep": {
+      "sampleSize": 2,
+      "rawValue": 62.7,
+      "value": 65.1,
+      "titles": [
+        "Deep Cover",
+        "Deep Water"
+      ]
+    },
+    "den": {
+      "sampleSize": 2,
+      "rawValue": 67.3,
+      "value": 65.9,
+      "titles": [
+        "Den of Thieves 2: Pantera",
+        "Den of Thieves"
+      ]
+    },
+    "descendants": {
+      "sampleSize": 5,
+      "rawValue": 71.5,
+      "value": 67.6,
+      "titles": [
+        "Descendants: The Rise of Red",
+        "Descendants 3",
+        "Descendants 2",
+        "Descendants",
+        "The Descendants"
+      ]
+    },
+    "despicable": {
+      "sampleSize": 4,
+      "rawValue": 69.1,
+      "value": 66.6,
+      "titles": [
+        "Despicable Me 4",
+        "Despicable Me 3",
+        "Despicable Me 2",
+        "Despicable Me"
+      ]
+    },
+    "devil": {
+      "sampleSize": 2,
+      "rawValue": 73.0,
+      "value": 66.8,
+      "titles": [
+        "The Devil All the Time",
+        "The Devil Wears Prada"
+      ]
+    },
+    "die": {
+      "sampleSize": 2,
+      "rawValue": 60.8,
+      "value": 64.8,
+      "titles": [
+        "Die My Love",
+        "Die Another Day"
+      ]
+    },
+    "dirty": {
+      "sampleSize": 3,
+      "rawValue": 58.0,
+      "value": 63.8,
+      "titles": [
+        "Dirty Angels",
+        "Dirty Grandpa",
+        "Dirty"
+      ]
+    },
+    "doctor": {
+      "sampleSize": 4,
+      "rawValue": 71.3,
+      "value": 67.2,
+      "titles": [
+        "Doctor Strange in the Multiverse of Madness",
+        "Doctor Sleep",
+        "Doctor Strange",
+        "Doctor Strange"
+      ]
+    },
+    "dog": {
+      "sampleSize": 2,
+      "rawValue": 74.0,
+      "value": 67.0,
+      "titles": [
+        "Dog Man",
+        "Dog"
+      ]
+    },
+    "don": {
+      "sampleSize": 5,
+      "rawValue": 67.7,
+      "value": 66.3,
+      "titles": [
+        "Don't Worry Darling",
+        "Don't Look Up",
+        "Don't Breathe 2",
+        "Don't Breathe",
+        "Don Jon"
+      ]
+    },
+    "down": {
+      "sampleSize": 2,
+      "rawValue": 59.2,
+      "value": 64.5,
+      "titles": [
+        "Down",
+        "Down"
+      ]
+    },
+    "drive": {
+      "sampleSize": 3,
+      "rawValue": 62.1,
+      "value": 64.8,
+      "titles": [
+        "Drive-Away Dolls",
+        "Drive",
+        "Drive Angry"
+      ]
+    },
+    "drop": {
+      "sampleSize": 2,
+      "rawValue": 65.9,
+      "value": 65.6,
+      "titles": [
+        "Drop",
+        "The Drop"
+      ]
+    },
+    "dumb": {
+      "sampleSize": 2,
+      "rawValue": 61.2,
+      "value": 64.9,
+      "titles": [
+        "Dumb Money",
+        "Dumb and Dumber To"
+      ]
+    },
+    "dune": {
+      "sampleSize": 2,
+      "rawValue": 79.5,
+      "value": 67.9,
+      "titles": [
+        "Dune: Part Two",
+        "Dune"
+      ]
+    },
+    "eden": {
+      "sampleSize": 2,
+      "rawValue": 67.6,
+      "value": 65.9,
+      "titles": [
+        "Eden",
+        "Eden Lake"
+      ]
+    },
+    "edge": {
+      "sampleSize": 3,
+      "rawValue": 70.6,
+      "value": 66.8,
+      "titles": [
+        "The Edge of Seventeen",
+        "Edge of Tomorrow",
+        "Edge of Darkness"
+      ]
+    },
+    "emperor": {
+      "sampleSize": 2,
+      "rawValue": 68.5,
+      "value": 66.1,
+      "titles": [
+        "Emperor",
+        "The Emperor's New Groove"
+      ]
+    },
+    "encanto": {
+      "sampleSize": 2,
+      "rawValue": 73.0,
+      "value": 66.8,
+      "titles": [
+        "Encanto at the Hollywood Bowl",
+        "Encanto"
+      ]
+    },
+    "enemy": {
+      "sampleSize": 2,
+      "rawValue": 71.3,
+      "value": 66.6,
+      "titles": [
+        "Enemy",
+        "Enemy at the Gates"
+      ]
+    },
+    "enola": {
+      "sampleSize": 2,
+      "rawValue": 72.7,
+      "value": 66.8,
+      "titles": [
+        "Enola Holmes 2",
+        "Enola Holmes"
+      ]
+    },
+    "epic": {
+      "sampleSize": 2,
+      "rawValue": 52.1,
+      "value": 63.3,
+      "titles": [
+        "Epic",
+        "Epic Movie"
+      ]
+    },
+    "equalizer": {
+      "sampleSize": 3,
+      "rawValue": 71.2,
+      "value": 66.9,
+      "titles": [
+        "The Equalizer 3",
+        "The Equalizer 2",
+        "The Equalizer"
+      ]
+    },
+    "escape": {
+      "sampleSize": 5,
+      "rawValue": 59.0,
+      "value": 63.4,
+      "titles": [
+        "Escape Room: Tournament of Champions",
+        "Escape Room",
+        "Escape Plan 2: Hades",
+        "Escape Room",
+        "Escape Plan"
+      ]
+    },
+    "evil": {
+      "sampleSize": 3,
+      "rawValue": 62.7,
+      "value": 64.9,
+      "titles": [
+        "Evil Dead Rise",
+        "Evil Eye",
+        "Evil Dead"
+      ]
+    },
+    "expendables": {
+      "sampleSize": 3,
+      "rawValue": 62.7,
+      "value": 64.9,
+      "titles": [
+        "The Expendables 3",
+        "The Expendables 2",
+        "The Expendables"
+      ]
+    },
+    "extremely": {
+      "sampleSize": 2,
+      "rawValue": 70.0,
+      "value": 66.3,
+      "titles": [
+        "Extremely Wicked, Shockingly Evil and Vile",
+        "Extremely Loud & Incredibly Close"
+      ]
+    },
+    "fall": {
+      "sampleSize": 3,
+      "rawValue": 72.3,
+      "value": 67.2,
+      "titles": [
+        "The Fall Guy",
+        "Fall",
+        "The Fall"
+      ]
+    },
+    "family": {
+      "sampleSize": 6,
+      "rawValue": 65.1,
+      "value": 65.4,
+      "titles": [
+        "The Family Plan 2",
+        "A Family Affair",
+        "The Family Plan",
+        "Family Switch",
+        "The Family"
+      ]
+    },
+    "fantastic": {
+      "sampleSize": 7,
+      "rawValue": 63.7,
+      "value": 64.8,
+      "titles": [
+        "The Fantastic 4: First Steps",
+        "Fantastic Beasts: The Secrets of Dumbledore",
+        "Fantastic Beasts and Where to Find Them",
+        "Fantastic Four",
+        "Fantastic Mr. Fox"
+      ]
+    },
+    "fast": {
+      "sampleSize": 2,
+      "rawValue": 69.2,
+      "value": 66.2,
+      "titles": [
+        "Fast X",
+        "Fast & Furious Presents: Hobbs & Shaw"
+      ]
+    },
+    "father": {
+      "sampleSize": 2,
+      "rawValue": 73.3,
+      "value": 66.9,
+      "titles": [
+        "Father Mother Sister Brother",
+        "The Father"
+      ]
+    },
+    "femme": {
+      "sampleSize": 2,
+      "rawValue": 64.7,
+      "value": 65.5,
+      "titles": [
+        "Femme",
+        "Femme Fatale"
+      ]
+    },
+    "fifty": {
+      "sampleSize": 3,
+      "rawValue": 63.4,
+      "value": 65.1,
+      "titles": [
+        "Fifty Shades Freed",
+        "Fifty Shades Darker",
+        "Fifty Shades of Grey"
+      ]
+    },
+    "fighting": {
+      "sampleSize": 2,
+      "rawValue": 64.2,
+      "value": 65.4,
+      "titles": [
+        "Fighting with My Family",
+        "Fighting"
+      ]
+    },
+    "final": {
+      "sampleSize": 7,
+      "rawValue": 62.4,
+      "value": 64.3,
+      "titles": [
+        "Final Destination Bloodlines",
+        "Final Score",
+        "Final Girl",
+        "Final Destination 5",
+        "Final Destination 3"
+      ]
+    },
+    "finding": {
+      "sampleSize": 3,
+      "rawValue": 68.9,
+      "value": 66.3,
+      "titles": [
+        "Finding Dory",
+        "Finding Altamira",
+        "Finding Nemo"
+      ]
+    },
+    "first": {
+      "sampleSize": 4,
+      "rawValue": 66.9,
+      "value": 66.0,
+      "titles": [
+        "The First Omen",
+        "First Man",
+        "The First Purge",
+        "50 First Dates"
+      ]
+    },
+    "five": {
+      "sampleSize": 3,
+      "rawValue": 74.1,
+      "value": 67.6,
+      "titles": [
+        "Five Nights at Freddy's 2",
+        "Five Nights at Freddy's",
+        "Five Feet Apart"
+      ]
+    },
+    "flight": {
+      "sampleSize": 2,
+      "rawValue": 64.0,
+      "value": 65.3,
+      "titles": [
+        "Flight Risk",
+        "Flight"
+      ]
+    },
+    "forever": {
+      "sampleSize": 2,
+      "rawValue": 72.4,
+      "value": 66.7,
+      "titles": [
+        "The Forever Purge",
+        "Forever My Girl"
+      ]
+    },
+    "freaky": {
+      "sampleSize": 2,
+      "rawValue": 65.7,
+      "value": 65.6,
+      "titles": [
+        "Freaky",
+        "Freaky Friday"
+      ]
+    },
+    "free": {
+      "sampleSize": 3,
+      "rawValue": 70.8,
+      "value": 66.8,
+      "titles": [
+        "Free Guy",
+        "Free Solo",
+        "Free Birds"
+      ]
+    },
+    "french": {
+      "sampleSize": 2,
+      "rawValue": 66.4,
+      "value": 65.7,
+      "titles": [
+        "French Girl",
+        "The French Dispatch of the Liberty, Kansas Evening Sun"
+      ]
+    },
+    "frozen": {
+      "sampleSize": 3,
+      "rawValue": 68.1,
+      "value": 66.2,
+      "titles": [
+        "Frozen II",
+        "Frozen",
+        "Frozen"
+      ]
+    },
+    "fun": {
+      "sampleSize": 2,
+      "rawValue": 59.0,
+      "value": 64.5,
+      "titles": [
+        "Fun Size",
+        "Fun with Dick and Jane"
+      ]
+    },
+    "g": {
+      "sampleSize": 3,
+      "rawValue": 56.6,
+      "value": 63.5,
+      "titles": [
+        "G.I. Joe: Retaliation",
+        "G.I. Joe: The Rise of Cobra",
+        "G-Force"
+      ]
+    },
+    "game": {
+      "sampleSize": 2,
+      "rawValue": 64.7,
+      "value": 65.5,
+      "titles": [
+        "Game of Love",
+        "Game Night"
+      ]
+    },
+    "garfield": {
+      "sampleSize": 2,
+      "rawValue": 63.7,
+      "value": 65.3,
+      "titles": [
+        "The Garfield Movie",
+        "Garfield"
+      ]
+    },
+    "get": {
+      "sampleSize": 4,
+      "rawValue": 64.6,
+      "value": 65.3,
+      "titles": [
+        "Get Out",
+        "Get Hard",
+        "Get Him to the Greek",
+        "Get Smart"
+      ]
+    },
+    "ghost": {
+      "sampleSize": 4,
+      "rawValue": 56.7,
+      "value": 63.1,
+      "titles": [
+        "Ghost in the Shell",
+        "Ghost Rider: Spirit of Vengeance",
+        "Ghost Rider",
+        "Ghost Ship"
+      ]
+    },
+    "ghostbusters": {
+      "sampleSize": 3,
+      "rawValue": 63.8,
+      "value": 65.2,
+      "titles": [
+        "Ghostbusters: Frozen Empire",
+        "Ghostbusters: Afterlife",
+        "Ghostbusters"
+      ]
+    },
+    "girl": {
+      "sampleSize": 8,
+      "rawValue": 66.9,
+      "value": 66.2,
+      "titles": [
+        "Girl in the Basement",
+        "Girl",
+        "The Girl in the Spider's Web",
+        "The Girl on the Train",
+        "The Girl with All the Gifts"
+      ]
+    },
+    "gladiator": {
+      "sampleSize": 2,
+      "rawValue": 74.3,
+      "value": 67.0,
+      "titles": [
+        "Gladiator II",
+        "Gladiator"
+      ]
+    },
+    "godzilla": {
+      "sampleSize": 4,
+      "rawValue": 69.2,
+      "value": 66.6,
+      "titles": [
+        "Godzilla x Kong: The New Empire",
+        "Godzilla vs. Kong",
+        "Godzilla: King of the Monsters",
+        "Godzilla"
+      ]
+    },
+    "going": {
+      "sampleSize": 2,
+      "rawValue": 67.3,
+      "value": 65.9,
+      "titles": [
+        "Going in Style",
+        "13 Going on 30"
+      ]
+    },
+    "gone": {
+      "sampleSize": 2,
+      "rawValue": 71.7,
+      "value": 66.6,
+      "titles": [
+        "Gone Girl",
+        "Gone in Sixty Seconds"
+      ]
+    },
+    "good": {
+      "sampleSize": 10,
+      "rawValue": 65.9,
+      "value": 65.7,
+      "titles": [
+        "Good Fortune",
+        "Good Boy",
+        "Good Boys",
+        "Good Time",
+        "The Good Dinosaur"
+      ]
+    },
+    "gran": {
+      "sampleSize": 2,
+      "rawValue": 78.6,
+      "value": 67.8,
+      "titles": [
+        "Gran Turismo",
+        "Gran Torino"
+      ]
+    },
+    "grand": {
+      "sampleSize": 2,
+      "rawValue": 70.0,
+      "value": 66.3,
+      "titles": [
+        "The Grand Budapest Hotel",
+        "Grand Piano"
+      ]
+    },
+    "great": {
+      "sampleSize": 2,
+      "rawValue": 66.9,
+      "value": 65.8,
+      "titles": [
+        "The Great Wall",
+        "The Great Gatsby"
+      ]
+    },
+    "greatest": {
+      "sampleSize": 2,
+      "rawValue": 70.3,
+      "value": 66.4,
+      "titles": [
+        "The Greatest Showman",
+        "The Greatest"
+      ]
+    },
+    "green": {
+      "sampleSize": 4,
+      "rawValue": 64.0,
+      "value": 65.1,
+      "titles": [
+        "The Green Knight",
+        "Green Book",
+        "Green Lantern",
+        "The Green Hornet"
+      ]
+    },
+    "greenland": {
+      "sampleSize": 2,
+      "rawValue": 68.4,
+      "value": 66.1,
+      "titles": [
+        "Greenland 2: Migration",
+        "Greenland"
+      ]
+    },
+    "grown": {
+      "sampleSize": 2,
+      "rawValue": 62.7,
+      "value": 65.1,
+      "titles": [
+        "Grown Ups 2",
+        "Grown Ups"
+      ]
+    },
+    "grudge": {
+      "sampleSize": 2,
+      "rawValue": 57.6,
+      "value": 64.3,
+      "titles": [
+        "The Grudge",
+        "Grudge Match"
+      ]
+    },
+    "guardians": {
+      "sampleSize": 4,
+      "rawValue": 76.2,
+      "value": 68.6,
+      "titles": [
+        "Guardians of the Galaxy Vol. 3",
+        "The Guardians of the Galaxy Holiday Special",
+        "Guardians of the Galaxy Vol. 2",
+        "Guardians of the Galaxy"
+      ]
+    },
+    "guns": {
+      "sampleSize": 2,
+      "rawValue": 65.3,
+      "value": 65.5,
+      "titles": [
+        "Guns Up",
+        "2 Guns"
+      ]
+    },
+    "halloween": {
+      "sampleSize": 4,
+      "rawValue": 63.3,
+      "value": 64.9,
+      "titles": [
+        "Halloween Ends",
+        "Halloween Kills",
+        "Halloween",
+        "Halloween"
+      ]
+    },
+    "hangover": {
+      "sampleSize": 2,
+      "rawValue": 67.6,
+      "value": 65.9,
+      "titles": [
+        "The Hangover Part III",
+        "The Hangover"
+      ]
+    },
+    "happy": {
+      "sampleSize": 8,
+      "rawValue": 60.3,
+      "value": 63.2,
+      "titles": [
+        "Happy Gilmore 2",
+        "Happy Death Day 2U",
+        "Happy Death Day",
+        "Happy Hunting",
+        "Happy Christmas"
+      ]
+    },
+    "harry": {
+      "sampleSize": 9,
+      "rawValue": 77.7,
+      "value": 71.3,
+      "titles": [
+        "Harry Potter 20th Anniversary: Return to Hogwarts",
+        "Harry Potter and the Deathly Hallows: Part 2",
+        "Harry Potter and the Deathly Hallows: Part 1",
+        "Harry Potter and the Half-Blood Prince",
+        "Harry Potter and the Order of the Phoenix"
+      ]
+    },
+    "haunted": {
+      "sampleSize": 2,
+      "rawValue": 63.0,
+      "value": 65.2,
+      "titles": [
+        "Haunted Mansion",
+        "A Haunted House 2"
+      ]
+    },
+    "heart": {
+      "sampleSize": 2,
+      "rawValue": 65.3,
+      "value": 65.5,
+      "titles": [
+        "Heart Eyes",
+        "In the Heart of the Sea"
+      ]
+    },
+    "hellboy": {
+      "sampleSize": 4,
+      "rawValue": 60.6,
+      "value": 64.2,
+      "titles": [
+        "Hellboy: The Crooked Man",
+        "Hellboy",
+        "Hellboy II: The Golden Army",
+        "Hellboy"
+      ]
+    },
+    "hellraiser": {
+      "sampleSize": 2,
+      "rawValue": 54.0,
+      "value": 63.7,
+      "titles": [
+        "Hellraiser",
+        "Hellraiser: Deader"
+      ]
+    },
+    "her": {
+      "sampleSize": 2,
+      "rawValue": 68.4,
+      "value": 66.1,
+      "titles": [
+        "Her Smell",
+        "Her"
+      ]
+    },
+    "hidden": {
+      "sampleSize": 3,
+      "rawValue": 72.8,
+      "value": 67.3,
+      "titles": [
+        "Hidden Strike",
+        "Hidden Figures",
+        "Hidden"
+      ]
+    },
+    "high": {
+      "sampleSize": 5,
+      "rawValue": 67.6,
+      "value": 66.3,
+      "titles": [
+        "High Rollers",
+        "The High Note",
+        "High School Musical 3: Senior Year",
+        "High School Musical",
+        "High Fidelity"
+      ]
+    },
+    "hitman": {
+      "sampleSize": 4,
+      "rawValue": 64.0,
+      "value": 65.1,
+      "titles": [
+        "Hitman's Wife's Bodyguard",
+        "The Hitman's Bodyguard",
+        "Hitman: Agent 47",
+        "Hitman"
+      ]
+    },
+    "hobbit": {
+      "sampleSize": 3,
+      "rawValue": 74.2,
+      "value": 67.6,
+      "titles": [
+        "The Hobbit: The Battle of the Five Armies",
+        "The Hobbit: The Desolation of Smaug",
+        "The Hobbit: An Unexpected Journey"
+      ]
+    },
+    "home": {
+      "sampleSize": 8,
+      "rawValue": 58.2,
+      "value": 62.3,
+      "titles": [
+        "The Home",
+        "Home Sweet Home: Rebirth",
+        "Home Sweet Home Alone",
+        "Home",
+        "Home Makeover"
+      ]
+    },
+    "honey": {
+      "sampleSize": 2,
+      "rawValue": 60.2,
+      "value": 64.7,
+      "titles": [
+        "Honey Don't!",
+        "Honey"
+      ]
+    },
+    "horrible": {
+      "sampleSize": 2,
+      "rawValue": 63.9,
+      "value": 65.3,
+      "titles": [
+        "Horrible Bosses 2",
+        "Horrible Bosses"
+      ]
+    },
+    "hot": {
+      "sampleSize": 10,
+      "rawValue": 60.1,
+      "value": 62.8,
+      "titles": [
+        "Hot Frosty",
+        "Hot Seat",
+        "Hot Summer Nights",
+        "Hot Bot",
+        "Hot Pursuit"
+      ]
+    },
+    "hotel": {
+      "sampleSize": 4,
+      "rawValue": 69.1,
+      "value": 66.6,
+      "titles": [
+        "Hotel Transylvania: Transformania",
+        "Hotel Transylvania 3: Summer Vacation",
+        "Hotel Transylvania 2",
+        "Hotel Transylvania"
+      ]
+    },
+    "hours": {
+      "sampleSize": 2,
+      "rawValue": 66.1,
+      "value": 65.7,
+      "titles": [
+        "24 Hours to Live",
+        "13 Hours: The Secret Soldiers of Benghazi"
+      ]
+    },
+    "house": {
+      "sampleSize": 5,
+      "rawValue": 64.6,
+      "value": 65.3,
+      "titles": [
+        "A House of Dynamite",
+        "House of Gucci",
+        "The House That Jack Built",
+        "The House with a Clock in Its Walls",
+        "House of Wax"
+      ]
+    },
+    "how": {
+      "sampleSize": 6,
+      "rawValue": 74.2,
+      "value": 68.8,
+      "titles": [
+        "How to Train Your Dragon",
+        "How to Have Sex",
+        "How to Train Your Dragon: Homecoming",
+        "How to Train Your Dragon 2",
+        "How to Train Your Dragon"
+      ]
+    },
+    "human": {
+      "sampleSize": 2,
+      "rawValue": 49.8,
+      "value": 63.0,
+      "titles": [
+        "The Human Centipede 2 (Full Sequence)",
+        "The Human Centipede (First Sequence)"
+      ]
+    },
+    "hunger": {
+      "sampleSize": 5,
+      "rawValue": 70.6,
+      "value": 67.3,
+      "titles": [
+        "The Hunger Games: The Ballad of Songbirds & Snakes",
+        "The Hunger Games: Mockingjay - Part 2",
+        "The Hunger Games: Mockingjay - Part 1",
+        "The Hunger Games: Catching Fire",
+        "The Hunger Games"
+      ]
+    },
+    "hunt": {
+      "sampleSize": 2,
+      "rawValue": 71.4,
+      "value": 66.6,
+      "titles": [
+        "The Hunt",
+        "Hunt for the Wilderpeople"
+      ]
+    },
+    "i": {
+      "sampleSize": 21,
+      "rawValue": 62.3,
+      "value": 63.4,
+      "titles": [
+        "I Know What You Did Last Summer",
+        "I Saw the TV Glow",
+        "I Came By",
+        "I Still Believe",
+        "I See You"
+      ]
+    },
+    "ice": {
+      "sampleSize": 8,
+      "rawValue": 66.2,
+      "value": 65.8,
+      "titles": [
+        "Ice Road: Vengeance",
+        "The Ice Age Adventures of Buck Wild",
+        "The Ice Road",
+        "Ice Age: Collision Course",
+        "Ice Age: Continental Drift"
+      ]
+    },
+    "if": {
+      "sampleSize": 2,
+      "rawValue": 67.5,
+      "value": 65.9,
+      "titles": [
+        "If I Had Legs I'd Kick You",
+        "IF"
+      ]
+    },
+    "incredibles": {
+      "sampleSize": 2,
+      "rawValue": 75.9,
+      "value": 67.3,
+      "titles": [
+        "Incredibles 2",
+        "The Incredibles"
+      ]
+    },
+    "indiana": {
+      "sampleSize": 2,
+      "rawValue": 62.7,
+      "value": 65.1,
+      "titles": [
+        "Indiana Jones and the Dial of Destiny",
+        "Indiana Jones and the Kingdom of the Crystal Skull"
+      ]
+    },
+    "inside": {
+      "sampleSize": 4,
+      "rawValue": 75.1,
+      "value": 68.3,
+      "titles": [
+        "Inside Out 2",
+        "Inside Out",
+        "Inside Llewyn Davis",
+        "Inside Man"
+      ]
+    },
+    "insidious": {
+      "sampleSize": 4,
+      "rawValue": 66.0,
+      "value": 65.7,
+      "titles": [
+        "Insidious: The Red Door",
+        "Insidious: The Last Key",
+        "Insidious: Chapter 2",
+        "Insidious"
+      ]
+    },
+    "into": {
+      "sampleSize": 3,
+      "rawValue": 64.5,
+      "value": 65.4,
+      "titles": [
+        "Into the Deep",
+        "Into the Woods",
+        "Into the Wild"
+      ]
+    },
+    "iron": {
+      "sampleSize": 4,
+      "rawValue": 72.2,
+      "value": 67.5,
+      "titles": [
+        "The Iron Claw",
+        "Iron Man 3",
+        "Iron Man 2",
+        "Iron Man"
+      ]
+    },
+    "jack": {
+      "sampleSize": 5,
+      "rawValue": 58.1,
+      "value": 63.1,
+      "titles": [
+        "Jack Reacher: Never Go Back",
+        "Jack Ryan: Shadow Recruit",
+        "Jack the Giant Slayer",
+        "Jack Reacher",
+        "Jack and Jill"
+      ]
+    },
+    "james": {
+      "sampleSize": 2,
+      "rawValue": 66.5,
+      "value": 65.8,
+      "titles": [
+        "James White",
+        "James Dean"
+      ]
+    },
+    "jeepers": {
+      "sampleSize": 3,
+      "rawValue": 58.5,
+      "value": 64.0,
+      "titles": [
+        "Jeepers Creepers 3",
+        "Jeepers Creepers 2",
+        "Jeepers Creepers"
+      ]
+    },
+    "john": {
+      "sampleSize": 6,
+      "rawValue": 72.4,
+      "value": 68.1,
+      "titles": [
+        "John Wick: Chapter 4",
+        "John Wick: Chapter 3 - Parabellum",
+        "John Wick: Chapter 2",
+        "John Wick",
+        "John Carter"
+      ]
+    },
+    "johnny": {
+      "sampleSize": 2,
+      "rawValue": 62.7,
+      "value": 65.1,
+      "titles": [
+        "Johnny English Strikes Again",
+        "Johnny English Reborn"
+      ]
+    },
+    "joker": {
+      "sampleSize": 2,
+      "rawValue": 67.6,
+      "value": 65.9,
+      "titles": [
+        "Joker: Folie à Deux",
+        "Joker"
+      ]
+    },
+    "journey": {
+      "sampleSize": 2,
+      "rawValue": 60.9,
+      "value": 64.8,
+      "titles": [
+        "Journey 2: The Mysterious Island",
+        "Journey to the Center of the Earth"
+      ]
+    },
+    "jumanji": {
+      "sampleSize": 2,
+      "rawValue": 68.6,
+      "value": 66.1,
+      "titles": [
+        "Jumanji: The Next Level",
+        "Jumanji: Welcome to the Jungle"
+      ]
+    },
+    "jump": {
+      "sampleSize": 2,
+      "rawValue": 68.6,
+      "value": 66.1,
+      "titles": [
+        "22 Jump Street",
+        "21 Jump Street"
+      ]
+    },
+    "jungle": {
+      "sampleSize": 2,
+      "rawValue": 71.0,
+      "value": 66.5,
+      "titles": [
+        "Jungle Cruise",
+        "The Jungle Book"
+      ]
+    },
+    "jurassic": {
+      "sampleSize": 4,
+      "rawValue": 65.3,
+      "value": 65.5,
+      "titles": [
+        "Jurassic World Rebirth",
+        "Jurassic World Dominion",
+        "Jurassic World: Fallen Kingdom",
+        "Jurassic World"
+      ]
+    },
+    "just": {
+      "sampleSize": 3,
+      "rawValue": 69.1,
+      "value": 66.4,
+      "titles": [
+        "Just Mercy",
+        "Just Go with It",
+        "Just My Luck"
+      ]
+    },
+    "karate": {
+      "sampleSize": 2,
+      "rawValue": 68.0,
+      "value": 66.0,
+      "titles": [
+        "Karate Kid: Legends",
+        "The Karate Kid"
+      ]
+    },
+    "kick": {
+      "sampleSize": 2,
+      "rawValue": 67.6,
+      "value": 65.9,
+      "titles": [
+        "Kick-Ass 2",
+        "Kick-Ass"
+      ]
+    },
+    "kid": {
+      "sampleSize": 2,
+      "rawValue": 64.7,
+      "value": 65.5,
+      "titles": [
+        "The Kid Who Would Be King",
+        "The Kid"
+      ]
+    },
+    "kill": {
+      "sampleSize": 6,
+      "rawValue": 74.7,
+      "value": 69.0,
+      "titles": [
+        "Kill Shot",
+        "Kill the Messenger",
+        "Kill List",
+        "Kill Bill: The Whole Bloody Affair",
+        "Kill Bill: Vol. 2"
+      ]
+    },
+    "killer": {
+      "sampleSize": 3,
+      "rawValue": 64.1,
+      "value": 65.3,
+      "titles": [
+        "The Killer's Game",
+        "The Killer",
+        "Killer Elite"
+      ]
+    },
+    "killing": {
+      "sampleSize": 2,
+      "rawValue": 62.5,
+      "value": 65.1,
+      "titles": [
+        "The Killing of a Sacred Deer",
+        "Killing Season"
+      ]
+    },
+    "king": {
+      "sampleSize": 10,
+      "rawValue": 68.9,
+      "value": 67.2,
+      "titles": [
+        "The King of Kings",
+        "The King's Man",
+        "King Richard",
+        "The King",
+        "King of Thieves"
+      ]
+    },
+    "kingdom": {
+      "sampleSize": 2,
+      "rawValue": 70.3,
+      "value": 66.4,
+      "titles": [
+        "Kingdom of the Planet of the Apes",
+        "Kingdom of Heaven"
+      ]
+    },
+    "kingsman": {
+      "sampleSize": 2,
+      "rawValue": 72.8,
+      "value": 66.8,
+      "titles": [
+        "Kingsman: The Golden Circle",
+        "Kingsman: The Secret Service"
+      ]
+    },
+    "knight": {
+      "sampleSize": 2,
+      "rawValue": 65.6,
+      "value": 65.6,
+      "titles": [
+        "Knight and Day",
+        "A Knight's Tale"
+      ]
+    },
+    "knock": {
+      "sampleSize": 2,
+      "rawValue": 58.2,
+      "value": 64.4,
+      "titles": [
+        "Knock at the Cabin",
+        "Knock Knock"
+      ]
+    },
+    "kung": {
+      "sampleSize": 4,
+      "rawValue": 70.8,
+      "value": 67.1,
+      "titles": [
+        "Kung Fu Panda 4",
+        "Kung Fu Panda 3",
+        "Kung Fu Panda 2",
+        "Kung Fu Panda"
+      ]
+    },
+    "land": {
+      "sampleSize": 2,
+      "rawValue": 68.7,
+      "value": 66.1,
+      "titles": [
+        "Land of Bad",
+        "In the Land of Saints and Sinners"
+      ]
+    },
+    "last": {
+      "sampleSize": 13,
+      "rawValue": 67.1,
+      "value": 66.4,
+      "titles": [
+        "Last Breath",
+        "The Last Voyage of the Demeter",
+        "The Last Kingdom: Seven Kings Must Die",
+        "Last Seen Alive",
+        "Last Night in Soho"
+      ]
+    },
+    "late": {
+      "sampleSize": 2,
+      "rawValue": 67.5,
+      "value": 65.9,
+      "titles": [
+        "Late Night with the Devil",
+        "Late Night"
+      ]
+    },
+    "legally": {
+      "sampleSize": 2,
+      "rawValue": 62.6,
+      "value": 65.1,
+      "titles": [
+        "Legally Blonde 2: Red, White & Blonde",
+        "Legally Blonde"
+      ]
+    },
+    "legend": {
+      "sampleSize": 4,
+      "rawValue": 62.9,
+      "value": 64.8,
+      "titles": [
+        "The Legend of Ochi",
+        "The Legend of Tarzan",
+        "Legend",
+        "The Legend of Zorro"
+      ]
+    },
+    "lego": {
+      "sampleSize": 4,
+      "rawValue": 69.6,
+      "value": 66.7,
+      "titles": [
+        "The Lego Movie 2: The Second Part",
+        "The Lego Ninjago Movie",
+        "The Lego Batman Movie",
+        "The Lego Movie"
+      ]
+    },
+    "let": {
+      "sampleSize": 2,
+      "rawValue": 66.3,
+      "value": 65.7,
+      "titles": [
+        "Let's Be Cops",
+        "Let Me In"
+      ]
+    },
+    "life": {
+      "sampleSize": 3,
+      "rawValue": 65.1,
+      "value": 65.5,
+      "titles": [
+        "Life",
+        "Life of Pi",
+        "Life or Something Like It"
+      ]
+    },
+    "lilo": {
+      "sampleSize": 3,
+      "rawValue": 71.6,
+      "value": 67.0,
+      "titles": [
+        "Lilo & Stitch",
+        "Lilo & Stitch 2: Stitch Has a Glitch",
+        "Lilo & Stitch"
+      ]
+    },
+    "lincoln": {
+      "sampleSize": 2,
+      "rawValue": 70.3,
+      "value": 66.4,
+      "titles": [
+        "Lincoln",
+        "The Lincoln Lawyer"
+      ]
+    },
+    "lion": {
+      "sampleSize": 3,
+      "rawValue": 72.4,
+      "value": 67.2,
+      "titles": [
+        "The Lion King",
+        "Lion",
+        "The Lion King 1½"
+      ]
+    },
+    "little": {
+      "sampleSize": 10,
+      "rawValue": 65.6,
+      "value": 65.6,
+      "titles": [
+        "The Little Mermaid",
+        "The Little Things",
+        "Little Women",
+        "The Little Hours",
+        "Little Men"
+      ]
+    },
+    "live": {
+      "sampleSize": 3,
+      "rawValue": 61.3,
+      "value": 64.6,
+      "titles": [
+        "Live by Night",
+        "Live!",
+        "Live Free or Die Hard"
+      ]
+    },
+    "logan": {
+      "sampleSize": 2,
+      "rawValue": 72.8,
+      "value": 66.8,
+      "titles": [
+        "Logan Lucky",
+        "Logan"
+      ]
+    },
+    "lone": {
+      "sampleSize": 2,
+      "rawValue": 67.7,
+      "value": 66.0,
+      "titles": [
+        "Lone Survivor",
+        "The Lone Ranger"
+      ]
+    },
+    "long": {
+      "sampleSize": 3,
+      "rawValue": 67.1,
+      "value": 65.9,
+      "titles": [
+        "The Long Walk",
+        "Long Distance",
+        "Long Shot"
+      ]
+    },
+    "longest": {
+      "sampleSize": 2,
+      "rawValue": 71.6,
+      "value": 66.6,
+      "titles": [
+        "The Longest Ride",
+        "The Longest Yard"
+      ]
+    },
+    "lord": {
+      "sampleSize": 5,
+      "rawValue": 78.3,
+      "value": 69.8,
+      "titles": [
+        "The Lord of the Rings: The War of the Rohirrim",
+        "Lord of War",
+        "The Lord of the Rings: The Return of the King",
+        "The Lord of the Rings: The Two Towers",
+        "The Lord of the Rings: The Fellowship of the Ring"
+      ]
+    },
+    "lost": {
+      "sampleSize": 5,
+      "rawValue": 67.5,
+      "value": 66.2,
+      "titles": [
+        "The Lost Bus",
+        "In the Lost Lands",
+        "The Lost City",
+        "The Lost City of Z",
+        "Lost in Translation"
+      ]
+    },
+    "lou": {
+      "sampleSize": 2,
+      "rawValue": 70.0,
+      "value": 66.3,
+      "titles": [
+        "Lou",
+        "Lou"
+      ]
+    },
+    "love": {
+      "sampleSize": 10,
+      "rawValue": 70.1,
+      "value": 67.8,
+      "titles": [
+        "Love Lies Bleeding",
+        "Love Again",
+        "Love Hard",
+        "Love and Monsters",
+        "Love, Simon"
+      ]
+    },
+    "lucky": {
+      "sampleSize": 2,
+      "rawValue": 73.2,
+      "value": 66.9,
+      "titles": [
+        "The Lucky One",
+        "Lucky Number Slevin"
+      ]
+    },
+    "m3gan": {
+      "sampleSize": 2,
+      "rawValue": 71.6,
+      "value": 66.6,
+      "titles": [
+        "M3GAN 2.0",
+        "M3GAN"
+      ]
+    },
+    "machete": {
+      "sampleSize": 2,
+      "rawValue": 59.8,
+      "value": 64.6,
+      "titles": [
+        "Machete Kills",
+        "Machete"
+      ]
+    },
+    "mad": {
+      "sampleSize": 2,
+      "rawValue": 70.5,
+      "value": 66.4,
+      "titles": [
+        "Mad Max: Fury Road",
+        "Mad Money"
+      ]
+    },
+    "madagascar": {
+      "sampleSize": 3,
+      "rawValue": 66.9,
+      "value": 65.9,
+      "titles": [
+        "Madagascar 3: Europe's Most Wanted",
+        "Madagascar: Escape 2 Africa",
+        "Madagascar"
+      ]
+    },
+    "madame": {
+      "sampleSize": 2,
+      "rawValue": 56.0,
+      "value": 64.0,
+      "titles": [
+        "Madame Web",
+        "Madame"
+      ]
+    },
+    "magic": {
+      "sampleSize": 2,
+      "rawValue": 61.6,
+      "value": 64.9,
+      "titles": [
+        "Magic Mike XXL",
+        "Magic Mike"
+      ]
+    },
+    "maleficent": {
+      "sampleSize": 2,
+      "rawValue": 71.9,
+      "value": 66.7,
+      "titles": [
+        "Maleficent: Mistress of Evil",
+        "Maleficent"
+      ]
+    },
+    "mamma": {
+      "sampleSize": 2,
+      "rawValue": 70.4,
+      "value": 66.4,
+      "titles": [
+        "Mamma Mia! Here We Go Again",
+        "Mamma Mia!"
+      ]
+    },
+    "man": {
+      "sampleSize": 4,
+      "rawValue": 72.3,
+      "value": 67.5,
+      "titles": [
+        "A Man Called Otto",
+        "The Man from U.N.C.L.E.",
+        "Man of Steel",
+        "Man on Fire"
+      ]
+    },
+    "mary": {
+      "sampleSize": 3,
+      "rawValue": 69.8,
+      "value": 66.6,
+      "titles": [
+        "Mary Poppins Returns",
+        "Mary Queen of Scots",
+        "Mary and Max"
+      ]
+    },
+    "master": {
+      "sampleSize": 3,
+      "rawValue": 64.8,
+      "value": 65.4,
+      "titles": [
+        "Master",
+        "The Master",
+        "Master and Commander: The Far Side of the World"
+      ]
+    },
+    "matrix": {
+      "sampleSize": 2,
+      "rawValue": 65.5,
+      "value": 65.6,
+      "titles": [
+        "The Matrix Resurrections",
+        "The Matrix Revolutions"
+      ]
+    },
+    "maze": {
+      "sampleSize": 3,
+      "rawValue": 70.0,
+      "value": 66.6,
+      "titles": [
+        "Maze Runner: The Death Cure",
+        "Maze Runner: The Scorch Trials",
+        "The Maze Runner"
+      ]
+    },
+    "me": {
+      "sampleSize": 2,
+      "rawValue": 72.6,
+      "value": 66.8,
+      "titles": [
+        "Me Before You",
+        "Me, Myself & Irene"
+      ]
+    },
+    "mean": {
+      "sampleSize": 2,
+      "rawValue": 65.6,
+      "value": 65.6,
+      "titles": [
+        "Mean Girls",
+        "Mean Girls"
+      ]
+    },
+    "mechanic": {
+      "sampleSize": 2,
+      "rawValue": 62.5,
+      "value": 65.1,
+      "titles": [
+        "Mechanic: Resurrection",
+        "The Mechanic"
+      ]
+    },
+    "meet": {
+      "sampleSize": 4,
+      "rawValue": 64.2,
+      "value": 65.2,
+      "titles": [
+        "Meet Cute",
+        "Meet the Robinsons",
+        "Meet the Fockers",
+        "Meet the Parents"
+      ]
+    },
+    "meg": {
+      "sampleSize": 2,
+      "rawValue": 63.2,
+      "value": 65.2,
+      "titles": [
+        "Meg 2: The Trench",
+        "The Meg"
+      ]
+    },
+    "men": {
+      "sampleSize": 6,
+      "rawValue": 64.8,
+      "value": 65.3,
+      "titles": [
+        "Men",
+        "Men in Black: International",
+        "Men, Women & Children",
+        "Men in Black 3",
+        "Men in Black II"
+      ]
+    },
+    "midnight": {
+      "sampleSize": 3,
+      "rawValue": 65.0,
+      "value": 65.5,
+      "titles": [
+        "The Midnight Sky",
+        "Midnight Special",
+        "Midnight in Paris"
+      ]
+    },
+    "mile": {
+      "sampleSize": 2,
+      "rawValue": 66.9,
+      "value": 65.8,
+      "titles": [
+        "Mile 22",
+        "8 Mile"
+      ]
+    },
+    "million": {
+      "sampleSize": 2,
+      "rawValue": 70.0,
+      "value": 66.3,
+      "titles": [
+        "A Million Ways to Die in the West",
+        "Million Dollar Baby"
+      ]
+    },
+    "minions": {
+      "sampleSize": 2,
+      "rawValue": 68.5,
+      "value": 66.1,
+      "titles": [
+        "Minions: The Rise of Gru",
+        "Minions"
+      ]
+    },
+    "minutes": {
+      "sampleSize": 3,
+      "rawValue": 56.7,
+      "value": 63.6,
+      "titles": [
+        "7 Minutes",
+        "88 Minutes",
+        "15 Minutes"
+      ]
+    },
+    "miss": {
+      "sampleSize": 3,
+      "rawValue": 69.6,
+      "value": 66.5,
+      "titles": [
+        "Miss Sloane",
+        "Miss Peregrine's Home for Peculiar Children",
+        "Miss Potter"
+      ]
+    },
+    "mission": {
+      "sampleSize": 6,
+      "rawValue": 70.3,
+      "value": 67.3,
+      "titles": [
+        "Mission: Impossible - The Final Reckoning",
+        "Mission: Impossible - Dead Reckoning Part One",
+        "Mission: Impossible - Fallout",
+        "Mission: Impossible - Ghost Protocol",
+        "Mission: Impossible III"
+      ]
+    },
+    "monkey": {
+      "sampleSize": 2,
+      "rawValue": 64.5,
+      "value": 65.4,
+      "titles": [
+        "The Monkey",
+        "Monkey Man"
+      ]
+    },
+    "monster": {
+      "sampleSize": 5,
+      "rawValue": 64.7,
+      "value": 65.3,
+      "titles": [
+        "Monster Hunter",
+        "Monster Party",
+        "Monster Trucks",
+        "A Monster Calls",
+        "Monster House"
+      ]
+    },
+    "monsters": {
+      "sampleSize": 3,
+      "rawValue": 70.4,
+      "value": 66.7,
+      "titles": [
+        "Monsters University",
+        "Monsters vs Aliens",
+        "Monsters, Inc."
+      ]
+    },
+    "mortal": {
+      "sampleSize": 3,
+      "rawValue": 65.4,
+      "value": 65.6,
+      "titles": [
+        "Mortal Kombat",
+        "Mortal Engines",
+        "The Mortal Instruments: City of Bones"
+      ]
+    },
+    "mother": {
+      "sampleSize": 2,
+      "rawValue": 67.9,
+      "value": 66.0,
+      "titles": [
+        "The Mother",
+        "mother!"
+      ]
+    },
+    "mr": {
+      "sampleSize": 9,
+      "rawValue": 62.8,
+      "value": 64.3,
+      "titles": [
+        "Mr. Crocket",
+        "Mr. Church",
+        "Mr. Peabody & Sherman",
+        "Mr. Jones",
+        "Mr. Popper's Penguins"
+      ]
+    },
+    "mulan": {
+      "sampleSize": 2,
+      "rawValue": 66.8,
+      "value": 65.8,
+      "titles": [
+        "Mulan",
+        "Mulan II"
+      ]
+    },
+    "mummy": {
+      "sampleSize": 3,
+      "rawValue": 58.1,
+      "value": 63.9,
+      "titles": [
+        "The Mummy",
+        "The Mummy: Tomb of the Dragon Emperor",
+        "The Mummy Returns"
+      ]
+    },
+    "murder": {
+      "sampleSize": 3,
+      "rawValue": 64.5,
+      "value": 65.3,
+      "titles": [
+        "Murder Mystery 2",
+        "Murder Mystery",
+        "Murder on the Orient Express"
+      ]
+    },
+    "my": {
+      "sampleSize": 3,
+      "rawValue": 68.1,
+      "value": 66.2,
+      "titles": [
+        "My Oxford Year",
+        "My Spy The Eternal City",
+        "My Spy"
+      ]
+    },
+    "nanny": {
+      "sampleSize": 2,
+      "rawValue": 58.2,
+      "value": 64.4,
+      "titles": [
+        "Nanny",
+        "Nanny McPhee and the Big Bang"
+      ]
+    },
+    "national": {
+      "sampleSize": 2,
+      "rawValue": 65.1,
+      "value": 65.5,
+      "titles": [
+        "National Treasure: Book of Secrets",
+        "National Treasure"
+      ]
+    },
+    "never": {
+      "sampleSize": 3,
+      "rawValue": 67.9,
+      "value": 66.1,
+      "titles": [
+        "Never Back Down: No Surrender",
+        "Never Back Down 2: The Beatdown",
+        "Never Back Down"
+      ]
+    },
+    "new": {
+      "sampleSize": 3,
+      "rawValue": 59.8,
+      "value": 64.3,
+      "titles": [
+        "The New Mutants",
+        "New Year's Eve",
+        "New York, I Love You"
+      ]
+    },
+    "night": {
+      "sampleSize": 6,
+      "rawValue": 62.0,
+      "value": 64.2,
+      "titles": [
+        "Night Swim",
+        "Night Hunter",
+        "Night School",
+        "Night at the Museum: Secret of the Tomb",
+        "Night at the Museum: Battle of the Smithsonian"
+      ]
+    },
+    "nightmare": {
+      "sampleSize": 2,
+      "rawValue": 62.4,
+      "value": 65.1,
+      "titles": [
+        "Nightmare Alley",
+        "A Nightmare on Elm Street"
+      ]
+    },
+    "no": {
+      "sampleSize": 8,
+      "rawValue": 67.6,
+      "value": 66.5,
+      "titles": [
+        "No Way Up",
+        "No One Will Save You",
+        "No Hard Feelings",
+        "No Time to Die",
+        "No Escape"
+      ]
+    },
+    "nobody": {
+      "sampleSize": 2,
+      "rawValue": 74.5,
+      "value": 67.1,
+      "titles": [
+        "Nobody 2",
+        "Nobody"
+      ]
+    },
+    "november": {
+      "sampleSize": 2,
+      "rawValue": 57.0,
+      "value": 64.2,
+      "titles": [
+        "November Criminals",
+        "The November Man"
+      ]
+    },
+    "now": {
+      "sampleSize": 3,
+      "rawValue": 69.0,
+      "value": 66.4,
+      "titles": [
+        "Now You See Me: Now You Don't",
+        "Now You See Me 2",
+        "Now You See Me"
+      ]
+    },
+    "nun": {
+      "sampleSize": 2,
+      "rawValue": 62.8,
+      "value": 65.1,
+      "titles": [
+        "The Nun II",
+        "The Nun"
+      ]
+    },
+    "o": {
+      "sampleSize": 2,
+      "rawValue": 66.3,
+      "value": 65.7,
+      "titles": [
+        "O.G.",
+        "O Brother, Where Art Thou?"
+      ]
+    },
+    "ocean": {
+      "sampleSize": 4,
+      "rawValue": 69.3,
+      "value": 66.6,
+      "titles": [
+        "Ocean's Eight",
+        "Ocean's Thirteen",
+        "Ocean's Twelve",
+        "Ocean's Eleven"
+      ]
+    },
+    "office": {
+      "sampleSize": 2,
+      "rawValue": 53.6,
+      "value": 63.6,
+      "titles": [
+        "Office Invasion",
+        "Office Uprising"
+      ]
+    },
+    "oh": {
+      "sampleSize": 3,
+      "rawValue": 59.0,
+      "value": 64.1,
+      "titles": [
+        "Oh. What. Fun.",
+        "Oh, Hi!",
+        "Oh, Canada"
+      ]
+    },
+    "old": {
+      "sampleSize": 5,
+      "rawValue": 64.9,
+      "value": 65.4,
+      "titles": [
+        "The Old Guard 2",
+        "Old Guy",
+        "Old Henry",
+        "The Old Guard",
+        "Old School"
+      ]
+    },
+    "once": {
+      "sampleSize": 3,
+      "rawValue": 70.5,
+      "value": 66.7,
+      "titles": [
+        "Once Upon a Time... in Hollywood",
+        "Once",
+        "Once Upon a Time in Mexico"
+      ]
+    },
+    "one": {
+      "sampleSize": 5,
+      "rawValue": 70.7,
+      "value": 67.3,
+      "titles": [
+        "One Battle After Another",
+        "One Life",
+        "One Chance",
+        "One Day",
+        "The One"
+      ]
+    },
+    "only": {
+      "sampleSize": 3,
+      "rawValue": 59.8,
+      "value": 64.3,
+      "titles": [
+        "Only",
+        "Only Mine",
+        "Only the Brave"
+      ]
+    },
+    "order": {
+      "sampleSize": 3,
+      "rawValue": 57.9,
+      "value": 63.8,
+      "titles": [
+        "The Order",
+        "The Order",
+        "The Order"
+      ]
+    },
+    "orphan": {
+      "sampleSize": 2,
+      "rawValue": 68.0,
+      "value": 66.0,
+      "titles": [
+        "Orphan: First Kill",
+        "Orphan"
+      ]
+    },
+    "other": {
+      "sampleSize": 4,
+      "rawValue": 64.5,
+      "value": 65.3,
+      "titles": [
+        "Other People",
+        "The Other Woman",
+        "The Other Guys",
+        "The Other Boleyn Girl"
+      ]
+    },
+    "ouija": {
+      "sampleSize": 2,
+      "rawValue": 56.7,
+      "value": 64.1,
+      "titles": [
+        "Ouija: Origin of Evil",
+        "Ouija"
+      ]
+    },
+    "pacific": {
+      "sampleSize": 2,
+      "rawValue": 65.2,
+      "value": 65.5,
+      "titles": [
+        "Pacific Rim: Uprising",
+        "Pacific Rim"
+      ]
+    },
+    "paddington": {
+      "sampleSize": 3,
+      "rawValue": 71.5,
+      "value": 67.0,
+      "titles": [
+        "Paddington in Peru",
+        "Paddington 2",
+        "Paddington"
+      ]
+    },
+    "panic": {
+      "sampleSize": 2,
+      "rawValue": 65.0,
+      "value": 65.5,
+      "titles": [
+        "Panic Room",
+        "Panic"
+      ]
+    },
+    "paradise": {
+      "sampleSize": 2,
+      "rawValue": 61.9,
+      "value": 65.0,
+      "titles": [
+        "Paradise City",
+        "Paradise Now"
+      ]
+    },
+    "paranormal": {
+      "sampleSize": 3,
+      "rawValue": 60.1,
+      "value": 64.3,
+      "titles": [
+        "Paranormal Activity: Next of Kin",
+        "Paranormal Activity 3",
+        "Paranormal Activity"
+      ]
+    },
+    "passion": {
+      "sampleSize": 2,
+      "rawValue": 61.4,
+      "value": 64.9,
+      "titles": [
+        "Passion Play",
+        "The Passion of the Christ"
+      ]
+    },
+    "paul": {
+      "sampleSize": 3,
+      "rawValue": 64.9,
+      "value": 65.4,
+      "titles": [
+        "Paul, Apostle of Christ",
+        "Paul Blart: Mall Cop 2",
+        "Paul"
+      ]
+    },
+    "pearl": {
+      "sampleSize": 2,
+      "rawValue": 70.7,
+      "value": 66.4,
+      "titles": [
+        "Pearl",
+        "Pearl Harbor"
+      ]
+    },
+    "percy": {
+      "sampleSize": 2,
+      "rawValue": 64.4,
+      "value": 65.4,
+      "titles": [
+        "Percy",
+        "Percy Jackson & the Olympians: The Lightning Thief"
+      ]
+    },
+    "perfect": {
+      "sampleSize": 2,
+      "rawValue": 66.3,
+      "value": 65.7,
+      "titles": [
+        "The Perfect Neighbor",
+        "The Perfect Storm"
+      ]
+    },
+    "peter": {
+      "sampleSize": 3,
+      "rawValue": 63.8,
+      "value": 65.2,
+      "titles": [
+        "Peter Pan & Wendy",
+        "Peter Rabbit 2: The Runaway",
+        "Peter Rabbit"
+      ]
+    },
+    "phantom": {
+      "sampleSize": 2,
+      "rawValue": 73.1,
+      "value": 66.8,
+      "titles": [
+        "Phantom Thread",
+        "The Phantom of the Opera"
+      ]
+    },
+    "pinocchio": {
+      "sampleSize": 2,
+      "rawValue": 53.5,
+      "value": 63.6,
+      "titles": [
+        "Pinocchio",
+        "Pinocchio 3000"
+      ]
+    },
+    "piranha": {
+      "sampleSize": 2,
+      "rawValue": 48.6,
+      "value": 62.8,
+      "titles": [
+        "Piranha 3DD",
+        "Piranha 3D"
+      ]
+    },
+    "pirates": {
+      "sampleSize": 6,
+      "rawValue": 70.3,
+      "value": 67.4,
+      "titles": [
+        "Pirates of the Caribbean: Dead Men Tell No Tales",
+        "The Pirates! In an Adventure with Scientists!",
+        "Pirates of the Caribbean: On Stranger Tides",
+        "Pirates of the Caribbean: At World's End",
+        "Pirates of the Caribbean: Dead Man's Chest"
+      ]
+    },
+    "pitch": {
+      "sampleSize": 3,
+      "rawValue": 68.8,
+      "value": 66.3,
+      "titles": [
+        "Pitch Perfect 3",
+        "Pitch Perfect 2",
+        "Pitch Perfect"
+      ]
+    },
+    "planet": {
+      "sampleSize": 3,
+      "rawValue": 65.2,
+      "value": 65.5,
+      "titles": [
+        "Planet Hulk",
+        "Planet Terror",
+        "Planet of the Apes"
+      ]
+    },
+    "poison": {
+      "sampleSize": 2,
+      "rawValue": 57.9,
+      "value": 64.3,
+      "titles": [
+        "Poison",
+        "The Poison Rose"
+      ]
+    },
+    "poker": {
+      "sampleSize": 2,
+      "rawValue": 57.4,
+      "value": 64.2,
+      "titles": [
+        "Poker Face",
+        "Poker Night"
+      ]
+    },
+    "polar": {
+      "sampleSize": 2,
+      "rawValue": 65.4,
+      "value": 65.6,
+      "titles": [
+        "Polar",
+        "The Polar Express"
+      ]
+    },
+    "post": {
+      "sampleSize": 2,
+      "rawValue": 60.0,
+      "value": 64.7,
+      "titles": [
+        "The Post",
+        "Post Grad"
+      ]
+    },
+    "predator": {
+      "sampleSize": 3,
+      "rawValue": 70.7,
+      "value": 66.8,
+      "titles": [
+        "Predator: Badlands",
+        "Predator: Killer of Killers",
+        "The Predator"
+      ]
+    },
+    "prey": {
+      "sampleSize": 2,
+      "rawValue": 68.3,
+      "value": 66.1,
+      "titles": [
+        "Prey",
+        "Prey"
+      ]
+    },
+    "pride": {
+      "sampleSize": 3,
+      "rawValue": 73.1,
+      "value": 67.3,
+      "titles": [
+        "Pride and Prejudice and Zombies",
+        "Pride",
+        "Pride & Prejudice"
+      ]
+    },
+    "primal": {
+      "sampleSize": 2,
+      "rawValue": 54.1,
+      "value": 63.7,
+      "titles": [
+        "Primal",
+        "Primal"
+      ]
+    },
+    "princess": {
+      "sampleSize": 4,
+      "rawValue": 69.4,
+      "value": 66.7,
+      "titles": [
+        "The Princess",
+        "The Princess and the Frog",
+        "The Princess Diaries 2: Royal Engagement",
+        "The Princess Diaries"
+      ]
+    },
+    "prom": {
+      "sampleSize": 2,
+      "rawValue": 55.9,
+      "value": 64.0,
+      "titles": [
+        "Prom",
+        "Prom Night"
+      ]
+    },
+    "purge": {
+      "sampleSize": 3,
+      "rawValue": 64.2,
+      "value": 65.3,
+      "titles": [
+        "The Purge: Election Year",
+        "The Purge: Anarchy",
+        "The Purge"
+      ]
+    },
+    "puss": {
+      "sampleSize": 2,
+      "rawValue": 74.0,
+      "value": 67.0,
+      "titles": [
+        "Puss in Boots: The Last Wish",
+        "Puss in Boots"
+      ]
+    },
+    "quiet": {
+      "sampleSize": 2,
+      "rawValue": 70.5,
+      "value": 66.4,
+      "titles": [
+        "A Quiet Place: Day One",
+        "A Quiet Place Part II"
+      ]
+    },
+    "rambo": {
+      "sampleSize": 2,
+      "rawValue": 66.1,
+      "value": 65.7,
+      "titles": [
+        "Rambo: Last Blood",
+        "Rambo"
+      ]
+    },
+    "ready": {
+      "sampleSize": 2,
+      "rawValue": 73.1,
+      "value": 66.9,
+      "titles": [
+        "Ready or Not",
+        "Ready Player One"
+      ]
+    },
+    "real": {
+      "sampleSize": 2,
+      "rawValue": 69.3,
+      "value": 66.2,
+      "titles": [
+        "A Real Pain",
+        "Real Steel"
+      ]
+    },
+    "rebel": {
+      "sampleSize": 3,
+      "rawValue": 64.3,
+      "value": 65.3,
+      "titles": [
+        "Rebel Ridge",
+        "Rebel Moon - Part Two: The Scargiver",
+        "Rebel Moon - Part One: A Child of Fire"
+      ]
+    },
+    "red": {
+      "sampleSize": 11,
+      "rawValue": 65.2,
+      "value": 65.4,
+      "titles": [
+        "Red Sonja",
+        "Red One",
+        "Red, White & Royal Blue",
+        "Red Notice",
+        "Red Joan"
+      ]
+    },
+    "resident": {
+      "sampleSize": 3,
+      "rawValue": 63.2,
+      "value": 65.0,
+      "titles": [
+        "Resident Evil: Welcome to Raccoon City",
+        "Resident Evil: Apocalypse",
+        "Resident Evil"
+      ]
+    },
+    "rise": {
+      "sampleSize": 3,
+      "rawValue": 69.5,
+      "value": 66.5,
+      "titles": [
+        "300: Rise of an Empire",
+        "Rise of the Guardians",
+        "Rise of the Planet of the Apes"
+      ]
+    },
+    "ritual": {
+      "sampleSize": 2,
+      "rawValue": 61.1,
+      "value": 64.8,
+      "titles": [
+        "The Ritual",
+        "The Ritual"
+      ]
+    },
+    "road": {
+      "sampleSize": 4,
+      "rawValue": 71.4,
+      "value": 67.2,
+      "titles": [
+        "Road House",
+        "The Road",
+        "Road to Perdition",
+        "The Road to El Dorado"
+      ]
+    },
+    "roald": {
+      "sampleSize": 2,
+      "rawValue": 65.7,
+      "value": 65.6,
+      "titles": [
+        "Roald Dahl's Matilda the Musical",
+        "Roald Dahl's The Witches"
+      ]
+    },
+    "robin": {
+      "sampleSize": 2,
+      "rawValue": 61.5,
+      "value": 64.9,
+      "titles": [
+        "Robin Hood",
+        "Robin Hood"
+      ]
+    },
+    "robots": {
+      "sampleSize": 2,
+      "rawValue": 60.4,
+      "value": 64.7,
+      "titles": [
+        "Robots",
+        "Robots"
+      ]
+    },
+    "rock": {
+      "sampleSize": 2,
+      "rawValue": 64.4,
+      "value": 65.4,
+      "titles": [
+        "Rock of Ages",
+        "Rock Star"
+      ]
+    },
+    "royal": {
+      "sampleSize": 2,
+      "rawValue": 73.3,
+      "value": 66.9,
+      "titles": [
+        "A Royal Winter",
+        "The Royal Tenenbaums"
+      ]
+    },
+    "run": {
+      "sampleSize": 2,
+      "rawValue": 63.2,
+      "value": 65.2,
+      "titles": [
+        "Run All Night",
+        "Run Fatboy Run"
+      ]
+    },
+    "rush": {
+      "sampleSize": 3,
+      "rawValue": 69.9,
+      "value": 66.6,
+      "titles": [
+        "Rush",
+        "Rush Hour 3",
+        "Rush Hour 2"
+      ]
+    },
+    "s": {
+      "sampleSize": 2,
+      "rawValue": 64.7,
+      "value": 65.5,
+      "titles": [
+        "It's What's Inside",
+        "It's Complicated"
+      ]
+    },
+    "safe": {
+      "sampleSize": 2,
+      "rawValue": 64.9,
+      "value": 65.5,
+      "titles": [
+        "Safe",
+        "Safe House"
+      ]
+    },
+    "saw": {
+      "sampleSize": 7,
+      "rawValue": 65.8,
+      "value": 65.7,
+      "titles": [
+        "Saw X",
+        "Saw 3D",
+        "Saw VI",
+        "Saw IV",
+        "Saw III"
+      ]
+    },
+    "scary": {
+      "sampleSize": 6,
+      "rawValue": 58.2,
+      "value": 62.8,
+      "titles": [
+        "Scary Stories to Tell in the Dark",
+        "Scary Movie 5",
+        "Scary Movie 4",
+        "Scary Movie 3",
+        "Scary Movie 2"
+      ]
+    },
+    "school": {
+      "sampleSize": 2,
+      "rawValue": 70.6,
+      "value": 66.4,
+      "titles": [
+        "The School for Good and Evil",
+        "School of Rock"
+      ]
+    },
+    "scoop": {
+      "sampleSize": 2,
+      "rawValue": 64.4,
+      "value": 65.4,
+      "titles": [
+        "Scoop",
+        "Scoop"
+      ]
+    },
+    "scorpion": {
+      "sampleSize": 2,
+      "rawValue": 57.5,
+      "value": 64.2,
+      "titles": [
+        "Scorpion King: Book of Souls",
+        "The Scorpion King"
+      ]
+    },
+    "scream": {
+      "sampleSize": 3,
+      "rawValue": 67.1,
+      "value": 66.0,
+      "titles": [
+        "Scream VI",
+        "Scream",
+        "Scream 4"
+      ]
+    },
+    "secret": {
+      "sampleSize": 5,
+      "rawValue": 68.2,
+      "value": 66.5,
+      "titles": [
+        "The Secret Life of Pets 2",
+        "In Secret",
+        "The Secret Life of Walter Mitty",
+        "Secret of the Wings",
+        "Secret Window"
+      ]
+    },
+    "see": {
+      "sampleSize": 2,
+      "rawValue": 57.2,
+      "value": 64.2,
+      "titles": [
+        "See for Me",
+        "See No Evil"
+      ]
+    },
+    "self": {
+      "sampleSize": 2,
+      "rawValue": 61.7,
+      "value": 64.9,
+      "titles": [
+        "Self Reliance",
+        "Self/less"
+      ]
+    },
+    "serenity": {
+      "sampleSize": 2,
+      "rawValue": 64.3,
+      "value": 65.4,
+      "titles": [
+        "Serenity",
+        "Serenity"
+      ]
+    },
+    "seven": {
+      "sampleSize": 2,
+      "rawValue": 72.0,
+      "value": 66.7,
+      "titles": [
+        "Seven Psychopaths",
+        "Seven Pounds"
+      ]
+    },
+    "sex": {
+      "sampleSize": 2,
+      "rawValue": 64.9,
+      "value": 65.5,
+      "titles": [
+        "Sex Drive",
+        "Sex and the City"
+      ]
+    },
+    "shaun": {
+      "sampleSize": 2,
+      "rawValue": 72.6,
+      "value": 66.8,
+      "titles": [
+        "Shaun the Sheep Movie",
+        "Shaun of the Dead"
+      ]
+    },
+    "shazam": {
+      "sampleSize": 2,
+      "rawValue": 67.1,
+      "value": 65.8,
+      "titles": [
+        "Shazam! Fury of the Gods",
+        "Shazam!"
+      ]
+    },
+    "she": {
+      "sampleSize": 4,
+      "rawValue": 68.7,
+      "value": 66.5,
+      "titles": [
+        "She Rides Shotgun",
+        "She Said",
+        "She's Out of My League",
+        "She's the Man"
+      ]
+    },
+    "sherlock": {
+      "sampleSize": 5,
+      "rawValue": 66.1,
+      "value": 65.8,
+      "titles": [
+        "Sherlock Gnomes",
+        "Sherlock: The Abominable Bride",
+        "Sherlock Holmes: A Game of Shadows",
+        "Sherlock Holmes",
+        "Sherlock Holmes"
+      ]
+    },
+    "shrek": {
+      "sampleSize": 4,
+      "rawValue": 69.4,
+      "value": 66.7,
+      "titles": [
+        "Shrek Forever After",
+        "Shrek the Third",
+        "Shrek 2",
+        "Shrek"
+      ]
+    },
+    "sicario": {
+      "sampleSize": 2,
+      "rawValue": 71.8,
+      "value": 66.6,
+      "titles": [
+        "Sicario: Day of the Soldado",
+        "Sicario"
+      ]
+    },
+    "silence": {
+      "sampleSize": 2,
+      "rawValue": 65.7,
+      "value": 65.6,
+      "titles": [
+        "The Silence",
+        "Silence"
+      ]
+    },
+    "silent": {
+      "sampleSize": 2,
+      "rawValue": 60.8,
+      "value": 64.8,
+      "titles": [
+        "Silent Hill: Revelation 3D",
+        "Silent Hill"
+      ]
+    },
+    "sin": {
+      "sampleSize": 2,
+      "rawValue": 69.3,
+      "value": 66.2,
+      "titles": [
+        "Sin City: A Dame to Kill For",
+        "Sin City"
+      ]
+    },
+    "sing": {
+      "sampleSize": 2,
+      "rawValue": 74.8,
+      "value": 67.1,
+      "titles": [
+        "Sing 2",
+        "Sing"
+      ]
+    },
+    "small": {
+      "sampleSize": 2,
+      "rawValue": 67.6,
+      "value": 65.9,
+      "titles": [
+        "Small Things Like These",
+        "Small Fry"
+      ]
+    },
+    "smile": {
+      "sampleSize": 2,
+      "rawValue": 66.3,
+      "value": 65.7,
+      "titles": [
+        "Smile 2",
+        "Smile"
+      ]
+    },
+    "smurfs": {
+      "sampleSize": 3,
+      "rawValue": 60.2,
+      "value": 64.4,
+      "titles": [
+        "Smurfs",
+        "Smurfs: The Lost Village",
+        "The Smurfs"
+      ]
+    },
+    "sniper": {
+      "sampleSize": 2,
+      "rawValue": 61.0,
+      "value": 64.8,
+      "titles": [
+        "Sniper: The Last Stand",
+        "Sniper 3"
+      ]
+    },
+    "snow": {
+      "sampleSize": 2,
+      "rawValue": 51.6,
+      "value": 63.3,
+      "titles": [
+        "Snow White",
+        "Snow White and the Huntsman"
+      ]
+    },
+    "sonic": {
+      "sampleSize": 3,
+      "rawValue": 74.5,
+      "value": 67.7,
+      "titles": [
+        "Sonic the Hedgehog 3",
+        "Sonic the Hedgehog 2",
+        "Sonic the Hedgehog"
+      ]
+    },
+    "sorry": {
+      "sampleSize": 2,
+      "rawValue": 68.4,
+      "value": 66.1,
+      "titles": [
+        "Sorry, Baby",
+        "Sorry to Bother You"
+      ]
+    },
+    "soul": {
+      "sampleSize": 2,
+      "rawValue": 67.7,
+      "value": 66.0,
+      "titles": [
+        "Soul",
+        "Soul Plane"
+      ]
+    },
+    "sound": {
+      "sampleSize": 2,
+      "rawValue": 78.5,
+      "value": 67.8,
+      "titles": [
+        "Sound of Freedom",
+        "Sound of Metal"
+      ]
+    },
+    "space": {
+      "sampleSize": 3,
+      "rawValue": 62.2,
+      "value": 64.8,
+      "titles": [
+        "Space Jam: A New Legacy",
+        "The Space Between Us",
+        "Space Chimps"
+      ]
+    },
+    "speak": {
+      "sampleSize": 2,
+      "rawValue": 71.0,
+      "value": 66.5,
+      "titles": [
+        "Speak No Evil",
+        "Speak"
+      ]
+    },
+    "spider": {
+      "sampleSize": 8,
+      "rawValue": 75.5,
+      "value": 70.0,
+      "titles": [
+        "Spider-Man: Across the Spider-Verse",
+        "Spider-Man: No Way Home",
+        "Spider-Man: Far From Home",
+        "Spider-Man: Into the Spider-Verse",
+        "Spider-Man: Homecoming"
+      ]
+    },
+    "spongebob": {
+      "sampleSize": 4,
+      "rawValue": 68.2,
+      "value": 66.3,
+      "titles": [
+        "The SpongeBob Movie: Search for SquarePants",
+        "The SpongeBob Movie: Sponge on the Run",
+        "The SpongeBob Movie: Sponge Out of Water",
+        "The SpongeBob SquarePants Movie"
+      ]
+    },
+    "spring": {
+      "sampleSize": 2,
+      "rawValue": 59.4,
+      "value": 64.6,
+      "titles": [
+        "Spring",
+        "Spring Breakers"
+      ]
+    },
+    "spy": {
+      "sampleSize": 6,
+      "rawValue": 59.5,
+      "value": 63.3,
+      "titles": [
+        "The Spy Who Dumped Me",
+        "Spy",
+        "The Spy Next Door",
+        "Spy Kids 3-D: Game Over",
+        "Spy Kids 2: The Island of Lost Dreams"
+      ]
+    },
+    "star": {
+      "sampleSize": 10,
+      "rawValue": 69.8,
+      "value": 67.7,
+      "titles": [
+        "Star Wars: The Rise of Skywalker",
+        "A Star Is Born",
+        "Star Wars: The Last Jedi",
+        "The Star",
+        "Star Trek Beyond"
+      ]
+    },
+    "step": {
+      "sampleSize": 5,
+      "rawValue": 67.7,
+      "value": 66.3,
+      "titles": [
+        "Step Up All In",
+        "Step Up Revolution",
+        "Step Brothers",
+        "Step Up 2: The Streets",
+        "Step Up"
+      ]
+    },
+    "steve": {
+      "sampleSize": 2,
+      "rawValue": 65.6,
+      "value": 65.6,
+      "titles": [
+        "Steve",
+        "Steve Jobs"
+      ]
+    },
+    "straight": {
+      "sampleSize": 2,
+      "rawValue": 67.9,
+      "value": 66.0,
+      "titles": [
+        "From Straight A's to XXX",
+        "Straight Outta Compton"
+      ]
+    },
+    "strange": {
+      "sampleSize": 2,
+      "rawValue": 65.7,
+      "value": 65.6,
+      "titles": [
+        "Strange Darling",
+        "Strange World"
+      ]
+    },
+    "strangers": {
+      "sampleSize": 4,
+      "rawValue": 59.0,
+      "value": 63.7,
+      "titles": [
+        "The Strangers: Chapter 2",
+        "The Strangers: Chapter 1",
+        "The Strangers: Prey at Night",
+        "The Strangers"
+      ]
+    },
+    "strays": {
+      "sampleSize": 2,
+      "rawValue": 63.2,
+      "value": 65.2,
+      "titles": [
+        "Strays",
+        "The Strays"
+      ]
+    },
+    "suicide": {
+      "sampleSize": 2,
+      "rawValue": 66.9,
+      "value": 65.8,
+      "titles": [
+        "The Suicide Squad",
+        "Suicide Squad"
+      ]
+    },
+    "super": {
+      "sampleSize": 4,
+      "rawValue": 68.7,
+      "value": 66.5,
+      "titles": [
+        "The Super Mario Bros. Movie",
+        "Super 8",
+        "Super",
+        "Super Troopers"
+      ]
+    },
+    "superman": {
+      "sampleSize": 2,
+      "rawValue": 65.8,
+      "value": 65.6,
+      "titles": [
+        "Superman",
+        "Superman Returns"
+      ]
+    },
+    "sweet": {
+      "sampleSize": 3,
+      "rawValue": 66.2,
+      "value": 65.8,
+      "titles": [
+        "Sweet Girl",
+        "Sweet Home Alabama",
+        "Sweet November"
+      ]
+    },
+    "taken": {
+      "sampleSize": 3,
+      "rawValue": 66.7,
+      "value": 65.9,
+      "titles": [
+        "Taken 3",
+        "Taken 2",
+        "Taken"
+      ]
+    },
+    "taking": {
+      "sampleSize": 2,
+      "rawValue": 62.8,
+      "value": 65.1,
+      "titles": [
+        "Taking Woodstock",
+        "The Taking of Pelham 1 2 3"
+      ]
+    },
+    "tarzan": {
+      "sampleSize": 2,
+      "rawValue": 58.5,
+      "value": 64.4,
+      "titles": [
+        "Tarzan",
+        "Tarzan & Jane"
+      ]
+    },
+    "team": {
+      "sampleSize": 3,
+      "rawValue": 67.8,
+      "value": 66.1,
+      "titles": [
+        "Team Thor",
+        "The A-Team",
+        "Team America: World Police"
+      ]
+    },
+    "ted": {
+      "sampleSize": 2,
+      "rawValue": 63.8,
+      "value": 65.3,
+      "titles": [
+        "Ted 2",
+        "Ted"
+      ]
+    },
+    "teen": {
+      "sampleSize": 4,
+      "rawValue": 65.9,
+      "value": 65.7,
+      "titles": [
+        "Teen Wolf: The Movie",
+        "Teen Spirit",
+        "Teen Beach Movie",
+        "Teen Spirit"
+      ]
+    },
+    "teenage": {
+      "sampleSize": 3,
+      "rawValue": 63.9,
+      "value": 65.2,
+      "titles": [
+        "Teenage Mutant Ninja Turtles: Mutant Mayhem",
+        "Teenage Mutant Ninja Turtles: Out of the Shadows",
+        "Teenage Mutant Ninja Turtles"
+      ]
+    },
+    "terminator": {
+      "sampleSize": 4,
+      "rawValue": 61.6,
+      "value": 64.5,
+      "titles": [
+        "Terminator: Dark Fate",
+        "Terminator Genisys",
+        "Terminator Salvation",
+        "Terminator 3: Rise of the Machines"
+      ]
+    },
+    "terrifier": {
+      "sampleSize": 3,
+      "rawValue": 66.1,
+      "value": 65.7,
+      "titles": [
+        "Terrifier 3",
+        "Terrifier 2",
+        "Terrifier"
+      ]
+    },
+    "texas": {
+      "sampleSize": 4,
+      "rawValue": 57.9,
+      "value": 63.4,
+      "titles": [
+        "Texas Chainsaw Massacre",
+        "Texas Chainsaw 3D",
+        "The Texas Chainsaw Massacre: The Beginning",
+        "The Texas Chainsaw Massacre"
+      ]
+    },
+    "thirteen": {
+      "sampleSize": 2,
+      "rawValue": 72.8,
+      "value": 66.8,
+      "titles": [
+        "Thirteen Lives",
+        "Thirteen"
+      ]
+    },
+    "this": {
+      "sampleSize": 4,
+      "rawValue": 63.6,
+      "value": 65.0,
+      "titles": [
+        "This Beautiful Fantastic",
+        "This Is the End",
+        "This Is 40",
+        "This Means War"
+      ]
+    },
+    "thor": {
+      "sampleSize": 4,
+      "rawValue": 68.2,
+      "value": 66.3,
+      "titles": [
+        "Thor: Love and Thunder",
+        "Thor: Ragnarok",
+        "Thor: The Dark World",
+        "Thor"
+      ]
+    },
+    "those": {
+      "sampleSize": 2,
+      "rawValue": 67.6,
+      "value": 65.9,
+      "titles": [
+        "Those Who Wish Me Dead",
+        "Those People"
+      ]
+    },
+    "three": {
+      "sampleSize": 3,
+      "rawValue": 64.8,
+      "value": 65.4,
+      "titles": [
+        "Three Billboards Outside Ebbing, Missouri",
+        "The Three Musketeers",
+        "Three"
+      ]
+    },
+    "time": {
+      "sampleSize": 4,
+      "rawValue": 64.0,
+      "value": 65.1,
+      "titles": [
+        "Time Cut",
+        "Time Freak",
+        "The Time Traveler's Wife",
+        "The Time Machine"
+      ]
+    },
+    "tinker": {
+      "sampleSize": 4,
+      "rawValue": 69.3,
+      "value": 66.6,
+      "titles": [
+        "Tinker Bell and the Legend of the NeverBeast",
+        "Tinker Tailor Soldier Spy",
+        "Tinker Bell and the Great Fairy Rescue",
+        "Tinker Bell"
+      ]
+    },
+    "tom": {
+      "sampleSize": 2,
+      "rawValue": 68.4,
+      "value": 66.1,
+      "titles": [
+        "Tom Clancy's Without Remorse",
+        "Tom & Jerry"
+      ]
+    },
+    "toy": {
+      "sampleSize": 2,
+      "rawValue": 76.4,
+      "value": 67.4,
+      "titles": [
+        "Toy Story 4",
+        "Toy Story 3"
+      ]
+    },
+    "transformers": {
+      "sampleSize": 4,
+      "rawValue": 68.1,
+      "value": 66.3,
+      "titles": [
+        "Transformers One",
+        "Transformers: Rise of the Beasts",
+        "Transformers: The Last Knight",
+        "Transformers: Age of Extinction"
+      ]
+    },
+    "transporter": {
+      "sampleSize": 4,
+      "rawValue": 61.8,
+      "value": 64.5,
+      "titles": [
+        "The Transporter Refueled",
+        "Transporter 3",
+        "Transporter 2",
+        "The Transporter"
+      ]
+    },
+    "trap": {
+      "sampleSize": 2,
+      "rawValue": 64.2,
+      "value": 65.4,
+      "titles": [
+        "Trap House",
+        "Trap"
+      ]
+    },
+    "trash": {
+      "sampleSize": 2,
+      "rawValue": 61.5,
+      "value": 64.9,
+      "titles": [
+        "Trash",
+        "Trash Humpers"
+      ]
+    },
+    "triangle": {
+      "sampleSize": 2,
+      "rawValue": 69.7,
+      "value": 66.3,
+      "titles": [
+        "Triangle of Sadness",
+        "Triangle"
+      ]
+    },
+    "trick": {
+      "sampleSize": 2,
+      "rawValue": 64.0,
+      "value": 65.3,
+      "titles": [
+        "Trick",
+        "Trick 'r Treat"
+      ]
+    },
+    "trolls": {
+      "sampleSize": 3,
+      "rawValue": 70.4,
+      "value": 66.7,
+      "titles": [
+        "Trolls Band Together",
+        "Trolls World Tour",
+        "Trolls"
+      ]
+    },
+    "tron": {
+      "sampleSize": 2,
+      "rawValue": 65.2,
+      "value": 65.5,
+      "titles": [
+        "TRON: Ares",
+        "TRON: Legacy"
+      ]
+    },
+    "twilight": {
+      "sampleSize": 5,
+      "rawValue": 62.3,
+      "value": 64.5,
+      "titles": [
+        "The Twilight Saga: Breaking Dawn - Part 2",
+        "The Twilight Saga: Breaking Dawn - Part 1",
+        "The Twilight Saga: Eclipse",
+        "The Twilight Saga: New Moon",
+        "Twilight"
+      ]
+    },
+    "underworld": {
+      "sampleSize": 3,
+      "rawValue": 63.6,
+      "value": 65.1,
+      "titles": [
+        "Underworld: Blood Wars",
+        "Underworld: Awakening",
+        "Underworld"
+      ]
+    },
+    "undisputed": {
+      "sampleSize": 3,
+      "rawValue": 71.4,
+      "value": 66.9,
+      "titles": [
+        "Undisputed III: Redemption",
+        "Undisputed II: Last Man Standing",
+        "Undisputed"
+      ]
+    },
+    "unholy": {
+      "sampleSize": 2,
+      "rawValue": 64.8,
+      "value": 65.5,
+      "titles": [
+        "The Unholy Trinity",
+        "The Unholy"
+      ]
+    },
+    "unknown": {
+      "sampleSize": 2,
+      "rawValue": 64.7,
+      "value": 65.4,
+      "titles": [
+        "Unknown",
+        "Unknown"
+      ]
+    },
+    "unstoppable": {
+      "sampleSize": 2,
+      "rawValue": 58.7,
+      "value": 64.5,
+      "titles": [
+        "Unstoppable",
+        "Unstoppable"
+      ]
+    },
+    "up": {
+      "sampleSize": 2,
+      "rawValue": 74.2,
+      "value": 67.0,
+      "titles": [
+        "Up in the Air",
+        "Up"
+      ]
+    },
+    "v": {
+      "sampleSize": 2,
+      "rawValue": 70.4,
+      "value": 66.4,
+      "titles": [
+        "V/H/S/Halloween",
+        "V for Vendetta"
+      ]
+    },
+    "venom": {
+      "sampleSize": 3,
+      "rawValue": 67.5,
+      "value": 66.0,
+      "titles": [
+        "Venom: The Last Dance",
+        "Venom: Let There Be Carnage",
+        "Venom"
+      ]
+    },
+    "vice": {
+      "sampleSize": 2,
+      "rawValue": 56.8,
+      "value": 64.1,
+      "titles": [
+        "Vice",
+        "Vice"
+      ]
+    },
+    "violent": {
+      "sampleSize": 2,
+      "rawValue": 64.0,
+      "value": 65.3,
+      "titles": [
+        "In a Violent Nature",
+        "Violent Night"
+      ]
+    },
+    "virgin": {
+      "sampleSize": 2,
+      "rawValue": 60.0,
+      "value": 64.7,
+      "titles": [
+        "Virgin Territory",
+        "The Virgin Suicides"
+      ]
+    },
+    "wake": {
+      "sampleSize": 3,
+      "rawValue": 65.4,
+      "value": 65.6,
+      "titles": [
+        "Wake Up Dead Man: A Knives Out Mystery",
+        "Wake Up",
+        "Wake Wood"
+      ]
+    },
+    "walk": {
+      "sampleSize": 3,
+      "rawValue": 71.8,
+      "value": 67.0,
+      "titles": [
+        "A Walk Among the Tombstones",
+        "Walk the Line",
+        "A Walk to Remember"
+      ]
+    },
+    "wallace": {
+      "sampleSize": 2,
+      "rawValue": 73.0,
+      "value": 66.8,
+      "titles": [
+        "Wallace & Gromit: Vengeance Most Fowl",
+        "Wallace & Gromit: The Curse of the Were-Rabbit"
+      ]
+    },
+    "war": {
+      "sampleSize": 7,
+      "rawValue": 62.0,
+      "value": 64.1,
+      "titles": [
+        "War of the Worlds",
+        "The War with Grandpa",
+        "War Machine",
+        "War Dogs",
+        "War Horse"
+      ]
+    },
+    "we": {
+      "sampleSize": 6,
+      "rawValue": 70.7,
+      "value": 67.5,
+      "titles": [
+        "We Live in Time",
+        "We Are Your Friends",
+        "We're the Millers",
+        "We Bought a Zoo",
+        "We Need to Talk About Kevin"
+      ]
+    },
+    "wedding": {
+      "sampleSize": 2,
+      "rawValue": 64.8,
+      "value": 65.5,
+      "titles": [
+        "The Wedding Ringer",
+        "Wedding Crashers"
+      ]
+    },
+    "whale": {
+      "sampleSize": 2,
+      "rawValue": 74.2,
+      "value": 67.0,
+      "titles": [
+        "The Whale",
+        "Whale Rider"
+      ]
+    },
+    "what": {
+      "sampleSize": 3,
+      "rawValue": 63.3,
+      "value": 65.1,
+      "titles": [
+        "What Happens in Vegas",
+        "What Women Want",
+        "What Lies Beneath"
+      ]
+    },
+    "where": {
+      "sampleSize": 2,
+      "rawValue": 77.1,
+      "value": 67.5,
+      "titles": [
+        "Where the Crawdads Sing",
+        "Where Hands Touch"
+      ]
+    },
+    "white": {
+      "sampleSize": 3,
+      "rawValue": 63.7,
+      "value": 65.2,
+      "titles": [
+        "White Girl",
+        "White House Down",
+        "White Chicks"
+      ]
+    },
+    "wicked": {
+      "sampleSize": 2,
+      "rawValue": 68.1,
+      "value": 66.0,
+      "titles": [
+        "Wicked: For Good",
+        "Wicked"
+      ]
+    },
+    "wild": {
+      "sampleSize": 4,
+      "rawValue": 67.8,
+      "value": 66.2,
+      "titles": [
+        "The Wild Robot",
+        "Wild Card",
+        "Wild Child",
+        "The Wild Thornberrys Movie"
+      ]
+    },
+    "winnie": {
+      "sampleSize": 2,
+      "rawValue": 63.6,
+      "value": 65.3,
+      "titles": [
+        "Winnie-the-Pooh: Blood and Honey 2",
+        "Winnie the Pooh"
+      ]
+    },
+    "wish": {
+      "sampleSize": 2,
+      "rawValue": 70.4,
+      "value": 66.4,
+      "titles": [
+        "Wish",
+        "Wish Dragon"
+      ]
+    },
+    "wolf": {
+      "sampleSize": 3,
+      "rawValue": 68.1,
+      "value": 66.2,
+      "titles": [
+        "Wolf Man",
+        "The Wolf of Wall Street",
+        "Wolf Creek"
+      ]
+    },
+    "woman": {
+      "sampleSize": 3,
+      "rawValue": 66.6,
+      "value": 65.8,
+      "titles": [
+        "The Woman in Cabin 10",
+        "The Woman King",
+        "The Woman in Black"
+      ]
+    },
+    "wonder": {
+      "sampleSize": 3,
+      "rawValue": 72.3,
+      "value": 67.1,
+      "titles": [
+        "Wonder Woman 1984",
+        "Wonder",
+        "Wonder Woman"
+      ]
+    },
+    "world": {
+      "sampleSize": 2,
+      "rawValue": 68.0,
+      "value": 66.0,
+      "titles": [
+        "The World's End",
+        "World War Z"
+      ]
+    },
+    "wrath": {
+      "sampleSize": 2,
+      "rawValue": 66.7,
+      "value": 65.8,
+      "titles": [
+        "Wrath of Man",
+        "Wrath of the Titans"
+      ]
+    },
+    "wrong": {
+      "sampleSize": 6,
+      "rawValue": 58.9,
+      "value": 63.1,
+      "titles": [
+        "Wrong Turn",
+        "Wrong Turn 5: Bloodlines",
+        "Wrong Turn 4: Bloody Beginnings",
+        "Wrong Turn 3: Left for Dead",
+        "Wrong Turn 2: Dead End"
+      ]
+    },
+    "x": {
+      "sampleSize": 5,
+      "rawValue": 66.8,
+      "value": 66.0,
+      "titles": [
+        "X",
+        "A-X-L",
+        "X-Men: Apocalypse",
+        "X-Men: Days of Future Past",
+        "X"
+      ]
+    },
+    "xxx": {
+      "sampleSize": 3,
+      "rawValue": 57.4,
+      "value": 63.7,
+      "titles": [
+        "xXx: Return of Xander Cage",
+        "xXx: State of the Union",
+        "xXx"
+      ]
+    },
+    "years": {
+      "sampleSize": 3,
+      "rawValue": 72.8,
+      "value": 67.2,
+      "titles": [
+        "28 Years Later: The Bone Temple",
+        "28 Years Later",
+        "12 Years a Slave"
+      ]
+    },
+    "yes": {
+      "sampleSize": 2,
+      "rawValue": 64.9,
+      "value": 65.5,
+      "titles": [
+        "Yes, God, Yes",
+        "Yes Man"
+      ]
+    },
+    "zack": {
+      "sampleSize": 2,
+      "rawValue": 72.2,
+      "value": 66.7,
+      "titles": [
+        "Zack Snyder's Justice League",
+        "Zack and Miri Make a Porno"
+      ]
+    },
+    "zombieland": {
+      "sampleSize": 2,
+      "rawValue": 70.8,
+      "value": 66.5,
+      "titles": [
+        "Zombieland: Double Tap",
+        "Zombieland"
+      ]
+    },
+    "zone": {
+      "sampleSize": 2,
+      "rawValue": 61.7,
+      "value": 65.0,
+      "titles": [
+        "The Zone of Interest",
+        "Zone 414"
+      ]
+    },
+    "zoolander": {
+      "sampleSize": 2,
+      "rawValue": 55.7,
+      "value": 63.9,
+      "titles": [
+        "Zoolander 2",
+        "Zoolander"
+      ]
+    },
+    "zootopia": {
+      "sampleSize": 2,
+      "rawValue": 76.9,
+      "value": 67.5,
+      "titles": [
+        "Zootopia 2",
+        "Zootopia"
+      ]
+    }
+  },
+  "familyMethod": {
+    "key": "First non-stopword title token",
+    "minimumSample": 2,
+    "priorStrength": 10,
+    "caveat": "A lexical title-family match is not proof of a franchise relationship and receives strong shrinkage toward the global baseline."
+  },
+  "referenceCohort": {
+    "sampleSize": 2993,
+    "recentFilms": [
+      {
+        "title": "The Wrecking Crew",
+        "releaseDate": "2026-01-28",
+        "rating": 6.841,
+        "votes": 531
+      },
+      {
+        "title": "Send Help",
+        "releaseDate": "2026-01-22",
+        "rating": 7.021,
+        "votes": 237
+      },
+      {
+        "title": "Return to Silent Hill",
+        "releaseDate": "2026-01-21",
+        "rating": 5.2,
+        "votes": 130
+      },
+      {
+        "title": "Mercy",
+        "releaseDate": "2026-01-20",
+        "rating": 6.655,
+        "votes": 126
+      },
+      {
+        "title": "28 Years Later: The Bone Temple",
+        "releaseDate": "2026-01-14",
+        "rating": 7.274,
+        "votes": 323
+      },
+      {
+        "title": "The Rip",
+        "releaseDate": "2026-01-13",
+        "rating": 7.043,
+        "votes": 1138
+      }
+    ],
+    "financialContext": {
+      "completeSampleSize": 2210,
+      "medianBudgetUsd": 40000000,
+      "medianRevenueUsd": 102196083,
+      "revenueAboveBudgetCount": 1753,
+      "revenueAboveBudgetPercent": 79.3,
+      "caveat": "Revenue exceeding production budget is not the same as profitability; marketing and distribution costs are unavailable."
+    }
+  },
+  "methodology": {
+    "outcomeMetric": "TMDB vote_average (community rating), scaled from 0-10 to 0-100",
+    "notAProxyFor": "Rotten Tomatoes Tomatometer or Kalshi threshold probability",
+    "runtimeInputs": [
+      "Kalshi event title selects an optional, strongly-shrunk lexical title-family prior.",
+      "Kalshi settlement month selects historical release-month context as an explicit proxy."
+    ],
+    "weights": {
+      "globalBaseline": 55,
+      "releaseMonth": 25,
+      "titleFamily": 20
+    },
+    "leakageControls": [
+      "Only released films on or before the dataset snapshot are outcomes.",
+      "Kalshi price, bid, ask, volume, and market sentiment are not score inputs.",
+      "Trailer, search, social, critic, popularity, and review text are not score inputs.",
+      "Missing target genres and talent are explicitly imputed to the global baseline and lower the coverage score."
+    ]
+  }
+}

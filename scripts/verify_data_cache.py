@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from automatic_prior import build_automatic_prior
 from critic_outcomes import build_benchmark
 from historical_model import build_model, load_market_config
 
@@ -55,10 +56,17 @@ def main() -> None:
     expected_market_index = {"schemaVersion": 1, "markets": expected_index}
     verify_equal("src/data/market-index.json", expected_market_index, checked_json(Path("src/data/market-index.json")))
 
+    automatic_prior = build_automatic_prior(TMDB_DIR)
+    verify_equal(
+        "src/data/automatic-prior.json",
+        automatic_prior,
+        checked_json(Path("src/data/automatic-prior.json")),
+    )
+
     critic = build_benchmark(CRITIC_FILE, tmdb_movies_path=TMDB_DIR / "movies.csv")
     verify_equal("src/data/critic-benchmark.json", critic, checked_json(Path("src/data/critic-benchmark.json")))
     print(
-        f"Verified {len(expected_index)} market cache(s), the market index, and the critic benchmark against raw source checksums."
+        f"Verified {len(expected_index)} configured market cache(s), the automatic prior, the market index, and the critic benchmark against raw source checksums."
     )
 
 

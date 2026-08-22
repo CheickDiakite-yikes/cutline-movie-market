@@ -21,7 +21,7 @@ For visible UI changes, also inspect:
 
 - the 1440 × 900 Scout view;
 - the 390 × 844 mobile Scout deck, including the next-card cue and persistent action area;
-- all score-rationale states, especially unavailable signals;
+- configured and automatic score-rationale states, especially imputed or unavailable signals;
 - Above 75 / 80 / 85 switching;
 - Save, Later, Review, Remove, Pass, and Saved Ideas navigation;
 - left-to-pass, right-to-save, and keyboard-equivalent deck movement; and
@@ -29,8 +29,8 @@ For visible UI changes, also inspect:
 
 ## Data changes
 
-- Do not hand-edit computed scores in `src/data/markets/*.json` or `src/data/critic-benchmark.json`.
-- Rebuild the cache through `scripts/build_historical_model.py`.
+- Do not hand-edit computed scores in `src/data/automatic-prior.json`, `src/data/markets/*.json`, or `src/data/critic-benchmark.json`.
+- Rebuild configured models through `scripts/build_historical_model.py` and the automatic fallback through `scripts/build_automatic_prior.py`.
 - If Kaggle serves a different archive checksum, stop and repeat the provenance, license, schema, missingness, and leakage audit before accepting it.
 - Add or update focused tests whenever scoring eligibility, shrinkage, cohort selection, or weights change.
 
@@ -42,7 +42,7 @@ For visible UI changes, also inspect:
 4. Inspect the sample sizes, target talent joins, comparable films, and factor contributions. A successful build is not evidence that the cohort is substantively appropriate.
 5. Run `npm run data:verify` while the raw sources are present, followed by `npm test` and browser QA.
 
-Live Kalshi events appear in the Scout slate before a historical artifact exists. They must remain labeled **live market only** until these steps are complete.
+Live Kalshi events receive the automatic hierarchical prior before a configured artifact exists. Preserve its lower specificity, target-enrichment gaps, explicit sample `n=0` talent imputation, and price-independence language until these steps are complete.
 
 ### Share research ideas
 

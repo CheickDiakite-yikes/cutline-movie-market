@@ -8,6 +8,7 @@
 - User-reported market-only state: `/var/folders/vv/nxhl855j0mxb1r8c6qdtfhnw0000gn/T/TemporaryItems/NSIRD_screencaptureui_yRLv0O/Screenshot 2026-08-21 at 11.55.29 PM.png`
 - Corrected market-only implementation: `docs/assets/cutline-mobile-market-only.png`
 - Market-only before/after comparison: `docs/assets/cutline-mobile-market-only-comparison.png`
+- Automatic model mobile state: `docs/assets/cutline-mobile-auto-model.png`
 - Selected state: mobile Scout, Resident Evil, Above 80, unsaved, live Kalshi market context, historical model connected.
 - Source pixels: 853 × 1844. Source was normalized to 390 × 844 without a device frame.
 - Implementation CSS viewport: 390 × 844 at device scale factor 1. The in-app browser has a fixed desktop panel, so a same-origin 390 × 844 iframe was used only as the capture viewport. Browser DOM measurements verified `window.innerWidth = 390`, `window.innerHeight = 844`, card `361 × 788`, document `390 × 844`, actions at y=746–816, and swipe cue at y=816–844. The browser screenshot was cropped to the verified 390 × 844 content viewport.
@@ -27,6 +28,7 @@ The implementation uses the repository's real Resident Evil artwork rather than 
 - Evidence rows: Fit 63, Talent 66, and Coverage 88 are individually tappable and open the existing provenance drawer.
 - Actions: Pass, Later, and Save share the persistent bottom thumb zone. The complete swipe cue is visible at y=816–844.
 - Market-only state: the misleading `queued` label is gone. `Research pack not built`, `Not built`, `Why unavailable`, and `N/A` make the source boundary legible without inventing scores or art.
+- Automatic model state: every live event now shows numeric Fit, Talent, and Coverage values. The ink artwork treatment identifies the automatic prior and specificity; the ticket labels the score `Auto historical model`; synthesis states that target enrichment and critic probability remain withheld.
 - Icons: Phosphor caret and arrow icons are used consistently; no text glyphs, inline SVG art, or CSS-drawn icons replace the source controls.
 
 ## Required fidelity surfaces
@@ -49,6 +51,8 @@ The implementation uses the repository's real Resident Evil artwork rather than 
 - A reload check observed no console or page-error event.
 - Desktop Scout remained visually unchanged at 1280 × 720 with the live 20-event slate and existing score/synthesis layout.
 - Long-title overflow was found during the market-only comparison. The mobile ticket column was constrained to 360 pixels; Pass, Later, and Save now each measure 120 pixels and the document remains exactly 390 pixels wide.
+- Browser iteration across all 20 current selector options found no missing Historical fit, Talent prior, or Data coverage values. Resident Evil retained its configured 63 / 66 / 88 scores; automatic examples included Insidious 65 / 66 / 65, Mutiny 65 / 66 / 45, Avengers 66 / 66 / 65, and Dune 66 / 66 / 55 after small lexical-family samples were given proportionally lower coverage credit. Live heat remains intentionally unscored because it has no validated composite.
+- The automatic Historical drawer exposed all three factor weights, samples, contributions, the settlement-month proxy, the lexical-not-franchise caveat, source date, 2,993-film reference cohort, and automatic model version. The Talent drawer showed sample `n=0` and the imputation caveat.
 
 ## Comparison history
 
@@ -60,6 +64,8 @@ The implementation uses the repository's real Resident Evil artwork rather than 
    - Post-fix comparison shows the real title, date line, central character, and fire in the hero; the market question now follows the selected hierarchy; the complete action and swipe zones fit inside the measured viewport.
 3. Later and market-only pass — passed.
    - Added the middle Later path and explicit unavailable labels. The first comparison revealed intrinsic-width overflow on a long movie title; constraining the ticket grid fixed the clipped Save action and synthesis column. The corrected comparison shows all three 120-pixel actions inside the card.
+4. Automatic full-slate pass — passed.
+   - Verified 20 modeled events at the live QA snapshot: 1 configured and 19 automatic. The 390 × 844 automatic card measured exactly 390 pixels wide and 844 pixels high; the 361-pixel card and three 120-pixel actions remained intact with the longer automatic labels.
 
 ## Findings
 

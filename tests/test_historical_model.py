@@ -16,6 +16,7 @@ from historical_model import (  # noqa: E402
     load_market_config,
     weighted_score,
 )
+from automatic_prior import AUTO_MODEL_VERSION, title_family_key  # noqa: E402
 
 
 def movie(movie_id, rating, votes=500, released=date(2020, 1, 1), status="Released"):
@@ -76,6 +77,19 @@ class HistoricalModelTests(unittest.TestCase):
         self.assertEqual(market.default_threshold, 80)
         self.assertEqual(sum(market.historical_weights.values()), 100)
         self.assertEqual(sum(market.talent_weights.values()), 100)
+
+    def test_checked_in_automatic_prior_has_reproducible_hierarchical_inputs(self):
+        prior = json.loads((ROOT / "src/data/automatic-prior.json").read_text())
+        self.assertEqual(prior["modelVersion"], AUTO_MODEL_VERSION)
+        self.assertEqual(prior["source"]["license"], "CC BY-NC-SA 4.0")
+        self.assertGreater(prior["baseline"]["sampleSize"], 1000)
+        self.assertEqual(len(prior["months"]), 12)
+        self.assertEqual(sum(prior["methodology"]["weights"].values()), 100)
+        self.assertIn("Kalshi price", " ".join(prior["methodology"]["leakageControls"]))
+
+    def test_title_family_key_is_stable_and_not_a_franchise_claim(self):
+        self.assertEqual(title_family_key("The Avengers: Doomsday"), "avengers")
+        self.assertEqual(title_family_key("Dune: Part Three"), "dune")
 
 
 if __name__ == "__main__":

@@ -19,6 +19,19 @@ src/data/markets/<slug>.json + market-index.json
         |
         +----------------------------------+
                                            |
+audited Kaggle/TMDB CSV snapshot           |
+        |                                  |
+        v                                  |
+scripts/automatic_prior.py                 |
+  - builds a 2,993-film English baseline  |
+  - builds month and title-family priors  |
+  - records shrinkage and leakage rules   |
+        |                                  |
+        v                                  |
+src/data/automatic-prior.json              |
+        |                                  |
+        +----------------------------------+
+                                           |
 audited Rotten Tomatoes CSV snapshot       |
         |                                  |
         v                                  |
@@ -50,14 +63,22 @@ The historical and critic pipelines are deterministic offline batches. The Sites
 
 ## Multi-movie lifecycle
 
-Active KXRT events appear automatically from Kalshi. An event can exist in one of two explicit states:
+Active KXRT events appear automatically from Kalshi. An event can exist in one of two explicit model tiers:
 
 | State | Available | Withheld |
 | --- | --- | --- |
-| Live market only | Event, thresholds, last price, bid/ask, volume, close time, freshness, Save/Pass | Movie art, historical fit, talent prior, data coverage, probability, edge |
-| Live + modeled | All live context plus a reviewed `config/markets/*.json` artifact and explainable historical scores | Probability and edge remain unavailable until critic calibration passes |
+| Live + automatic prior | Event, thresholds, price context, numeric historical prior, explicit talent imputation, coverage, specificity, factor trace, Save/Later/Pass | Verified target genres, cast, crew, poster, critic probability, and edge |
+| Live + configured model | All live context plus a reviewed `config/markets/*.json` artifact, verified target joins, artwork, and explainable historical scores | Probability and edge remain unavailable until critic calibration passes |
 
-Adding a configured movie does not require a React edit. The builder emits a JSON artifact, and Vite discovers all files under `src/data/markets/` at build time.
+Every live event receives the automatic tier immediately. Adding a configured movie does not require a React edit: the builder emits a JSON artifact, Vite discovers it under `src/data/markets/`, and that richer artifact takes precedence over the automatic prior.
+
+The automatic tier is deterministic and hierarchical:
+
+- 55% global eligible English-language TMDB community-rating baseline;
+- 25% settlement-month historical context, visibly labeled as a release-timing proxy; and
+- 20% optional lexical title-family context, strongly shrunk toward the baseline and never labeled a confirmed franchise.
+
+Missing target talent is a visible global-baseline imputation with sample `n=0`. The coverage score falls when title-family, genre, talent, or artwork evidence is absent.
 
 ## Source-of-truth boundaries
 
@@ -66,8 +87,10 @@ Adding a configured movie does not require a React edit. The builder emits a JSO
 | Movie definitions and model parameters | `config/markets/*.json` |
 | Data versions, rights, and archive checksums | `config/data-sources.json` |
 | Historical calculations | `scripts/historical_model.py` |
+| Automatic fallback calculation | `scripts/automatic_prior.py` and `src/lib/automatic-model.js` |
 | Critic benchmark and calibration gate | `scripts/critic_outcomes.py` |
 | Checked-in movie artifacts | `src/data/markets/*.json` |
+| Checked-in automatic prior | `src/data/automatic-prior.json` |
 | Modeled-market registry | `src/data/market-index.json` |
 | Critic benchmark artifact | `src/data/critic-benchmark.json` |
 | Kalshi response normalization | `src/lib/kalshi.js` |
@@ -83,9 +106,9 @@ Adding a configured movie does not require a React edit. The builder emits a JSO
 - The open application refreshes the paginated KXRT slate every 60 seconds and again when its browser tab becomes visible.
 - A failed Kalshi refresh may expose the last cached response only when it is visibly labeled stale.
 - Market price is never inserted into the historical or critic score.
-- A live event without a generated movie artifact never borrows another movie's cohort, artwork, or score.
+- A live event without a configured movie artifact receives the audited automatic prior; it never borrows another target movie's cohort, artwork, talent history, or configured score.
 - The critic benchmark remains descriptive until a larger identifier crosswalk and forward-time validation succeed.
-- Missing data reduces availability; it never receives an invented neutral score.
+- Missing target data reduces coverage. A documented global-baseline imputation may be shown only with sample `n=0`, its factor contribution, and an enrichment-pending label.
 - No runtime path places orders or accepts brokerage credentials.
 
 ## Portability
@@ -104,12 +127,13 @@ The repository uses standard React, Vite, Node, and Python files. Vite proxies `
 
 ## Next service boundaries
 
-1. **Critic identifier crosswalk** — map a larger rights-cleared critic label set to stable movie IDs.
-2. **Forward calibration** — recreate each film's features as of its release date and validate threshold probabilities chronologically.
-3. **Early-signal collectors** — collect trailer, search, and social observations with provider, query, geography, window, and timestamp.
-4. **Versioned scoring service** — return feature versions, model versions, contributions, samples, freshness, and unavailable fields.
-5. **Authenticated idea store** — add shared persistence only after identity and access requirements are defined; preserve portable JSON files.
-6. **Scheduler and alerts** — recompute after validated source changes and notify only under explicit user rules.
+1. **Target metadata enrichment** — resolve stable movie IDs, genres, verified release date, artwork, cast, director, and producers for each new event; promote only reviewed matches above the automatic tier.
+2. **Critic identifier crosswalk** — map a larger rights-cleared critic label set to stable movie IDs.
+3. **Forward calibration** — recreate each film's features as of its release date and validate threshold probabilities chronologically.
+4. **Early-signal collectors** — collect trailer, search, and social observations with provider, query, geography, window, and timestamp.
+5. **Versioned scoring service** — return feature versions, model versions, contributions, samples, freshness, specificity, and unavailable fields.
+6. **Authenticated idea store** — add shared persistence only after identity and access requirements are defined; preserve portable JSON files.
+7. **Scheduler and alerts** — recompute after validated source changes and notify only under explicit user rules.
 
 Every future live response should carry:
 

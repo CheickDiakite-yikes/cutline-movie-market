@@ -97,11 +97,28 @@ The audit observed:
 
 The 278 eligible labels support descriptive strict-threshold base rates. The 12-film exact join is far too small for a feature model, and an exact title/year match alone does not prove entity identity. Cutline therefore exposes the benchmark's sample and provenance while keeping `P(Tomatometer > threshold)`, edge, and entry unavailable.
 
-## Multi-movie configuration
+## Automatic coverage for every live movie
+
+`scripts/automatic_prior.py` derives a versioned fallback from 2,993 English-language movies that meet the same pre-snapshot release, rating, and minimum-vote rules. The checked-in artifact stores:
+
+- the global historical TMDB community-rating baseline;
+- a separate baseline for every release month;
+- lexical title-family groups with at least two historical titles;
+- strong empirical-Bayes shrinkage equivalent to ten global-baseline films;
+- recent reference films and descriptive financial completeness; and
+- source checksum, license, snapshot, weights, and leakage controls.
+
+`src/lib/automatic-model.js` combines those immutable priors with a live event's title and settlement month. The score weights are 55% global baseline, 25% settlement-month context, and 20% optional title-family context. Settlement month is explicitly a release-timing proxy. A title-family key is explicitly lexical and is not proof that the movie belongs to a franchise.
+
+Until a target is enriched with verified identities, the Talent prior carries the global baseline with sample `n=0`. This is a standard missing-feature imputation, not evidence about that movie's cast or crew. The coverage score records the missing genre, named talent, and artwork fields. Kalshi prices do not enter any factor.
+
+At the August 22, 2026 browser QA snapshot, all 20 live events produced numeric Historical fit, Talent prior, and Data coverage outputs: one configured Resident Evil model and 19 automatic priors. The count and movie list are time-sensitive because the live slate refreshes.
+
+## Movie-specific configuration
 
 Every modeled release is declared under `config/markets/*.json`. A config owns the TMDB movie ID, artwork, release context, Kalshi event and threshold set, cohort definition, franchise matching rules, prior strength, and score weights. `scripts/build_historical_model.py --all` generates one `src/data/markets/<slug>.json` artifact per config plus `src/data/market-index.json`.
 
-This separation allows active Kalshi events to appear immediately as **live market only** while preventing an unconfigured movie from borrowing another title's cohort, artwork, or scores.
+This separation lets active Kalshi events receive an automatic prior immediately while preventing an unconfigured movie from borrowing another title's cohort, artwork, talent history, or score. A reviewed configured artifact always takes precedence over the automatic tier.
 
 ## Resident Evil reference calculation
 
@@ -141,6 +158,8 @@ The `Data coverage` score measures availability only. It is not a confidence lev
 - The dataset’s `popularity` and user-review tables are unused.
 - Historical revenue is descriptive because the target budget is missing.
 - Live Kalshi prices remain separate market context and are never inserted into a historical score.
+- Automatic target-title and settlement-month selection never reads Kalshi price, bid/ask, or volume.
+- Missing automatic target talent is labeled as a baseline imputation with sample `n=0`; it is not represented as a filmography join.
 - The critic benchmark remains separate from the TMDB prior and is not treated as a calibrated model.
 - Trailer velocity, search interest, and social chatter remain unavailable until their providers, windows, and transformations are declared.
 - Cutline does not compute `P(Tomatometer > 75/80/85)` or a model edge until a larger rights-cleared critic crosswalk and forward time validation exist.
@@ -169,4 +188,4 @@ Run the focused scoring tests with:
 npm run test:historical
 ```
 
-The data scripts use only Python's standard library. Their committed outputs are `src/data/markets/*.json`, `src/data/market-index.json`, and `src/data/critic-benchmark.json`.
+The data scripts use only Python's standard library. Their committed outputs are `src/data/automatic-prior.json`, `src/data/markets/*.json`, `src/data/market-index.json`, and `src/data/critic-benchmark.json`.
