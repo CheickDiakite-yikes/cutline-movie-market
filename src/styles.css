@@ -654,9 +654,11 @@ a:focus-visible {
 }
 
 .save-button,
+.later-button,
 .pass-button,
 .back-to-scout,
 .empty-state button,
+.review-idea,
 .remove-idea {
   border: 1px solid currentColor;
   min-height: 42px;
@@ -680,6 +682,15 @@ a:focus-visible {
 .pass-button {
   background: transparent;
   color: #fff;
+}
+
+.later-button {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.later-button.deferred {
+  background: #d7d2c6;
 }
 
 .data-note {
@@ -840,15 +851,30 @@ a:focus-visible {
   background: var(--yellow-soft);
 }
 
+.idea-status.later > span {
+  background: #d7d2c6;
+}
+
 .idea-status small {
   font-size: 8px;
 }
 
+.idea-row-actions {
+  display: grid;
+  gap: 6px;
+}
+
+.review-idea,
 .remove-idea {
   min-height: 34px;
   padding: 0 9px;
   background: transparent;
   font-size: 9px;
+}
+
+.review-idea {
+  background: var(--ink);
+  color: #fff;
 }
 
 .saved-method {
@@ -1658,9 +1684,13 @@ a:focus-visible {
   }
 
   .mobile-ticket {
+    width: 100%;
+    min-width: 0;
     min-height: 0;
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto auto minmax(0, 1fr) 70px 28px;
+    overflow: hidden;
     background: #f4f0e8;
     font-family: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
   }
@@ -1772,6 +1802,16 @@ a:focus-visible {
     line-height: 0.84;
     font-weight: 400;
     letter-spacing: -2px;
+  }
+
+  .mobile-model-score > strong.status-label {
+    max-width: 120px;
+    margin: 9px 0 8px;
+    font-family: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+    font-size: 16px;
+    line-height: 0.95;
+    font-weight: 700;
+    letter-spacing: 0.8px;
   }
 
   .mobile-live-price p {
@@ -1897,8 +1937,11 @@ a:focus-visible {
   }
 
   .mobile-actions {
+    width: 100%;
+    min-width: 0;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow: hidden;
   }
 
   .mobile-actions button {
@@ -1915,7 +1958,7 @@ a:focus-visible {
 
   .mobile-actions button strong {
     font-family: "Anton", "Arial Narrow", sans-serif;
-    font-size: 31px;
+    font-size: 27px;
     line-height: 0.9;
     font-weight: 400;
     letter-spacing: 0.6px;
@@ -1936,6 +1979,16 @@ a:focus-visible {
     border-left: 1px solid var(--ink) !important;
     background: var(--acid);
     color: var(--ink);
+  }
+
+  .mobile-later {
+    border-left: 1px solid var(--ink) !important;
+    background: #ddd7cb;
+    color: var(--ink);
+  }
+
+  .mobile-later.deferred {
+    background: #d0c9bb;
   }
 
   .mobile-save.saved {

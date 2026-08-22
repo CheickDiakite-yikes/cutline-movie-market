@@ -10,7 +10,11 @@ Cutline brings a continuously refreshed slate of movie prediction markets, histo
 
 ![Cutline Scout view showing the live Resident Evil market, historical scores, critic benchmark boundary, and decision actions](docs/assets/cutline-scout-live.jpg)
 
-![Cutline mobile Scout view showing the live market ticket, explainable historical signals, Saved tab, and Pass and Save actions](docs/assets/cutline-mobile-scout.png)
+### Mobile swipe view
+
+![Cutline mobile Scout view showing the live market ticket, explainable historical signals, Saved tab, and Pass, Later, and Save actions](docs/assets/cutline-mobile-scout.png)
+
+The denominator is not a fixed catalog size. It is the current number of grouped, open KXRT Rotten Tomatoes events returned by Kalshi. Cutline refreshes that slate on initial load, every 60 seconds while open, and whenever the tab becomes visible again; newly opened or closed events can therefore change the total automatically. Movie-specific historical packs update separately through the reviewed configuration and data-build workflow.
 
 ## Why Cutline exists
 
@@ -28,11 +32,11 @@ Cutline is designed to make that reasoning visible. It is a research and decisio
 
 The current prototype supports a repeatable multi-movie research loop:
 
-1. **Select or swipe to an active movie market.** The KXRT slate comes from Kalshi's public, unauthenticated market-data API and refreshes every 60 seconds while the application is open. On mobile, swipe left to pass or right to save and advance; the visible buttons provide the same actions.
+1. **Select or swipe to an active movie market.** The KXRT slate comes from Kalshi's public, unauthenticated market-data API and refreshes every 60 seconds while the application is open. On mobile, swipe left to pass, tap Later to hold the idea for another pass, or swipe right to save and advance; the visible buttons provide the same actions.
 2. **Orient on the release.** See configured movie art and historical context when available; unconfigured events remain visibly market-only.
 3. **Inspect the evidence.** Open Historical fit, Live heat, Talent prior, or Data coverage to trace the underlying evidence and source status.
 4. **Read the synthesis.** Cutline explains what the historical and critic layers support and what they cannot yet conclude.
-5. **Make a research decision.** Save the idea or pass without placing a trade.
+5. **Make a research decision.** Save the idea, pass, or hold it for Later without placing a trade. Later items appear in Saved Ideas with a Review action that returns to the original market.
 6. **Share research.** Saved Ideas persist locally and can be exported or merged from a versioned teammate JSON file.
 
 ### Current test case
@@ -61,7 +65,7 @@ The first end-to-end case is the Kalshi market for whether **Resident Evil** fin
 | Rotten Tomatoes critic outcomes | Connected as a benchmark | 278 eligible labels from a July 18, 2025 snapshot |
 | Critic probability calibration | Not validated | Only 12 exact title/year joins; no probability is produced |
 | Trailer, search, and social indicators | Not connected | No placeholder values are produced |
-| Saved Ideas | Connected locally and portable | Browser `localStorage` plus versioned JSON export/import |
+| Saved and Later Ideas | Connected locally and portable | Browser `localStorage` plus versioned JSON export/import |
 | Team accounts and shared idea storage | Not connected | No authentication or database exists yet |
 | Trade execution | Intentionally unsupported | Decision support only |
 
@@ -366,7 +370,7 @@ The current suite verifies:
 - scoped Kalshi proxy success and fail-closed behavior; and
 - required Sites packaging files.
 
-Visible UI changes should also be checked in a real browser at the 1440 × 900 desktop target and the 390 × 844 mobile target, including threshold switching, score drawers, Save, Remove, Pass, Saved navigation, swipe or keyboard-equivalent movement, layout overflow, and console errors.
+Visible UI changes should also be checked in a real browser at the 1440 × 900 desktop target and the 390 × 844 mobile target, including threshold switching, score drawers, Save, Later, Review, Remove, Pass, Saved navigation, swipe or keyboard-equivalent movement, layout overflow, and console errors.
 
 ## Contribution workflow
 

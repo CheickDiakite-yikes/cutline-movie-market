@@ -5,8 +5,8 @@ Read `AGENTS.md`, `README.md`, and `docs/architecture.md` before changing the pr
 ## Product contracts
 
 - Preserve the desktop-first editorial single-frame Scout composition and the selected market-ticket-first mobile swipe deck.
-- On mobile, keep Saved beside the Cutline wordmark; left passes, right saves, and both gestures must retain accessible button and keyboard equivalents.
-- Movie art and market context come first; explainable scores and synthesis follow; Save and Pass remain decisive.
+- On mobile, keep Saved beside the Cutline wordmark; left passes, right saves, and the middle Later action stores an item for Review through Saved. Gestures must retain accessible button and keyboard equivalents.
+- Movie art and market context come first; explainable scores and synthesis follow; Save, Later, and Pass remain decisive.
 - Saved Ideas must continue to work.
 - Historical scores must come from `src/data/markets/*.json`, generated from `config/markets/*.json` by `scripts/historical_model.py`.
 - The runtime Kalshi slate is market context from the public API. It must never silently become a model probability or remain labeled live after a failed refresh.

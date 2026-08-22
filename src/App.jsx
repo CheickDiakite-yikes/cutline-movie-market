@@ -375,7 +375,7 @@ function MoviePanel({ event, model, position, total }) {
         <img src={model.market.artwork} alt={model.market.artworkAlt} />
       ) : (
         <div className="unmodeled-art" aria-label={`${title} artwork is not configured`}>
-          <span>MARKET CONNECTED</span><strong>{title}</strong><small>POSTER + HISTORICAL MODEL QUEUED</small>
+          <span>MARKET CONNECTED</span><strong>{title}</strong><small>POSTER + RESEARCH PACK NOT BUILT</small>
         </div>
       )}
       <div className="movie-overlay">
@@ -397,7 +397,9 @@ function MobileSwipeCard({
   threshold,
   setThreshold,
   saved,
+  deferred,
   onSave,
+  onLater,
   onPass,
   onAdvance,
   onOpenScore,
@@ -461,6 +463,16 @@ function MobileSwipeCard({
     }, 190);
   };
 
+  const completeLater = () => {
+    if (isAnimating) return;
+    setIsAnimating(true);
+    onLater({ threshold, market });
+    animationTimerRef.current = window.setTimeout(() => {
+      onAdvance(1);
+      setIsAnimating(false);
+    }, 160);
+  };
+
   const handlePointerDown = (pointerEvent) => {
     if (pointerEvent.pointerType === "mouse" && pointerEvent.button !== 0) return;
     if (pointerEvent.target.closest("button, a")) return;
@@ -517,13 +529,13 @@ function MobileSwipeCard({
           if (keyEvent.key === "ArrowRight") completeSwipe("right");
         }}
         tabIndex="0"
-        aria-label={`${title}. Swipe left to pass or right to save.`}
+        aria-label={`${title}. Swipe left to pass, use Later to come back, or swipe right to save.`}
       >
         <div className={model ? "mobile-movie-art" : "mobile-movie-art unmodeled"}>
           {model ? (
             <img src={model.market.artwork} alt={model.market.artworkAlt} draggable="false" />
           ) : (
-            <div><span>LIVE MARKET ONLY</span><strong>{title}</strong><small>POSTER + HISTORICAL MODEL QUEUED</small></div>
+            <div><span>LIVE MARKET ONLY</span><strong>{title}</strong><small>POSTER + RESEARCH PACK NOT BUILT</small></div>
           )}
         </div>
 
@@ -548,8 +560,8 @@ function MobileSwipeCard({
               </div>
               <div className="mobile-model-score">
                 <span>HISTORICAL MODEL</span>
-                <strong>{displayScore(model?.scores.historicalFit.value ?? null)}</strong>
-                <button onClick={() => onOpenScore("historical")}>TRACE SCORE <CaretRight aria-hidden="true" weight="bold" /></button>
+                <strong className={model ? "" : "status-label"}>{model ? displayScore(model.scores.historicalFit.value) : "NOT BUILT"}</strong>
+                <button onClick={() => onOpenScore("historical")}>{model ? "TRACE SCORE" : "WHY UNAVAILABLE"} <CaretRight aria-hidden="true" weight="bold" /></button>
               </div>
             </div>
           </section>
@@ -563,7 +575,7 @@ function MobileSwipeCard({
             {scoreRows.map((row) => (
               <button key={row.key} onClick={() => onOpenScore(row.key)}>
                 <span>{row.label}</span>
-                <strong>{displayScore(row.value)}</strong>
+                <strong>{row.value == null ? "N/A" : displayScore(row.value)}</strong>
                 <p>{row.detail}</p>
                 <CaretRight aria-hidden="true" weight="bold" />
               </button>
@@ -572,6 +584,7 @@ function MobileSwipeCard({
 
           <div className="mobile-actions" aria-label="Trade idea actions">
             <button className="mobile-pass" onClick={() => completeSwipe("left")}><strong>PASS</strong><span>NO EDGE</span></button>
+            <button className={deferred ? "mobile-later deferred" : "mobile-later"} onClick={completeLater}><strong>LATER</strong><span>{deferred ? "IN IDEA BOOK" : "COME BACK"}</span></button>
             <button className={saved ? "mobile-save saved" : "mobile-save"} onClick={() => completeSwipe("right")}><strong>{saved ? "SAVED" : "SAVE"}</strong><span>{saved ? "IN IDEA BOOK" : "ADD TO IDEAS"}</span></button>
           </div>
           <div className="mobile-swipe-cue" aria-hidden="true"><ArrowLeft weight="bold" /><span>SWIPE LEFT / RIGHT</span><ArrowRight weight="bold" /></div>
@@ -581,7 +594,7 @@ function MobileSwipeCard({
   );
 }
 
-function ScoutView({ event, model, events, liveState, scoreDetails, saved, onSave, onPass, onAdvance, onOpenScore }) {
+function ScoutView({ event, model, events, liveState, scoreDetails, ideaDisposition, onSave, onLater, onPass, onAdvance, onOpenScore }) {
   const options = chooseThresholds(event, model?.market.kalshi.thresholds || [75, 80, 85]);
   const preferred = model?.market.kalshi.defaultThreshold;
   const [threshold, setThreshold] = useState(preferred && options.includes(preferred) ? preferred : options[0]);
@@ -597,7 +610,7 @@ function ScoutView({ event, model, events, liveState, scoreDetails, saved, onSav
 
   return (
     <main className="scout-view">
-      <MobileSwipeCard event={event} model={model} events={events} threshold={threshold} setThreshold={setThreshold} saved={saved} onSave={onSave} onPass={onPass} onAdvance={onAdvance} onOpenScore={onOpenScore} />
+      <MobileSwipeCard event={event} model={model} events={events} threshold={threshold} setThreshold={setThreshold} saved={ideaDisposition === "research"} deferred={ideaDisposition === "later"} onSave={onSave} onLater={onLater} onPass={onPass} onAdvance={onAdvance} onOpenScore={onOpenScore} />
       <section className="feature-grid desktop-scout" aria-label="Featured movie trade idea">
         <MoviePanel event={event} model={model} position={eventPosition} total={events.length} />
         <MarketPanel event={event} model={model} threshold={threshold} setThreshold={setThreshold} liveState={liveState} />
@@ -625,7 +638,8 @@ function ScoutView({ event, model, events, liveState, scoreDetails, saved, onSav
         <aside className="decision-panel" aria-label="Trade idea actions">
           <div><p className="eyebrow light">DECISION</p><span className="decision-price">NO CALIBRATED ENTRY</span><p className="decision-note">Decision support only. No trade is placed here.</p></div>
           <div className="decision-actions">
-            <button className={saved ? "save-button saved" : "save-button"} onClick={() => onSave({ threshold, market })}>{saved ? "Idea saved" : "Save research idea"}</button>
+            <button className={ideaDisposition === "research" ? "save-button saved" : "save-button"} onClick={() => onSave({ threshold, market })}>{ideaDisposition === "research" ? "Idea saved" : "Save research idea"}</button>
+            <button className={ideaDisposition === "later" ? "later-button deferred" : "later-button"} onClick={() => onLater({ threshold, market })}>{ideaDisposition === "later" ? "Saved for later" : "Come back later"}</button>
             <button className="pass-button" onClick={onPass}>Pass for now</button>
           </div>
         </aside>
@@ -635,7 +649,7 @@ function ScoutView({ event, model, events, liveState, scoreDetails, saved, onSav
   );
 }
 
-function SavedView({ items, onOpenScout, onRemove, onExport, onImport }) {
+function SavedView({ items, onOpenScout, onReview, onRemove, onExport, onImport }) {
   const importRef = useRef(null);
   return (
     <main className="saved-view">
@@ -659,11 +673,11 @@ function SavedView({ items, onOpenScout, onRemove, onExport, onImport }) {
                 {item.artwork ? <img src={item.artwork} alt="" /> : <span className="idea-art-placeholder">CUT</span>}
                 <div><strong>{item.movie}</strong><span>{item.releaseLabel || item.eventTicker}</span></div>
               </div>
-              <div className="idea-thesis"><strong>RT score above {item.threshold}</strong><span>Saved research snapshot; critic probability and entry remain withheld.</span></div>
+              <div className="idea-thesis"><strong>RT score above {item.threshold}</strong><span>{item.disposition === "later" ? "Held for another pass; no research decision has been made." : "Saved research snapshot; critic probability and entry remain withheld."}</span></div>
               <div className="idea-stat"><strong>{displayScore(item.historicalFit)}</strong><span>FIT / 100</span></div>
               <div className="idea-stat"><strong>{item.marketSnapshot?.lastPrice != null ? `${item.marketSnapshot.lastPrice}¢` : "—"}</strong><span>SAVED LAST TRADE</span></div>
-              <div className="idea-status"><span>RESEARCH</span><small>SAVED {compactDate(item.savedAt)}</small></div>
-              <button className="remove-idea" onClick={() => onRemove(item.id)}>Remove</button>
+              <div className={item.disposition === "later" ? "idea-status later" : "idea-status"}><span>{item.disposition === "later" ? "LATER" : "RESEARCH"}</span><small>SAVED {compactDate(item.savedAt)}</small></div>
+              <div className="idea-row-actions"><button className="review-idea" onClick={() => onReview(item)}>Review</button><button className="remove-idea" onClick={() => onRemove(item.id)}>Remove</button></div>
             </article>
           ))}
         </section>
@@ -770,7 +784,7 @@ export function App() {
   const selectedEvent = events.find((event) => event.eventTicker === selectedEventTicker) || events[0];
   const model = MODEL_BY_EVENT.get(selectedEvent?.eventTicker) || null;
   const scoreDetails = useMemo(() => buildScoreDetails(model, liveState), [model, liveState]);
-  const saved = savedItems.some((item) => item.eventTicker === selectedEvent?.eventTicker);
+  const selectedIdea = savedItems.find((item) => item.eventTicker === selectedEvent?.eventTicker) || null;
   const selectedPosition = Math.max(1, events.findIndex((item) => item.eventTicker === selectedEvent?.eventTicker) + 1);
 
   useEffect(() => {
@@ -787,12 +801,13 @@ export function App() {
     window.setTimeout(() => setToast(""), 2200);
   };
 
-  const saveIdea = ({ threshold, market }) => {
+  const rememberIdea = ({ threshold, market }, disposition) => {
     const item = {
       id: `${selectedEvent.eventTicker}-${threshold}`,
       eventTicker: selectedEvent.eventTicker,
       movie: model?.market.title || selectedEvent.title,
       threshold,
+      disposition,
       marketUrl: model?.market.kalshi.marketUrl || marketUrl(selectedEvent.eventTicker),
       artwork: model?.market.artwork || null,
       releaseLabel: model?.market.releaseDateLabel || shortDate(selectedEvent.closeTime),
@@ -812,8 +827,11 @@ export function App() {
       savedAt: new Date().toISOString(),
     };
     setSavedItems((items) => [item, ...items.filter((existing) => existing.eventTicker !== item.eventTicker)]);
-    announce("Research idea saved · no trade placed");
+    announce(disposition === "later" ? "Saved for later · return from Saved" : "Research idea saved · no trade placed");
   };
+
+  const saveIdea = (idea) => rememberIdea(idea, "research");
+  const saveForLater = (idea) => rememberIdea(idea, "later");
 
   const exportIdeas = () => {
     const payload = createIdeasExport(savedItems);
@@ -850,11 +868,11 @@ export function App() {
     <div className="app-shell">
       <Header view={view} setView={setView} savedCount={savedItems.length} liveState={liveState} position={selectedPosition} total={events.length} />
       {view === "saved" ? (
-        <SavedView items={savedItems} onOpenScout={() => setView("scout")} onRemove={(id) => setSavedItems((items) => items.filter((item) => item.id !== id))} onExport={exportIdeas} onImport={importIdeas} />
+        <SavedView items={savedItems} onOpenScout={() => setView("scout")} onReview={(item) => { setSelectedEventTicker(item.eventTicker); setView("scout"); }} onRemove={(id) => setSavedItems((items) => items.filter((item) => item.id !== id))} onExport={exportIdeas} onImport={importIdeas} />
       ) : (
         <>
           <SlateStrip events={events} selectedEventTicker={selectedEvent?.eventTicker || DEFAULT_EVENT} onSelect={setSelectedEventTicker} modeledCount={MODELS.length} liveState={liveState} />
-          <ScoutView event={selectedEvent} model={model} events={events} liveState={liveState} scoreDetails={scoreDetails} saved={saved} onSave={saveIdea} onPass={() => announce("Passed for now · moved to the next live market")} onAdvance={advanceEvent} onOpenScore={setScoreKey} />
+          <ScoutView event={selectedEvent} model={model} events={events} liveState={liveState} scoreDetails={scoreDetails} ideaDisposition={selectedIdea?.disposition || null} onSave={saveIdea} onLater={saveForLater} onPass={() => announce("Passed for now · moved to the next live market")} onAdvance={advanceEvent} onOpenScore={setScoreKey} />
         </>
       )}
       {scoreKey && <ScoreDrawer scoreKey={scoreKey} scoreDetails={scoreDetails} model={model} liveState={liveState} onClose={() => setScoreKey(null)} />}
