@@ -13,6 +13,7 @@ from historical_model import (  # noqa: E402
     Movie,
     empirical_bayes_score,
     is_eligible_outcome,
+    load_market_config,
     weighted_score,
 )
 
@@ -58,7 +59,9 @@ class HistoricalModelTests(unittest.TestCase):
         self.assertFalse(is_eligible_outcome(movie(10, 8.0, status="Post Production")))
 
     def test_checked_in_cache_has_provenance_and_no_rt_probability(self):
-        cache = json.loads((ROOT / "src/data/resident-evil-historical.json").read_text())
+        cache = json.loads((ROOT / "src/data/markets/resident-evil.json").read_text())
+        self.assertEqual(cache["schemaVersion"], 2)
+        self.assertEqual(cache["market"]["kalshi"]["eventTicker"], "KXRT-RES")
         self.assertEqual(cache["source"]["license"], "CC BY-NC-SA 4.0")
         self.assertFalse(cache["target"]["targetOutcomeUsed"])
         self.assertEqual(cache["thresholdCalibration"]["status"], "unavailable")
@@ -66,6 +69,13 @@ class HistoricalModelTests(unittest.TestCase):
         self.assertGreater(cache["cohort"]["sampleSize"], 0)
         for score in cache["scores"].values():
             self.assertEqual(sum(factor["weight"] for factor in score["factors"]), 100)
+
+    def test_market_config_is_portable_and_weights_are_complete(self):
+        market = load_market_config(ROOT / "config/markets/resident-evil.json")
+        self.assertEqual(market.slug, "resident-evil")
+        self.assertEqual(market.default_threshold, 80)
+        self.assertEqual(sum(market.historical_weights.values()), 100)
+        self.assertEqual(sum(market.talent_weights.values()), 100)
 
 
 if __name__ == "__main__":

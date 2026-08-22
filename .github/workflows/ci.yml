@@ -33,3 +33,8 @@ jobs:
 
       - name: Verify historical model and Sites build
         run: npm test
+
+      - name: Reproduce checked-in data artifacts
+        run: |
+          npm run data:download
+          git diff --exit-code -- src/data

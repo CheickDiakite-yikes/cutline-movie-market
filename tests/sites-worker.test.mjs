@@ -61,6 +61,52 @@ test("does not turn missing API or write requests into the app shell", async () 
   }
 });
 
+test("proxies only the public Kalshi movie-market slate with freshness metadata", async () => {
+  let upstreamUrl;
+  const response = await worker.fetch(new Request("https://example.test/api/kalshi/markets"), {
+    KALSHI_FETCH: async (url) => {
+      upstreamUrl = url;
+      return Response.json({
+        cursor: "next",
+        markets: [{ ticker: "KXRT-RES-80", event_ticker: "KXRT-RES", floor_strike: 80 }],
+      });
+    },
+    ASSETS: { fetch: async () => new Response("missing", { status: 404 }) },
+  });
+
+  assert.equal(response.status, 200);
+  assert.match(upstreamUrl, /series_ticker=KXRT/);
+  assert.equal(response.headers.get("cache-control"), "public, max-age=15, stale-while-revalidate=45");
+  const payload = await response.json();
+  assert.equal(payload.source.provider, "Kalshi public market API");
+  assert.equal(payload.markets[0].ticker, "KXRT-RES-80");
+});
+
+test("forwards only an encoded Kalshi cursor when the client paginates", async () => {
+  let upstreamUrl;
+  const response = await worker.fetch(new Request("https://example.test/api/kalshi/markets?cursor=page two"), {
+    KALSHI_FETCH: async (url) => {
+      upstreamUrl = url;
+      return Response.json({ cursor: "", markets: [] });
+    },
+    ASSETS: { fetch: async () => new Response("missing", { status: 404 }) },
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(new URL(upstreamUrl).searchParams.get("cursor"), "page two");
+  assert.equal(new URL(upstreamUrl).searchParams.get("series_ticker"), "KXRT");
+});
+
+test("fails closed when Kalshi is unavailable", async () => {
+  const response = await worker.fetch(new Request("https://example.test/api/kalshi/markets"), {
+    KALSHI_FETCH: async () => new Response("upstream down", { status: 503 }),
+    ASSETS: { fetch: async () => new Response("missing", { status: 404 }) },
+  });
+
+  assert.equal(response.status, 502);
+  assert.equal((await response.json()).status, "unavailable");
+});
+
 test("emits the files required by Sites packaging", async () => {
   await access(new URL("../dist/client/index.html", import.meta.url));
   await access(new URL("../dist/server/index.js", import.meta.url));

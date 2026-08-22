@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "slug": "resident-evil",
+  "title": "Resident Evil",
+  "tmdbMovieId": 1423191,
+  "artwork": "/assets/resident-evil.jpg",
+  "artworkAlt": "Resident Evil movie artwork showing a medical courier in a snow-covered city",
+  "release": {
+    "date": "2026-09-18",
+    "dateLabel": "SEP 18",
+    "genreLabel": "HORROR · ACTION",
+    "studioLabel": "COLUMBIA"
+  },
+  "kalshi": {
+    "seriesTicker": "KXRT",
+    "eventTicker": "KXRT-RES",
+    "marketUrl": "https://kalshi.com/markets/kxrt/rotten-tomatoes-scores/kxrt-res",
+    "thresholds": [75, 80, 85],
+    "defaultThreshold": 80
+  },
+  "historical": {
+    "requiredGenres": ["Horror", "Science Fiction"],
+    "franchiseTitlePrefixes": ["resident evil"],
+    "minReleaseYear": 2000,
+    "minVoteCount": 100,
+    "priorStrength": 5,
+    "historicalWeights": {
+      "director": 30,
+      "producer": 20,
+      "franchise": 15,
+      "genreCohort": 25,
+      "releaseMonth": 10
+    },
+    "talentWeights": {
+      "cast": 50,
+      "director": 30,
+      "producer": 20
+    }
+  }
+}

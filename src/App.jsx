@@ -1,125 +1,319 @@
-import { useEffect, useMemo, useState } from "react";
-import historical from "./data/resident-evil-historical.json";
+import { useEffect, useMemo, useRef, useState } from "react";
+import criticBenchmark from "./data/critic-benchmark.json";
+import {
+  chooseThresholds,
+  fetchKalshiSlate,
+  groupKalshiEvents,
+  readCachedSlate,
+  writeCachedSlate,
+} from "./lib/kalshi.js";
+import {
+  IDEA_STORAGE_KEY,
+  createIdeasExport,
+  mergeIdeas,
+  normalizeIdeas,
+  parseIdeasExport,
+} from "./lib/ideas.js";
 
-const MARKET_URL = "https://kalshi.com/markets/kxrt/rotten-tomatoes-scores/kxrt-res";
-const DATASET_URL = historical.source.kaggleUrl;
-const TMDB_URL = historical.source.tmdbUrl;
-const cohort = historical.cohort;
-const historicalFit = historical.scores.historicalFit;
-const talentPrior = historical.scores.talentPrior;
-const dataCoverage = historical.scores.dataCoverage;
+const marketModules = import.meta.glob("./data/markets/*.json", {
+  eager: true,
+  import: "default",
+});
+const MODELS = Object.values(marketModules);
+const MODEL_BY_EVENT = new Map(MODELS.map((model) => [model.market.kalshi.eventTicker, model]));
+const DEFAULT_EVENT = MODELS[0]?.market.kalshi.eventTicker || "KXRT-RES";
+
+const hydrateIdeas = (items) =>
+  normalizeIdeas(items).map((item) => {
+    const model = MODEL_BY_EVENT.get(item.eventTicker);
+    if (!model) return item;
+    return {
+      ...item,
+      movie: model.market.title,
+      artwork: item.artwork || model.market.artwork,
+      releaseLabel: item.releaseLabel || model.market.releaseDateLabel,
+      marketUrl: item.marketUrl || model.market.kalshi.marketUrl,
+      modelStatus: "historical prior connected",
+      historicalFit: item.historicalFit > 0 ? item.historicalFit : model.scores.historicalFit.value,
+      talentPrior: item.talentPrior > 0 ? item.talentPrior : model.scores.talentPrior.value,
+    };
+  });
 
 const displayScore = (value) => (typeof value === "number" ? Math.round(value) : "—");
-const money = (value) => `$${Math.round(value / 1_000_000)}M`;
+const money = (value) => (value ? `$${Math.round(value / 1_000_000)}M` : "N/A");
+const marketUrl = (eventTicker) =>
+  `https://kalshi.com/markets/kxrt/rotten-tomatoes-scores/${eventTicker.toLowerCase()}`;
+const compactDate = (value) => {
+  if (!value) return "UNAVAILABLE";
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  })
+    .format(new Date(value))
+    .toUpperCase();
+};
+const shortDate = (value) => {
+  if (!value) return "UNKNOWN";
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" })
+    .format(new Date(value))
+    .toUpperCase();
+};
 
-const scoreDetails = {
-  historical: {
-    kicker: "Historical 01",
-    label: "Historical fit",
-    value: historicalFit.value,
-    sampleSize: historicalFit.sampleSize,
-    summary:
-      `A reproducible ${displayScore(historicalFit.value)}/100 historical context score from prior TMDB community ratings. It is grounded in a ${cohort.sampleSize}-film comparable cohort, not Rotten Tomatoes critic outcomes.`,
-    status: `Kaggle / TMDB historical prior · ${historical.source.snapshotDate}`,
-    formula:
-      "Each factor is a TMDB community-rating prior on a 0–100 scale. Small filmographies shrink toward the comparable cohort, then the displayed weights are summed.",
-    caveat: "This score is not a Rotten Tomatoes Tomatometer estimate and does not imply a Kalshi threshold probability.",
-    factors: historicalFit.factors,
-  },
-  live: {
+function useKalshiSlate() {
+  const [state, setState] = useState(() => {
+    const cached = readCachedSlate();
+    return cached
+      ? { status: "stale", slate: cached, error: null }
+      : { status: "loading", slate: null, error: null };
+  });
+
+  useEffect(() => {
+    let active = true;
+    const refresh = () => {
+      fetchKalshiSlate()
+        .then((slate) => {
+          if (!active) return;
+          writeCachedSlate(slate);
+          setState({ status: "live", slate, error: null });
+        })
+        .catch((error) => {
+          if (!active) return;
+          setState((current) => ({
+            status: current.slate ? "stale" : "unavailable",
+            slate: current.slate,
+            error: error.message,
+          }));
+        });
+    };
+    const refreshWhenVisible = () => document.visibilityState === "visible" && refresh();
+    refresh();
+    const interval = window.setInterval(refresh, 60_000);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+    };
+  }, []);
+
+  return state;
+}
+
+function buildScoreDetails(model, liveState) {
+  const liveConnected = liveState.status === "live";
+  const liveCached = liveState.status === "stale";
+  const criticCount = criticBenchmark.audit.eligibleOutcomeRows;
+  const criticJoin = criticBenchmark.audit.joinToTmdb.exactMatches;
+
+  if (!model) {
+    const unmodeled = {
+      value: null,
+      sampleSize: null,
+      status: "Unavailable · historical market config not generated",
+      formula: "Add a market configuration and rebuild the audited historical cache.",
+      caveat: "No score is inferred from the live market price.",
+      factors: [
+        {
+          label: "Historical market config",
+          value: null,
+          weight: null,
+          contribution: null,
+          sampleSize: null,
+          status: "NOT GENERATED",
+          detail: "This live Kalshi event does not yet have a checked-in Cutline historical artifact.",
+          titles: [],
+        },
+      ],
+    };
+    return {
+      historical: {
+        ...unmodeled,
+        kicker: "Historical 01",
+        label: "Historical fit",
+        summary: "This market is live, but its historical comparable cohort has not been generated yet.",
+      },
+      live: createLiveScore(liveConnected, liveCached, liveState, criticCount, criticJoin),
+      talent: {
+        ...unmodeled,
+        kicker: "Historical 03",
+        label: "Talent prior",
+        summary: "Cast, director, and producer histories are unavailable until this movie receives a market configuration.",
+      },
+      coverage: {
+        ...unmodeled,
+        kicker: "Coverage 04",
+        label: "Data coverage",
+        summary: "Coverage cannot be assessed until target metadata and historical joins are generated.",
+      },
+    };
+  }
+
+  const historicalFit = model.scores.historicalFit;
+  const talentPrior = model.scores.talentPrior;
+  const dataCoverage = model.scores.dataCoverage;
+  const cohort = model.cohort;
+  return {
+    historical: {
+      kicker: "Historical 01",
+      label: "Historical fit",
+      value: historicalFit.value,
+      sampleSize: historicalFit.sampleSize,
+      summary: `A reproducible ${displayScore(historicalFit.value)}/100 historical context score from prior TMDB community ratings, grounded in a ${cohort.sampleSize}-film comparable cohort.`,
+      status: `Kaggle / TMDB historical prior · ${model.source.snapshotDate}`,
+      formula:
+        "Each factor is a TMDB community-rating prior on a 0–100 scale. Small filmographies shrink toward the comparable cohort, then the configured weights are summed.",
+      caveat: "This score is not a Tomatometer estimate and does not imply a Kalshi threshold probability.",
+      factors: historicalFit.factors,
+    },
+    live: createLiveScore(liveConnected, liveCached, liveState, criticCount, criticJoin),
+    talent: {
+      kicker: "Historical 03",
+      label: "Talent prior",
+      value: talentPrior.value,
+      sampleSize: talentPrior.sampleSize,
+      summary: `The configured lead cast, director, and credited producers resolve to ${talentPrior.sampleSize} unique eligible prior films after deduplication.`,
+      status: `Kaggle / TMDB historical prior · ${model.source.snapshotDate}`,
+      formula:
+        "Prior-film TMDB community ratings are deduplicated within each factor, shrunk toward the comparable cohort, and combined at the declared weights.",
+      caveat: "This score is not a Tomatometer estimate and does not imply a Kalshi threshold probability.",
+      factors: talentPrior.factors,
+    },
+    coverage: {
+      kicker: "Coverage 04",
+      label: "Data coverage",
+      value: dataCoverage.value,
+      sampleSize: dataCoverage.sampleSize,
+      summary:
+        "This is an availability score, not trade confidence. It measures historical fields, named-talent joins, and target context.",
+      status: `Availability only · ${model.audit.rows.moviesParsed.toLocaleString()} parsed movies`,
+      formula: "Field-level completeness percentages are combined at the declared weights. No outcome probability is produced.",
+      caveat: "Coverage measures whether data exists, not whether the model is right.",
+      factors: dataCoverage.factors,
+    },
+  };
+}
+
+function createLiveScore(liveConnected, liveCached, liveState, criticCount, criticJoin) {
+  const marketStatus = liveConnected ? "CONNECTED" : liveCached ? "STALE CACHE" : "UNAVAILABLE";
+  return {
     kicker: "Live 02",
     label: "Live heat",
     value: null,
     sampleSize: null,
     summary:
-      "No live score is shown because critic reviews, trailer velocity, search interest, and social chatter are not connected. The manual Kalshi snapshot remains a separate reference input.",
-    status: "Unavailable · live connectors not configured",
-    formula: "No calculation runs until source timestamps, observations, and normalization rules are connected.",
-    caveat: "Unavailable signals contribute zero evidence, not a neutral or estimated score.",
-    factors: historical.unconnectedSignals.map((signal) => ({
-      label: signal.name,
-      value: null,
-      weight: null,
-      contribution: null,
-      sampleSize: null,
-      detail: signal.status,
-      titles: [],
-    })),
-  },
-  talent: {
-    kicker: "Historical 03",
-    label: "Talent prior",
-    value: talentPrior.value,
-    sampleSize: talentPrior.sampleSize,
-    summary:
-      `The first four billed cast members, Zach Cregger, and the credited producers resolve to ${talentPrior.sampleSize} unique eligible prior films after deduplication.`,
-    status: `Kaggle / TMDB historical prior · ${historical.source.snapshotDate}`,
-    formula:
-      "Prior-film TMDB community ratings are deduplicated within each factor, shrunk toward the comparable cohort, and combined at the declared weights.",
-    caveat: "This score is not a Rotten Tomatoes Tomatometer estimate and does not imply a Kalshi threshold probability.",
-    factors: talentPrior.factors,
-  },
-  coverage: {
-    kicker: "Coverage 04",
-    label: "Data coverage",
-    value: dataCoverage.value,
-    sampleSize: dataCoverage.sampleSize,
-    summary:
-      "This is an availability score, not trade confidence. Historical ratings and named-talent joins are strong; target budget/runtime and much of the raw financial history are missing.",
-    status: `Availability only · ${historical.audit.rows.moviesParsed.toLocaleString()} parsed movies`,
-    formula: "Field-level completeness percentages are combined at the declared weights. No outcome probability is produced.",
-    caveat: "Coverage measures whether data exists, not whether the model is right.",
-    factors: dataCoverage.factors,
-  },
-};
+      "Kalshi market prices are connected as live context, and a Rotten Tomatoes outcome benchmark is audited. Trailer, search, social, and a validated critic calibration model remain unconnected.",
+    status: `${marketStatus} · no composite live score`,
+    formula: "No composite score runs until source-specific time windows, normalization, and validation rules are declared.",
+    caveat: "Market price is context, not a model feature. Unavailable signals are never replaced with a neutral estimate.",
+    factors: [
+      {
+        label: "Kalshi public market data",
+        value: null,
+        weight: null,
+        contribution: null,
+        sampleSize: liveState.slate?.markets?.length ?? 0,
+        status: marketStatus,
+        detail: liveState.slate?.source?.observedAt
+          ? `Observed ${compactDate(liveState.slate.source.observedAt)} through the public market-data API.`
+          : "The public market-data API did not return a usable slate.",
+        titles: [],
+      },
+      {
+        label: "Rotten Tomatoes outcome history",
+        value: null,
+        weight: null,
+        contribution: null,
+        sampleSize: criticCount,
+        status: "BENCHMARK ONLY",
+        detail: `${criticCount} critic outcomes pass the five-review rule, but only ${criticJoin} exact title/year rows join to the selected TMDB snapshot.`,
+        titles: [],
+      },
+      ...["Trailer velocity", "Search interest", "Social chatter and sentiment"].map((label) => ({
+        label,
+        value: null,
+        weight: null,
+        contribution: null,
+        sampleSize: null,
+        status: "NOT CONNECTED",
+        detail: "No provider, observation window, or normalization rule is configured.",
+        titles: [],
+      })),
+    ],
+  };
+}
 
-const thresholds = {
-  75: { market: 73, price: 62 },
-  80: { market: 55, price: 56 },
-  85: { market: 48, price: 47 },
-};
-
-function Header({ view, setView, savedCount }) {
+function Header({ view, setView, savedCount, liveState }) {
+  const freshness =
+    liveState.status === "live"
+      ? `KALSHI LIVE · ${compactDate(liveState.slate?.source?.observedAt)}`
+      : liveState.status === "stale"
+        ? `KALSHI STALE · ${compactDate(liveState.slate?.source?.observedAt)}`
+        : "KALSHI CONNECTING";
   return (
     <header className="topbar">
       <button className="brand" onClick={() => setView("scout")} aria-label="Open Cutline scout">
         <span className="brand-mark">CUTLINE</span>
         <span className="brand-sub">MOVIE MARKET INTELLIGENCE</span>
       </button>
-
       <nav className="primary-nav" aria-label="Primary navigation">
-        <button className={view === "scout" ? "nav-link active" : "nav-link"} onClick={() => setView("scout")}>
-          Scout
-        </button>
-        <button className={view === "saved" ? "nav-link active" : "nav-link"} onClick={() => setView("saved")}>
-          Saved ideas <span className="nav-count">{String(savedCount).padStart(2, "0")}</span>
-        </button>
+        <button className={view === "scout" ? "nav-link active" : "nav-link"} onClick={() => setView("scout")}>Scout</button>
+        <button className={view === "saved" ? "nav-link active" : "nav-link"} onClick={() => setView("saved")}>Saved ideas <span className="nav-count">{String(savedCount).padStart(2, "0")}</span></button>
       </nav>
-
-      <div className="freshness">
+      <div className={`freshness ${liveState.status}`}>
         <span className="freshness-dot" aria-hidden="true" />
-        MANUAL MARKET REF · AUG 21, 2026
+        {freshness}
       </div>
     </header>
   );
 }
 
-function ScoreButton({ scoreKey, onOpen }) {
-  const score = scoreDetails[scoreKey];
+function SlateStrip({ events, selectedEventTicker, onSelect, modeledCount, liveState }) {
+  return (
+    <section className="slate-strip" aria-label="Movie market slate">
+      <div>
+        <p className="eyebrow">CONTINUOUS KXRT SLATE</p>
+        <span>{events.length} ACTIVE EVENTS · {modeledCount} HISTORICAL MODEL{modeledCount === 1 ? "" : "S"}</span>
+      </div>
+      <label>
+        <span>SELECT MOVIE MARKET</span>
+        <select value={selectedEventTicker} onChange={(event) => onSelect(event.target.value)}>
+          {events.map((item) => (
+            <option key={item.eventTicker} value={item.eventTicker}>
+              {item.title} — {MODEL_BY_EVENT.has(item.eventTicker) ? "live + modeled" : "live market only"}
+            </option>
+          ))}
+        </select>
+      </label>
+      <div className="slate-status">
+        <strong>{liveState.status === "live" ? "LIVE" : liveState.status.toUpperCase()}</strong>
+        <span>PUBLIC API · NO TRADE EXECUTION</span>
+      </div>
+    </section>
+  );
+}
+
+function ScoreButton({ scoreKey, score, onOpen }) {
   const scoreLabel = displayScore(score.value);
   return (
     <button className={score.value === null ? "score-button unavailable" : "score-button"} onClick={() => onOpen(scoreKey)} aria-label={score.value === null ? `Explain why ${score.label} is unavailable` : `Explain ${score.label} score of ${scoreLabel}`}>
       <span className="score-number">{scoreLabel}</span>
-      <span className="score-copy">
-        <span>{score.label}</span>
-        <small>{score.value === null ? "WHY UNAVAILABLE" : "OPEN RATIONALE"}</small>
-      </span>
+      <span className="score-copy"><span>{score.label}</span><small>{score.value === null ? "OPEN SOURCE STATUS" : "OPEN RATIONALE"}</small></span>
     </button>
   );
 }
 
-function MarketPanel({ threshold, setThreshold }) {
-  const market = thresholds[threshold];
+function MarketPanel({ event, model, threshold, setThreshold, liveState }) {
+  const configuredThresholds = model?.market.kalshi.thresholds || [75, 80, 85];
+  const options = chooseThresholds(event, configuredThresholds);
+  const market = event?.markets.find((item) => item.threshold === threshold);
+  const midpoint = market?.yesBid !== null && market?.yesAsk !== null
+    ? Math.round((market.yesBid + market.yesAsk) / 2)
+    : null;
+  const price = market?.lastPrice ?? midpoint;
+  const link = model?.market.kalshi.marketUrl || marketUrl(event?.eventTicker || "KXRT");
   return (
     <section className="market-panel" aria-labelledby="market-heading">
       <div className="market-panel-head">
@@ -127,29 +321,23 @@ function MarketPanel({ threshold, setThreshold }) {
           <p className="eyebrow">KALSHI · ROTTEN TOMATOES</p>
           <h2 id="market-heading">Will the score finish above {threshold}?</h2>
         </div>
-        <a href={MARKET_URL} target="_blank" rel="noreferrer" className="market-link">
-          Open market
-        </a>
+        <a href={link} target="_blank" rel="noreferrer" className="market-link">Open market</a>
       </div>
-
-      <div className="thresholds" aria-label="Choose Rotten Tomatoes threshold">
-        {[75, 80, 85].map((item) => (
-          <button key={item} onClick={() => setThreshold(item)} className={threshold === item ? "threshold active" : "threshold"}>
-            ABOVE {item}
-          </button>
+      <div className="thresholds" aria-label="Choose Rotten Tomatoes threshold" style={{ "--threshold-count": options.length }}>
+        {options.map((item) => (
+          <button key={item} onClick={() => setThreshold(item)} className={threshold === item ? "threshold active" : "threshold"}>ABOVE {item}</button>
         ))}
       </div>
-
       <div className="probability-grid">
         <div className="probability-block market-probability">
-          <span>MARKET SNAPSHOT</span>
-          <strong>{market.market}%</strong>
-          <small>MANUAL REF · YES {market.price}¢</small>
+          <span>MARKET LAST TRADE</span>
+          <strong className={price === null || price === undefined ? "unavailable-value" : ""}>{price === null || price === undefined ? "—" : `${price}%`}</strong>
+          <small>{market ? `YES BID ${market.yesBid ?? "—"}¢ · ASK ${market.yesAsk ?? "—"}¢` : "LIVE CONTRACT UNAVAILABLE"}</small>
         </div>
         <div className="probability-block model-probability">
           <span>RT PROBABILITY</span>
           <strong className="unavailable-value">—</strong>
-          <small>CRITIC LABELS NOT CONNECTED</small>
+          <small>{criticBenchmark.audit.eligibleOutcomeRows} LABEL BENCHMARK · NOT CALIBRATED</small>
         </div>
         <div className="edge-block">
           <span>MODEL EDGE</span>
@@ -157,245 +345,171 @@ function MarketPanel({ threshold, setThreshold }) {
           <small>NOT CALCULATED</small>
         </div>
       </div>
-
       <div className="market-foot">
-        <div>
-          <span className="market-meta-label">Market closes</span>
-          <strong>SEP 21 · 10:00 AM ET</strong>
-        </div>
-        <div>
-          <span className="market-meta-label">Snapshot freshness</span>
-          <strong>MANUAL · AUG 21</strong>
-        </div>
+        <div><span className="market-meta-label">Market closes</span><strong>{compactDate(market?.closeTime || event?.closeTime)}</strong></div>
+        <div><span className="market-meta-label">Source freshness</span><strong>{liveState.status === "live" ? compactDate(liveState.slate?.source?.observedAt) : liveState.status.toUpperCase()}</strong></div>
       </div>
     </section>
   );
 }
 
-function ScoutView({ saved, onSave, onPass, onOpenScore }) {
-  const [threshold, setThreshold] = useState(80);
+function MoviePanel({ event, model, position, total }) {
+  const title = model?.market.title || event?.title || "Unconfigured movie";
+  return (
+    <article className={model ? "movie-panel" : "movie-panel unmodeled"}>
+      {model ? (
+        <img src={model.market.artwork} alt={model.market.artworkAlt} />
+      ) : (
+        <div className="unmodeled-art" aria-label={`${title} artwork is not configured`}>
+          <span>MARKET CONNECTED</span><strong>{title}</strong><small>POSTER + HISTORICAL MODEL QUEUED</small>
+        </div>
+      )}
+      <div className="movie-overlay">
+        <div><p className="eyebrow light">ACTIVE RELEASE · {String(position).padStart(2, "0")} / {String(total).padStart(2, "0")}</p><h1>{title}</h1></div>
+        <div className="movie-meta">
+          <span>{model?.market.releaseDateLabel || shortDate(event?.closeTime)}</span>
+          <span>{model?.market.genreLabel || "LIVE MARKET"}</span>
+          <span>{model ? "MODEL CONNECTED" : "MARKET ONLY"}</span>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function ScoutView({ event, model, events, liveState, scoreDetails, saved, onSave, onPass, onOpenScore }) {
+  const options = chooseThresholds(event, model?.market.kalshi.thresholds || [75, 80, 85]);
+  const preferred = model?.market.kalshi.defaultThreshold;
+  const [threshold, setThreshold] = useState(preferred && options.includes(preferred) ? preferred : options[0]);
+  useEffect(() => {
+    const next = model?.market.kalshi.defaultThreshold;
+    setThreshold(next && options.includes(next) ? next : options[0]);
+  }, [event?.eventTicker, model?.market.slug]);
+  const market = event?.markets.find((item) => item.threshold === threshold);
+  const historicalFit = model?.scores.historicalFit.value;
+  const talentPrior = model?.scores.talentPrior.value;
+  const title = model?.market.title || event?.title || event?.eventTicker;
+  const eventPosition = Math.max(1, events.findIndex((item) => item.eventTicker === event?.eventTicker) + 1);
 
   return (
     <main className="scout-view">
       <section className="feature-grid" aria-label="Featured movie trade idea">
-        <article className="movie-panel">
-          <img src="/assets/resident-evil.jpg" alt="Resident Evil movie artwork showing a medical courier in a snow-covered city" />
-          <div className="movie-overlay">
-            <div>
-              <p className="eyebrow light">FEATURED RELEASE · 01 / 04</p>
-              <h1>Resident Evil</h1>
-            </div>
-            <div className="movie-meta">
-              <span>SEP 18</span>
-              <span>HORROR · ACTION</span>
-              <span>COLUMBIA</span>
-            </div>
-          </div>
-        </article>
-
-        <MarketPanel threshold={threshold} setThreshold={setThreshold} />
+        <MoviePanel event={event} model={model} position={eventPosition} total={events.length} />
+        <MarketPanel event={event} model={model} threshold={threshold} setThreshold={setThreshold} liveState={liveState} />
       </section>
-
       <section className="analysis-grid" aria-label="Cutline analysis">
         <div className="score-rail">
-          <div className="score-rail-title">
-            <p className="eyebrow">WHY THIS MODEL MOVED</p>
-            <span>SELECT A SCORE TO TRACE IT</span>
-          </div>
-          <div className="scores">
-            {Object.keys(scoreDetails).map((key) => (
-              <ScoreButton key={key} scoreKey={key} onOpen={onOpenScore} />
-            ))}
-          </div>
+          <div className="score-rail-title"><p className="eyebrow">WHY THIS MODEL MOVED</p><span>SELECT A SCORE TO TRACE IT</span></div>
+          <div className="scores">{Object.entries(scoreDetails).map(([key, score]) => <ScoreButton key={key} scoreKey={key} score={score} onOpen={onOpenScore} />)}</div>
         </div>
-
         <article className="thesis-panel">
-          <div className="stance-row">
-            <p className="eyebrow">CUTLINE CALL · ABOVE {threshold}</p>
-            <span className="stance muted">RESEARCH ONLY</span>
-          </div>
-          <h2>Historical context is constructive, but it cannot price a Rotten Tomatoes threshold yet.</h2>
-          <p>
-            The reproducible Kaggle/TMDB layer scores historical fit at {displayScore(historicalFit.value)} and talent at {displayScore(talentPrior.value)}, anchored to {cohort.sampleSize} comparable Horror + Science Fiction releases. Those are community-rating priors—not critic outcomes—so Cutline is withholding a probability, edge, and entry price until Rotten Tomatoes calibration and live early indicators are connected.
-          </p>
-          <div className="source-line">
-            <span>HISTORICAL: KAGGLE / TMDB · FEB 17, 2026</span>
-            <span>SEPARATE INPUTS: KALSHI · CRITICS · TRAILER · SEARCH · SOCIAL</span>
-          </div>
+          <div className="stance-row"><p className="eyebrow">CUTLINE CALL · ABOVE {threshold}</p><span className="stance muted">RESEARCH ONLY</span></div>
+          {model ? (
+            <>
+              <h2>Live market context is connected; the critic probability is still withheld.</h2>
+              <p>The historical layer scores fit at {displayScore(historicalFit)} and talent at {displayScore(talentPrior)}, anchored to {model.cohort.sampleSize} comparable releases. Kalshi is live, and {criticBenchmark.audit.eligibleOutcomeRows} critic outcomes are audited, but the {criticBenchmark.audit.joinToTmdb.exactMatches}-film exact join is too small for defensible threshold calibration.</p>
+            </>
+          ) : (
+            <>
+              <h2>This live market is ready for research, but not yet historically modeled.</h2>
+              <p>{title} is present in the live Kalshi slate. Cutline will not borrow Resident Evil’s cohort or talent score; add a movie-specific configuration and rebuild before using historical context.</p>
+            </>
+          )}
+          <div className="source-line"><span>MARKET: KALSHI PUBLIC API · {liveState.status.toUpperCase()}</span><span>CRITIC BENCHMARK: {criticBenchmark.audit.eligibleOutcomeRows} LABELS · CALIBRATION PENDING</span></div>
         </article>
-
         <aside className="decision-panel" aria-label="Trade idea actions">
-          <div>
-            <p className="eyebrow light">DECISION</p>
-            <span className="decision-price">NO CALIBRATED ENTRY</span>
-            <p className="decision-note">Decision support only. No trade is placed here.</p>
-          </div>
+          <div><p className="eyebrow light">DECISION</p><span className="decision-price">NO CALIBRATED ENTRY</span><p className="decision-note">Decision support only. No trade is placed here.</p></div>
           <div className="decision-actions">
-            <button className={saved ? "save-button saved" : "save-button"} onClick={() => onSave(threshold)}>
-              {saved ? "Idea saved" : "Save research idea"}
-            </button>
+            <button className={saved ? "save-button saved" : "save-button"} onClick={() => onSave({ threshold, market })}>{saved ? "Idea saved" : "Save research idea"}</button>
             <button className="pass-button" onClick={onPass}>Pass for now</button>
           </div>
         </aside>
       </section>
-
-      <footer className="data-note">
-        <span>KAGGLE / TMDB HISTORICAL SNAPSHOT · CC BY-NC-SA 4.0</span>
-        <span>TMDB PRIORS ARE REPRODUCIBLE · RT PROBABILITY AND LIVE SIGNALS UNAVAILABLE</span>
-        <span>NOT FINANCIAL ADVICE</span>
-      </footer>
+      <footer className="data-note"><span>KALSHI LIVE MARKET CONTEXT · PUBLIC API</span><span>TMDB PRIORS + RT OUTCOME BENCHMARK · PROBABILITY NOT CALIBRATED</span><span>NOT FINANCIAL ADVICE</span></footer>
     </main>
   );
 }
 
-function SavedView({ items, onOpenScout, onRemove }) {
+function SavedView({ items, onOpenScout, onRemove, onExport, onImport }) {
+  const importRef = useRef(null);
   return (
     <main className="saved-view">
       <div className="saved-heading">
-        <div>
-          <p className="eyebrow">IDEA BOOK</p>
-          <h1>Saved trade ideas</h1>
+        <div><p className="eyebrow">IDEA BOOK</p><h1>Saved trade ideas</h1></div>
+        <div className="saved-heading-actions">
+          <button className="back-to-scout" onClick={onExport} disabled={!items.length}>Export ideas</button>
+          <button className="back-to-scout" onClick={() => importRef.current?.click()}>Import ideas</button>
+          <input ref={importRef} type="file" accept="application/json" hidden onChange={onImport} />
+          <button className="back-to-scout" onClick={onOpenScout}>Return to scout</button>
         </div>
-        <button className="back-to-scout" onClick={onOpenScout}>Return to scout</button>
       </div>
-
       {items.length === 0 ? (
-        <section className="empty-state">
-          <span>00</span>
-          <h2>Your watchlist is clean.</h2>
-          <p>Save a thesis from the Scout view and it will appear here with its entry trigger and model timestamp.</p>
-          <button onClick={onOpenScout}>Review featured market</button>
-        </section>
+        <section className="empty-state"><span>00</span><h2>Your watchlist is clean.</h2><p>Save a thesis from any live movie market, or import a teammate’s Cutline ideas file.</p><button onClick={onOpenScout}>Review live markets</button></section>
       ) : (
         <section className="idea-table" aria-label="Saved movie trade ideas">
-          <div className="idea-table-head">
-            <span>RELEASE</span>
-            <span>MARKET / THESIS</span>
-            <span>MODEL</span>
-            <span>ENTRY</span>
-            <span>STATUS</span>
-            <span>ACTION</span>
-          </div>
+          <div className="idea-table-head"><span>RELEASE</span><span>MARKET / THESIS</span><span>HISTORICAL</span><span>MARKET</span><span>STATUS</span><span>ACTION</span></div>
           {items.map((item) => (
             <article className="idea-row" key={item.id}>
               <div className="idea-release">
-                <img src="/assets/resident-evil.jpg" alt="" />
-                <div>
-                  <strong>{item.movie}</strong>
-                  <span>SEP 18 · COLUMBIA</span>
-                </div>
+                {item.artwork ? <img src={item.artwork} alt="" /> : <span className="idea-art-placeholder">CUT</span>}
+                <div><strong>{item.movie}</strong><span>{item.releaseLabel || item.eventTicker}</span></div>
               </div>
-              <div className="idea-thesis">
-                <strong>RT score above {item.threshold}</strong>
-                <span>Historical prior saved; critic calibration and live signals remain the unlock.</span>
-              </div>
-              <div className="idea-stat"><strong>—</strong><span>RT PROBABILITY</span></div>
-              <div className="idea-stat"><strong>—</strong><span>NO ENTRY RULE</span></div>
-              <div className="idea-status"><span>RESEARCH</span><small>SAVED {item.savedAt}</small></div>
+              <div className="idea-thesis"><strong>RT score above {item.threshold}</strong><span>Saved research snapshot; critic probability and entry remain withheld.</span></div>
+              <div className="idea-stat"><strong>{displayScore(item.historicalFit)}</strong><span>FIT / 100</span></div>
+              <div className="idea-stat"><strong>{item.marketSnapshot?.lastPrice != null ? `${item.marketSnapshot.lastPrice}¢` : "—"}</strong><span>SAVED LAST TRADE</span></div>
+              <div className="idea-status"><span>RESEARCH</span><small>SAVED {compactDate(item.savedAt)}</small></div>
               <button className="remove-idea" onClick={() => onRemove(item.id)}>Remove</button>
             </article>
           ))}
         </section>
       )}
-
-      <section className="saved-method">
-        <p className="eyebrow">NEXT AUTOMATION LAYER</p>
-        <div>
-          <span>01</span><p>Refresh Kalshi price and volume</p>
-          <span>02</span><p>Re-score new critic and audience signals</p>
-          <span>03</span><p>Flag ideas when edge or confidence crosses your rule</p>
-        </div>
-      </section>
+      <section className="saved-method"><p className="eyebrow">TEAM RESEARCH LOOP</p><div><span>01</span><p>Refresh live Kalshi price and volume</p><span>02</span><p>Export or merge teammate idea files</p><span>03</span><p>Calibrate only after forward validation</p></div></section>
     </main>
   );
 }
 
-function ScoreDrawer({ scoreKey, onClose }) {
+function ScoreDrawer({ scoreKey, scoreDetails, model, liveState, onClose }) {
   const score = scoreDetails[scoreKey];
   if (!score) return null;
-  const financial = cohort.financialContext;
-
+  const cohort = model?.cohort;
+  const financial = cohort?.financialContext;
   return (
     <div className="drawer-backdrop" role="presentation" onMouseDown={onClose}>
       <aside className="score-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" onMouseDown={(event) => event.stopPropagation()}>
-        <div className="drawer-head">
-          <div>
-            <p className="eyebrow">{score.kicker}</p>
-            <h2 id="drawer-title">{score.label}</h2>
-          </div>
-          <button onClick={onClose} className="drawer-close">Close</button>
-        </div>
-        <div className="drawer-score">
-          <strong className={score.value === null ? "unavailable-value" : ""}>{displayScore(score.value)}</strong>
-          <span>{score.value === null ? "NOT SCORED" : "/ 100"}</span>
-        </div>
+        <div className="drawer-head"><div><p className="eyebrow">{score.kicker}</p><h2 id="drawer-title">{score.label}</h2></div><button onClick={onClose} className="drawer-close">Close</button></div>
+        <div className="drawer-score"><strong className={score.value === null ? "unavailable-value" : ""}>{displayScore(score.value)}</strong><span>{score.value === null ? "NOT SCORED" : "/ 100"}</span></div>
         <p className="drawer-summary">{score.summary}</p>
         <div className="drawer-evidence-grid">
-          <div><span>{scoreKey === "live" ? "LIVE OBSERVATIONS" : "HISTORICAL COHORT"}</span><strong>{scoreKey === "live" ? "0 connected" : `${cohort.sampleSize} films`}</strong></div>
+          <div><span>{scoreKey === "live" ? "MARKET SOURCE" : "HISTORICAL COHORT"}</span><strong>{scoreKey === "live" ? liveState.status.toUpperCase() : cohort ? `${cohort.sampleSize} films` : "NOT GENERATED"}</strong></div>
           <div><span>SCORE SAMPLE</span><strong>{score.sampleSize ?? "N/A"}</strong></div>
-          <div><span>FRESHNESS</span><strong>{scoreKey === "live" ? "NOT CONNECTED" : "FEB 17, 2026"}</strong></div>
-          <div><span>OUTCOME</span><strong>{scoreKey === "live" ? "NOT CALCULATED" : "TMDB USER RATING"}</strong></div>
+          <div><span>FRESHNESS</span><strong>{scoreKey === "live" ? compactDate(liveState.slate?.source?.observedAt) : model?.source.snapshotDate || "N/A"}</strong></div>
+          <div><span>OUTCOME</span><strong>{scoreKey === "live" ? "NO COMPOSITE" : model ? "TMDB USER RATING" : "N/A"}</strong></div>
         </div>
         <div className="factor-list">
           {score.factors.map((factor) => (
             <div className="factor" key={factor.label}>
-              <div className="factor-copy">
-                <span>{factor.label}</span>
-                <span>
-                  {factor.value === null
-                    ? "NOT CONNECTED"
-                    : `${factor.weight}% weight · ${factor.value}/100 · +${factor.contribution} pts`}
-                </span>
-              </div>
+              <div className="factor-copy"><span>{factor.label}</span><span>{factor.value === null ? factor.status || "NOT CONNECTED" : `${factor.weight}% weight · ${factor.value}/100 · +${factor.contribution} pts`}</span></div>
               {factor.value !== null && <div className="factor-track"><span style={{ width: `${factor.value}%` }} /></div>}
-              <p className="factor-detail">{factor.detail} {factor.sampleSize !== null && `Sample n=${factor.sampleSize}.`}</p>
+              <p className="factor-detail">{factor.detail} {factor.sampleSize !== null && factor.sampleSize !== undefined && `Sample n=${factor.sampleSize}.`}</p>
               {factor.titles?.length > 0 && <p className="factor-titles">Examples: {factor.titles.join(" · ")}</p>}
             </div>
           ))}
         </div>
-        <div className="drawer-formula">
-          <span>CALCULATION</span>
-          <p>{score.formula}</p>
-        </div>
-        {scoreKey === "historical" && (
+        <div className="drawer-formula"><span>CALCULATION</span><p>{score.formula}</p></div>
+        {scoreKey === "historical" && cohort && (
           <div className="cohort-context">
-            <div className="cohort-context-head">
-              <span>COMPARABLE-FILM COHORT</span>
-              <strong>N={cohort.sampleSize}</strong>
-            </div>
-            <p>{historical.methodology.cohortRule}</p>
-            <div className="comparable-list">
-              {cohort.recentComparables.map((movie) => (
-                <div key={movie.title}>
-                  <span>{movie.title}</span>
-                  <span>{movie.releaseDate.slice(0, 4)} · {movie.rating.toFixed(1)} / 10 · {movie.votes.toLocaleString()} votes</span>
-                </div>
-              ))}
-            </div>
-            <div className="financial-line">
-              <span>FINANCIAL CONTEXT · N={financial.completeSampleSize}</span>
-              <strong>Median budget {money(financial.medianBudgetUsd)} · revenue {money(financial.medianRevenueUsd)}</strong>
-              <small>{financial.caveat}</small>
-            </div>
+            <div className="cohort-context-head"><span>COMPARABLE-FILM COHORT</span><strong>N={cohort.sampleSize}</strong></div>
+            <p>{model.methodology.cohortRule}</p>
+            <div className="comparable-list">{cohort.recentComparables.map((movie) => <div key={movie.title}><span>{movie.title}</span><span>{movie.releaseDate.slice(0, 4)} · {movie.rating.toFixed(1)} / 10 · {movie.votes.toLocaleString()} votes</span></div>)}</div>
+            <div className="financial-line"><span>FINANCIAL CONTEXT · N={financial.completeSampleSize}</span><strong>Median budget {money(financial.medianBudgetUsd)} · revenue {money(financial.medianRevenueUsd)}</strong><small>{financial.caveat}</small></div>
           </div>
         )}
-        {scoreKey === "live" ? (
-          <div className="drawer-provenance">
-            <span>SOURCE STATUS</span>
-            <p>{score.caveat}</p>
-            <p>The Kaggle historical layer does not fill or estimate these time-sensitive inputs.</p>
-          </div>
-        ) : (
-          <div className="drawer-provenance">
-            <span>PROVENANCE & LIMITS</span>
-            <p>{score.caveat}</p>
-            <p>{historical.source.attribution}</p>
-            <div>
-              <a href={DATASET_URL} target="_blank" rel="noreferrer">Kaggle dataset</a>
-              <a href={TMDB_URL} target="_blank" rel="noreferrer">TMDB source</a>
-            </div>
-          </div>
-        )}
+        <div className="critic-benchmark">
+          <span>CRITIC OUTCOME BENCHMARK</span>
+          <strong>{criticBenchmark.audit.eligibleOutcomeRows} eligible labels · {criticBenchmark.audit.joinToTmdb.exactMatches} exact TMDB joins</strong>
+          <p>{criticBenchmark.calibration.reason}</p>
+          <a href={criticBenchmark.source.kaggleUrl} target="_blank" rel="noreferrer">Review benchmark source</a>
+        </div>
+        <div className="drawer-provenance"><span>PROVENANCE & LIMITS</span><p>{score.caveat}</p>{model && <><p>{model.source.attribution}</p><div><a href={model.source.kaggleUrl} target="_blank" rel="noreferrer">TMDB dataset</a><a href={model.source.tmdbUrl} target="_blank" rel="noreferrer">TMDB source</a></div></>}</div>
         <div className="drawer-status">{score.status}</div>
       </aside>
     </div>
@@ -403,70 +517,134 @@ function ScoreDrawer({ scoreKey, onClose }) {
 }
 
 export function App() {
+  const liveState = useKalshiSlate();
   const [view, setView] = useState("scout");
+  const [selectedEventTicker, setSelectedEventTicker] = useState(DEFAULT_EVENT);
   const [scoreKey, setScoreKey] = useState(null);
   const [savedItems, setSavedItems] = useState(() => {
     try {
-      return JSON.parse(window.localStorage.getItem("cutline-saved-ideas")) || [];
+      return hydrateIdeas(JSON.parse(window.localStorage.getItem(IDEA_STORAGE_KEY)) || []);
     } catch {
       return [];
     }
   });
-  const [passMessage, setPassMessage] = useState(false);
+  const [toast, setToast] = useState("");
+
+  const events = useMemo(() => {
+    const liveEvents = groupKalshiEvents(liveState.slate?.markets || []);
+    const byTicker = new Map(liveEvents.map((event) => [event.eventTicker, event]));
+    for (const model of MODELS) {
+      const ticker = model.market.kalshi.eventTicker;
+      if (!byTicker.has(ticker)) {
+        byTicker.set(ticker, {
+          eventTicker: ticker,
+          title: model.market.title,
+          closeTime: null,
+          markets: model.market.kalshi.thresholds.map((threshold) => ({
+            eventTicker: ticker,
+            ticker: `${ticker}-${threshold}`,
+            title: `${model.market.title} Rotten Tomatoes score?`,
+            threshold,
+            status: "unavailable",
+            lastPrice: null,
+            yesBid: null,
+            yesAsk: null,
+            closeTime: null,
+          })),
+        });
+      }
+    }
+    return [...byTicker.values()].sort((left, right) => {
+      if (left.eventTicker === DEFAULT_EVENT) return -1;
+      if (right.eventTicker === DEFAULT_EVENT) return 1;
+      return new Date(left.closeTime || "2999-01-01") - new Date(right.closeTime || "2999-01-01");
+    });
+  }, [liveState.slate]);
+
+  const selectedEvent = events.find((event) => event.eventTicker === selectedEventTicker) || events[0];
+  const model = MODEL_BY_EVENT.get(selectedEvent?.eventTicker) || null;
+  const scoreDetails = useMemo(() => buildScoreDetails(model, liveState), [model, liveState]);
+  const saved = savedItems.some((item) => item.eventTicker === selectedEvent?.eventTicker);
 
   useEffect(() => {
-    window.localStorage.setItem("cutline-saved-ideas", JSON.stringify(savedItems));
+    window.localStorage.setItem(IDEA_STORAGE_KEY, JSON.stringify(savedItems));
   }, [savedItems]);
-
   useEffect(() => {
-    const handleKey = (event) => {
-      if (event.key === "Escape") setScoreKey(null);
-    };
+    const handleKey = (event) => event.key === "Escape" && setScoreKey(null);
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, []);
 
-  const saved = savedItems.some((item) => item.movie === "Resident Evil");
-
-  const saveIdea = (threshold) => {
-    setSavedItems((items) => {
-      const withoutMovie = items.filter((item) => item.movie !== "Resident Evil");
-      return [
-        {
-          id: "resident-evil-rt",
-          movie: "Resident Evil",
-          threshold,
-          entry: null,
-          savedAt: "AUG 21",
-        },
-        ...withoutMovie,
-      ];
-    });
+  const announce = (message) => {
+    setToast(message);
+    window.setTimeout(() => setToast(""), 2200);
   };
 
-  const screen = useMemo(() => {
-    if (view === "saved") {
-      return <SavedView items={savedItems} onOpenScout={() => setView("scout")} onRemove={(id) => setSavedItems((items) => items.filter((item) => item.id !== id))} />;
+  const saveIdea = ({ threshold, market }) => {
+    const item = {
+      id: `${selectedEvent.eventTicker}-${threshold}`,
+      eventTicker: selectedEvent.eventTicker,
+      movie: model?.market.title || selectedEvent.title,
+      threshold,
+      marketUrl: model?.market.kalshi.marketUrl || marketUrl(selectedEvent.eventTicker),
+      artwork: model?.market.artwork || null,
+      releaseLabel: model?.market.releaseDateLabel || shortDate(selectedEvent.closeTime),
+      modelStatus: model ? "historical prior connected" : "live market only",
+      historicalFit: model?.scores.historicalFit.value ?? null,
+      talentPrior: model?.scores.talentPrior.value ?? null,
+      marketSnapshot: market
+        ? {
+            lastPrice: market.lastPrice,
+            yesBid: market.yesBid,
+            yesAsk: market.yesAsk,
+            volume: market.volume,
+            observedAt: liveState.slate?.source?.observedAt || null,
+            sourceMode: liveState.status,
+          }
+        : null,
+      savedAt: new Date().toISOString(),
+    };
+    setSavedItems((items) => [item, ...items.filter((existing) => existing.eventTicker !== item.eventTicker)]);
+    announce("Research idea saved · no trade placed");
+  };
+
+  const exportIdeas = () => {
+    const payload = createIdeasExport(savedItems);
+    const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `cutline-ideas-${new Date().toISOString().slice(0, 10)}.json`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+    announce(`Exported ${savedItems.length} research idea${savedItems.length === 1 ? "" : "s"}`);
+  };
+
+  const importIdeas = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    try {
+      const imported = parseIdeasExport(await file.text());
+      setSavedItems((items) => mergeIdeas(items, hydrateIdeas(imported)));
+      announce(`Imported ${imported.length} research idea${imported.length === 1 ? "" : "s"}`);
+    } catch (error) {
+      announce(error.message);
     }
-    return (
-      <ScoutView
-        saved={saved}
-        onSave={saveIdea}
-        onPass={() => {
-          setPassMessage(true);
-          window.setTimeout(() => setPassMessage(false), 1800);
-        }}
-        onOpenScore={setScoreKey}
-      />
-    );
-  }, [view, savedItems, saved]);
+  };
 
   return (
     <div className="app-shell">
-      <Header view={view} setView={setView} savedCount={savedItems.length} />
-      {screen}
-      {scoreKey && <ScoreDrawer scoreKey={scoreKey} onClose={() => setScoreKey(null)} />}
-      <div className={passMessage ? "toast visible" : "toast"} role="status">Passed for now · moving to the next idea soon</div>
+      <Header view={view} setView={setView} savedCount={savedItems.length} liveState={liveState} />
+      {view === "saved" ? (
+        <SavedView items={savedItems} onOpenScout={() => setView("scout")} onRemove={(id) => setSavedItems((items) => items.filter((item) => item.id !== id))} onExport={exportIdeas} onImport={importIdeas} />
+      ) : (
+        <>
+          <SlateStrip events={events} selectedEventTicker={selectedEvent?.eventTicker || DEFAULT_EVENT} onSelect={setSelectedEventTicker} modeledCount={MODELS.length} liveState={liveState} />
+          <ScoutView event={selectedEvent} model={model} events={events} liveState={liveState} scoreDetails={scoreDetails} saved={saved} onSave={saveIdea} onPass={() => announce("Passed for now · select another live market")} onOpenScore={setScoreKey} />
+        </>
+      )}
+      {scoreKey && <ScoreDrawer scoreKey={scoreKey} scoreDetails={scoreDetails} model={model} liveState={liveState} onClose={() => setScoreKey(null)} />}
+      <div className={toast ? "toast visible" : "toast"} role="status">{toast}</div>
     </div>
   );
 }

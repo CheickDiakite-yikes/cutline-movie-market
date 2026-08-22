@@ -1,6 +1,8 @@
-# Cutline historical movie data
+# Cutline historical and critic outcome data
 
-## Selected source
+Cutline keeps three source layers separate: configuration-driven TMDB historical priors, an audited Rotten Tomatoes critic-outcome benchmark, and runtime Kalshi market context. No layer silently fills another one's missing fields.
+
+## Selected TMDB historical source
 
 Cutline currently uses version 1 of Kaggle's [The Movie Database (TMDB) Comprehensive Dataset](https://www.kaggle.com/datasets/rishabhkumar2003/the-movie-database-tmdb-comprehensive-dataset), collected and last updated on February 17, 2026.
 
@@ -23,7 +25,7 @@ Last updated: 2026-02-17T19:30:06.547Z
 Archive SHA-256: 395888227be599a3181084bda47defe38be5e6198f12c6e76656c0a39d6bf3a7
 ```
 
-Per-file SHA-256 hashes are embedded in `src/data/resident-evil-historical.json` and are regenerated from the local source files.
+Per-file SHA-256 hashes are embedded in each artifact under `src/data/markets/` and are regenerated from the local source files.
 
 ## Candidate audit
 
@@ -68,7 +70,40 @@ Missingness across parsed movie rows (zero treated as missing for numeric fields
 
 Budget and revenue are therefore descriptive cohort context, not hidden predictive features. Zero values are treated as unavailable. Revenue exceeding production budget is not labeled “profit,” because marketing and distribution costs are absent.
 
-## Resident Evil calculation
+## Selected critic benchmark source
+
+Cutline uses version 1 of Kaggle's [Rotten Tomatoes Movies 1000 Films Dataset 2025](https://www.kaggle.com/datasets/crawlfeeds/rotten-tomatoes-movies-1000-films-dataset-2024), last updated July 18, 2025.
+
+Kaggle's official API metadata reports `CC BY-NC-SA 4.0`, although the publisher-written description says CC BY 4.0. Cutline records that discrepancy and follows the more restrictive non-commercial share-alike label. The publisher describes this as a compiled Rotten Tomatoes page snapshot; it is not an official Rotten Tomatoes API feed.
+
+```text
+Kaggle slug: crawlfeeds/rotten-tomatoes-movies-1000-films-dataset-2024
+Version: 1
+Last updated: 2025-07-18T15:45:47.747Z
+Archive SHA-256: 05a770d8c5198ae0ed5268810b9895e7680a6a0914ced456be6b4b0acc5c28de
+CSV SHA-256: 0cd4d951bb4c12713e554dec4279310fe2cbba0388a1516fdef079a80e082753
+```
+
+The audit observed:
+
+| Critic benchmark check | Result |
+| --- | ---: |
+| Raw rows | 998 |
+| Rows with a Tomatometer score | 357 |
+| Eligible movies with at least five critic reviews | 278 |
+| Eligible rows with an extractable release year | 233 |
+| Exact normalized title/year joins to the TMDB snapshot | 12 |
+| Duplicate publisher unique IDs | 0 |
+
+The 278 eligible labels support descriptive strict-threshold base rates. The 12-film exact join is far too small for a feature model, and an exact title/year match alone does not prove entity identity. Cutline therefore exposes the benchmark's sample and provenance while keeping `P(Tomatometer > threshold)`, edge, and entry unavailable.
+
+## Multi-movie configuration
+
+Every modeled release is declared under `config/markets/*.json`. A config owns the TMDB movie ID, artwork, release context, Kalshi event and threshold set, cohort definition, franchise matching rules, prior strength, and score weights. `scripts/build_historical_model.py --all` generates one `src/data/markets/<slug>.json` artifact per config plus `src/data/market-index.json`.
+
+This separation allows active Kalshi events to appear immediately as **live market only** while preventing an unconfigured movie from borrowing another title's cohort, artwork, or scores.
+
+## Resident Evil reference calculation
 
 The cache uses target movie ID `1423191` to identify the target’s director, first four billed cast members, producers, language, and genres. Its outcome fields are never used.
 
@@ -105,29 +140,33 @@ The `Data coverage` score measures availability only. It is not a confidence lev
 - No film released after the dataset snapshot is used as an outcome.
 - The dataset’s `popularity` and user-review tables are unused.
 - Historical revenue is descriptive because the target budget is missing.
-- Kalshi prices, Rotten Tomatoes critic reviews, trailer velocity, search interest, and social chatter remain separate live inputs.
-- Because the selected Kaggle source has TMDB community ratings rather than Rotten Tomatoes critic outcomes, Cutline does not compute `P(Tomatometer > 75/80/85)` or a model edge. A critic-outcome training set and time-aware validation are required first.
+- Live Kalshi prices remain separate market context and are never inserted into a historical score.
+- The critic benchmark remains separate from the TMDB prior and is not treated as a calibrated model.
+- Trailer velocity, search interest, and social chatter remain unavailable until their providers, windows, and transformations are declared.
+- Cutline does not compute `P(Tomatometer > 75/80/85)` or a model edge until a larger rights-cleared critic crosswalk and forward time validation exist.
 
 ## Reproduce locally
 
-The raw Kaggle download is intentionally gitignored. Download, unzip, normalize, audit, and rebuild the checked-in cache with:
+Raw downloads are intentionally gitignored. Download both snapshots, verify checksums, rebuild every configured movie plus the critic benchmark, and compare them with the committed artifacts using:
 
 ```bash
-bash scripts/download_kaggle_data.sh
+npm run data:download
 ```
 
-The download script verifies the observed version-1 archive checksum and stops if Kaggle serves a different snapshot. A changed archive must be re-audited rather than silently replacing the model input.
+The download scripts stop when either archive or file checksum changes. A changed source must be re-audited rather than silently replacing a model input.
 
 If the CSV files already exist at `data/raw/tmdb-comprehensive-v1`, rebuild only the cache:
 
 ```bash
-python3 scripts/build_historical_model.py
+npm run data:historical
+npm run data:critic
+npm run data:verify
 ```
 
 Run the focused scoring tests with:
 
 ```bash
-python3 -m unittest tests/test_historical_model.py -v
+npm run test:historical
 ```
 
-The scripts use only Python’s standard library. The resulting cache is `src/data/resident-evil-historical.json`.
+The data scripts use only Python's standard library. Their committed outputs are `src/data/markets/*.json`, `src/data/market-index.json`, and `src/data/critic-benchmark.json`.

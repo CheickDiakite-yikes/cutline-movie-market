@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "name": "Rotten Tomatoes Movies 1000 Films Dataset 2025",
+    "kaggleSlug": "crawlfeeds/rotten-tomatoes-movies-1000-films-dataset-2024",
+    "kaggleUrl": "https://www.kaggle.com/datasets/crawlfeeds/rotten-tomatoes-movies-1000-films-dataset-2024",
+    "version": 1,
+    "snapshotDate": "2025-07-18",
+    "lastUpdated": "2025-07-18T15:45:47.747Z",
+    "license": "CC BY-NC-SA 4.0",
+    "licenseNote": "Kaggle API metadata reports CC BY-NC-SA 4.0 while the publisher description says CC BY 4.0; Cutline follows the more restrictive API label.",
+    "provenance": "Publisher-compiled Rotten Tomatoes page snapshot; not an official Rotten Tomatoes API feed.",
+    "commercialUse": "Treat as non-commercial unless separate rights are established.",
+    "archiveSha256": "05a770d8c5198ae0ed5268810b9895e7680a6a0914ced456be6b4b0acc5c28de",
+    "fileSha256": "0cd4d951bb4c12713e554dec4279310fe2cbba0388a1516fdef079a80e082753"
+  },
+  "audit": {
+    "rawRows": 998,
+    "eligibleOutcomeRows": 278,
+    "minimumCriticReviews": 5,
+    "scorePresentRows": 357,
+    "reviewCountPresentRows": 357,
+    "missingScorePercent": 64.2,
+    "missingReviewCountPercent": 64.2,
+    "duplicateUniqueIds": 0,
+    "scoreRange": [
+      0,
+      100
+    ],
+    "scoreMedian": 64.5,
+    "joinToTmdb": {
+      "status": "audited",
+      "eligibleRowsWithYear": 233,
+      "exactMatches": 12,
+      "ambiguousMatches": 0,
+      "method": "normalized exact title plus release year"
+    }
+  },
+  "thresholdBenchmarks": [
+    {
+      "threshold": 75,
+      "sampleSize": 278,
+      "aboveCount": 96,
+      "aboveRate": 0.3453,
+      "rule": "Tomatometer strictly above 75"
+    },
+    {
+      "threshold": 80,
+      "sampleSize": 278,
+      "aboveCount": 85,
+      "aboveRate": 0.3058,
+      "rule": "Tomatometer strictly above 80"
+    },
+    {
+      "threshold": 85,
+      "sampleSize": 278,
+      "aboveCount": 68,
+      "aboveRate": 0.2446,
+      "rule": "Tomatometer strictly above 85"
+    }
+  ],
+  "genreBenchmarks": [
+    {
+      "genre": "Drama",
+      "sampleSize": 117,
+      "medianScore": 63,
+      "above75Rate": 0.3419
+    },
+    {
+      "genre": "Comedy",
+      "sampleSize": 62,
+      "medianScore": 64.5,
+      "above75Rate": 0.3226
+    },
+    {
+      "genre": "Mystery & Thriller",
+      "sampleSize": 50,
+      "medianScore": 40.0,
+      "above75Rate": 0.18
+    },
+    {
+      "genre": "Documentary",
+      "sampleSize": 35,
+      "medianScore": 94,
+      "above75Rate": 0.8571
+    },
+    {
+      "genre": "Action",
+      "sampleSize": 26,
+      "medianScore": 45.0,
+      "above75Rate": 0.1538
+    },
+    {
+      "genre": "Horror",
+      "sampleSize": 26,
+      "medianScore": 29.5,
+      "above75Rate": 0.2308
+    },
+    {
+      "genre": "Romance",
+      "sampleSize": 21,
+      "medianScore": 67,
+      "above75Rate": 0.2857
+    },
+    {
+      "genre": "Adventure",
+      "sampleSize": 17,
+      "medianScore": 43,
+      "above75Rate": 0.1765
+    },
+    {
+      "genre": "Fantasy",
+      "sampleSize": 15,
+      "medianScore": 60,
+      "above75Rate": 0.1333
+    },
+    {
+      "genre": "Crime",
+      "sampleSize": 14,
+      "medianScore": 55.5,
+      "above75Rate": 0.0714
+    },
+    {
+      "genre": "Sci-Fi",
+      "sampleSize": 13,
+      "medianScore": 40,
+      "above75Rate": 0.1538
+    },
+    {
+      "genre": "Kids & Family",
+      "sampleSize": 12,
+      "medianScore": 57.5,
+      "above75Rate": 0.1667
+    },
+    {
+      "genre": "History",
+      "sampleSize": 11,
+      "medianScore": 63,
+      "above75Rate": 0.4545
+    },
+    {
+      "genre": "Animation",
+      "sampleSize": 10,
+      "medianScore": 56.5,
+      "above75Rate": 0.1
+    }
+  ],
+  "calibration": {
+    "status": "unavailable",
+    "reason": "Only 12 eligible exact title/year matches resolve to the selected TMDB snapshot; that is insufficient for a time-aware probability model.",
+    "requiredNext": "Build a larger rights-cleared crosswalk, recreate features using only information available before each release, and validate on forward time splits."
+  },
+  "usage": {
+    "connectedAs": "critic outcome benchmark",
+    "notUsedAs": "target probability, model edge, or entry price"
+  }
+}

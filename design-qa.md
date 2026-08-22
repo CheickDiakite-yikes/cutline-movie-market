@@ -4,50 +4,52 @@
 
 - Browser: Codex in-app Browser
 - URL: local Vite prototype at `http://127.0.0.1:5173/`
-- Desktop QA viewport: 1440 × 900, device pixel ratio 1
-- States inspected: Scout / Above 80, Scout / Above 85, Historical fit rationale, unavailable Live heat rationale, Saved Ideas with one saved Resident Evil item
-- Console: no warning or error entries in the final pass
-- Layout metrics: viewport, document, and body all measured exactly 1440 × 900 on the final Scout view; no page overflow
+- Browser viewport available for this pass: 1280 × 720, device pixel ratio 1
+- Document size on the final Scout view: 1280 × 798; no horizontal overflow
+- Desktop product target retained in CSS and contribution guidance: 1440 × 900
+- States inspected: live Resident Evil / Above 80, live Resident Evil / Above 75, Live heat source drawer, unmodeled Mutiny market-only state, Saved Ideas with modeled and unmodeled items, remove and migration behavior
+- Console: no warning or error entries; only Vite connection messages and the React development-tools notice
+- Captured product image: `docs/assets/cutline-scout-live.jpg`
+
+The in-app Browser surface could not be resized during this run, so this document does not upgrade the 1280 × 720 observation into a claimed 1440 × 900 capture. At the smaller viewport the page has 78 pixels of vertical overflow and no horizontal overflow; the 1440 × 900 desktop target remains the release contract.
 
 ## Visual result
 
-The historical-data changes preserve the selected editorial single-frame composition: movie art and market context dominate the first band; score traces, synthesis, and decision actions remain in one second band; Save and Pass stay visually decisive. The data changes do not introduce dashboard-card clutter or disturb the poster crop.
+The multi-source changes preserve the editorial single-frame direction: movie art and market context dominate the first band; source scores, synthesis, and decision actions remain in the second band; Save and Pass stay decisive. The continuous-market selector is a compact editorial strip rather than a dashboard sidebar.
 
-The main frame now truthfully distinguishes three visual states:
+The main frame now distinguishes four truthful states:
 
-- manual Kalshi reference data in the market panel;
-- reproducible Kaggle/TMDB historical priors in the score rail; and
-- unavailable RT calibration and live inputs rendered as em dashes rather than estimated values.
+- live Kalshi last trade, bid/ask, close time, and observation freshness;
+- reproducible Kaggle/TMDB historical priors for configured movies;
+- an audited 278-label Rotten Tomatoes benchmark with calibration explicitly pending; and
+- unconfigured live events rendered as `MARKET ONLY`, with a designed poster placeholder and all historical scores withheld.
 
-At 1440 × 900 the final primary values are readable without scrolling: Historical fit 63, Live heat unavailable, Talent prior 66, and Data coverage 88. The decision area says `NO CALIBRATED ENTRY`, with decision-support-only copy directly below it.
+In the captured Resident Evil state, the Kalshi API returned 20 active KXRT events. The selected Above 80 contract showed a 74% last trade and 75¢ / 77¢ bid/ask at that moment. Those values are time-sensitive browser observations, not committed fixtures or model outputs.
 
-## Score rationale QA
+## Source rationale QA
 
-The Historical fit drawer exposes:
+The Live heat drawer exposes:
 
-- 77-film comparable cohort;
-- 151 unique source films contributing across the score's overlapping factors;
-- February 17, 2026 source freshness;
-- TMDB community rating as the historical outcome;
-- each factor's weight, normalized value, point contribution, and sample size;
-- named example films;
-- six recent comparable films;
-- 48-film complete financial sample with median budget and revenue;
-- Kaggle and TMDB provenance links; and
-- a direct warning that the score is not a Rotten Tomatoes or Kalshi threshold probability.
+- Kalshi as `CONNECTED`, with an observation timestamp and the fetched contract sample;
+- Rotten Tomatoes history as `BENCHMARK ONLY`, with 278 eligible labels and 12 exact TMDB joins;
+- trailer, search, and social as `NOT CONNECTED`;
+- no composite live score;
+- the critic dataset provenance link; and
+- the direct guardrail that market price is context, not a model feature.
 
-The Live heat drawer shows `0 connected`, `NOT CONNECTED` freshness, and `NOT CALCULATED` outcome. Kalshi, Rotten Tomatoes critics, trailer velocity, search, and social remain separate, unscored inputs.
+The historical rationale continues to expose the 77-film cohort, factor weights and contributions, samples, example films, financial completeness, February 17, 2026 freshness, and TMDB attribution.
 
 ## Interaction QA
 
-- Above 75 / 80 / 85 threshold controls update the market question and preserve the uncalibrated model state.
-- All four score buttons open the correct rationale.
-- The Historical fit drawer is keyboard-dismissable with Escape and closes through its visible Close control.
-- Save research idea persists the selected threshold to Saved Ideas.
-- Saved Ideas shows no probability or entry rule, uses `RESEARCH` status, and preserves Return to Scout / Remove behavior.
-- Pass for now preserves its status toast.
-- External market and provenance links target the expected URLs.
+- The KXRT selector listed configured and unconfigured active movies in one continuous slate.
+- Above 75 / 80 / 85 controls changed the selected live contract and values without producing a critic probability or edge.
+- Selecting Mutiny displayed its own live market context, a non-invented artwork placeholder, and four unavailable historical scores. It did not borrow Resident Evil data.
+- All score buttons opened the corresponding source rationale; the visible Close control worked.
+- Saving Mutiny produced a second Saved Ideas row with its saved market snapshot and no historical score.
+- Removing that QA item restored the pre-existing Resident Evil idea.
+- The original Resident Evil local-storage shape migrated to the current artwork, release label, and 63 historical-fit context.
+- Export and Import controls were visible; their versioning, validation, merge, and deduplication behavior is covered by automated tests.
 
 ## Final result
 
-Passed. No actionable P0, P1, or P2 visual or interaction defects remain in the tested desktop surface.
+Passed for the tested 1280 × 720 browser surface and interaction states. No actionable P0, P1, or P2 visual, truth-labeling, or interaction defect remains. A fresh 1440 × 900 capture should still be included in any later release process that provides a resizable browser surface.

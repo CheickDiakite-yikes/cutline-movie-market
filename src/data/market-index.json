@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "markets": [
+    {
+      "slug": "resident-evil",
+      "title": "Resident Evil",
+      "eventTicker": "KXRT-RES",
+      "cache": "./markets/resident-evil.json",
+      "snapshotDate": "2026-02-17",
+      "modelStatus": "historical prior connected"
+    }
+  ]
+}

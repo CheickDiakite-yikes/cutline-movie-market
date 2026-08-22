@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "sources": {
+    "tmdbHistorical": {
+      "slug": "rishabhkumar2003/the-movie-database-tmdb-comprehensive-dataset",
+      "version": 1,
+      "snapshotDate": "2026-02-17",
+      "license": "CC BY-NC-SA 4.0",
+      "archiveSha256": "395888227be599a3181084bda47defe38be5e6198f12c6e76656c0a39d6bf3a7",
+      "rawDirectory": "data/raw/tmdb-comprehensive-v1"
+    },
+    "rottenTomatoesBenchmark": {
+      "slug": "crawlfeeds/rotten-tomatoes-movies-1000-films-dataset-2024",
+      "version": 1,
+      "snapshotDate": "2025-07-18",
+      "license": "CC BY-NC-SA 4.0",
+      "archiveSha256": "05a770d8c5198ae0ed5268810b9895e7680a6a0914ced456be6b4b0acc5c28de",
+      "fileSha256": "0cd4d951bb4c12713e554dec4279310fe2cbba0388a1516fdef079a80e082753",
+      "rawFile": "data/raw/rotten-tomatoes-2025-v1/rotten_tomatoes_movies_2025.csv"
+    },
+    "kalshiMarketData": {
+      "baseUrl": "https://external-api.kalshi.com/trade-api/v2",
+      "seriesTicker": "KXRT",
+      "authentication": "not required for public market data",
+      "runtime": true
+    }
+  }
+}

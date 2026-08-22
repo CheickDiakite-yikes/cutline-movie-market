@@ -1,10 +1,32 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "generatedFromSnapshot": "2026-02-17T19:30:06.547Z",
+  "market": {
+    "slug": "resident-evil",
+    "title": "Resident Evil",
+    "artwork": "/assets/resident-evil.jpg",
+    "artworkAlt": "Resident Evil movie artwork showing a medical courier in a snow-covered city",
+    "releaseDate": "2026-09-18",
+    "releaseDateLabel": "SEP 18",
+    "genreLabel": "HORROR · ACTION",
+    "studioLabel": "COLUMBIA",
+    "kalshi": {
+      "seriesTicker": "KXRT",
+      "eventTicker": "KXRT-RES",
+      "marketUrl": "https://kalshi.com/markets/kxrt/rotten-tomatoes-scores/kxrt-res",
+      "thresholds": [
+        75,
+        80,
+        85
+      ],
+      "defaultThreshold": 80
+    }
+  },
   "target": {
     "movieId": 1423191,
     "title": "Resident Evil",
     "releaseDateInDataset": "2026-09-09",
+    "configuredReleaseDate": "2026-09-18",
     "language": "en",
     "genres": [
       "Horror",
@@ -81,14 +103,15 @@
       "At least 100 TMDB votes and a positive vote_average",
       "Target movie ID 1423191 is excluded from all outcomes"
     ],
-    "cohortRule": "English-language films tagged both Horror and Science Fiction, released since 2000, with at least 100 TMDB votes by the snapshot date.",
+    "cohortRule": "en-language films tagged Horror and Science Fiction, released since 2000, with at least 100 TMDB votes by the snapshot date.",
     "shrinkage": "Talent and franchise averages use empirical-Bayes shrinkage equivalent to 5 comparable-cohort films.",
     "leakageControls": [
       "No target-film vote, popularity, review, budget, or revenue value is used.",
       "No release after the dataset snapshot is used as an outcome.",
       "Popularity, reviews, trailer, search, social, critic, and Kalshi fields are not model inputs.",
       "Historical revenue is descriptive only because the target budget is unavailable."
-    ]
+    ],
+    "config": "config/markets/resident-evil.json"
   },
   "cohort": {
     "sampleSize": 77,
@@ -98,7 +121,9 @@
       3.924,
       7.443
     ],
-    "septemberSampleSize": 10,
+    "releaseMonth": 9,
+    "releaseMonthName": "September",
+    "releaseMonthSampleSize": 10,
     "recentComparables": [
       {
         "title": "28 Years Later: The Bone Temple",
@@ -184,7 +209,7 @@
           "weight": 15,
           "contribution": 9.6,
           "sampleSize": 5,
-          "detail": "Prior eligible Resident Evil titles in the dataset.",
+          "detail": "Prior eligible films matching the configured franchise prefixes for Resident Evil.",
           "titles": [
             "Resident Evil: Death Island",
             "Resident Evil: Welcome to Raccoon City",
@@ -199,7 +224,7 @@
           "weight": 25,
           "contribution": 15.3,
           "sampleSize": 77,
-          "detail": "English-language Horror + Science Fiction releases since 2000 with at least 100 TMDB votes.",
+          "detail": "en-language Horror + Science Fiction releases since 2000 with at least 100 TMDB votes.",
           "titles": [
             "28 Years Later: The Bone Temple",
             "The Long Walk",
@@ -318,7 +343,7 @@
           "value": 75.0,
           "weight": 15,
           "sampleSize": 6,
-          "detail": "Release, language, genres, runtime, budget, director, lead cast, and producer groups present for the target. Target runtime and budget are unavailable in this snapshot.",
+          "detail": "Release, language, genres, runtime, budget, director, lead cast, and producer groups present for the target. Configured release context may supplement the historical snapshot.",
           "titles": [],
           "contribution": 11.2
         }
@@ -327,16 +352,12 @@
   },
   "thresholdCalibration": {
     "status": "unavailable",
-    "reason": "This Kaggle source has TMDB community ratings, not Rotten Tomatoes critic outcomes. It cannot honestly estimate P(Tomatometer > threshold)."
+    "reason": "A Rotten Tomatoes outcome benchmark is audited separately, but the current title/year join is too small for time-aware probability calibration."
   },
   "unconnectedSignals": [
     {
-      "name": "Kalshi market",
-      "status": "separate manual snapshot"
-    },
-    {
-      "name": "Rotten Tomatoes critics",
-      "status": "not connected"
+      "name": "Rotten Tomatoes calibration",
+      "status": "benchmark connected; probability model not validated"
     },
     {
       "name": "Trailer velocity",
