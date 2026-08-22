@@ -13,6 +13,7 @@ Read `AGENTS.md`, `README.md`, and `docs/architecture.md` before changing the pr
 - `src/data/critic-benchmark.json` is an audited outcome benchmark, not a calibrated prediction model.
 - Never invent or interpolate Kalshi, Rotten Tomatoes, critic, trailer, search, or social observations.
 - TMDB community ratings are not Rotten Tomatoes critic scores and cannot be presented as threshold probabilities.
+- The current runtime is deterministic automation, not AI. If runtime AI is added later, label it, preserve evidence references and provider/model/prompt versions, keep a deterministic fallback, and never let generated text silently change scores or imply calibration.
 - Keep the decision-support-only language visible. This application does not place trades.
 
 ## Sites compatibility

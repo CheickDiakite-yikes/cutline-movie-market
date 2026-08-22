@@ -32,6 +32,28 @@ Every live event receives a model immediately. A configured pack can use manuall
 
 The market feed is live; the enrichment catalog is not. A film added after the February 17, 2026 snapshot will still appear and receive a numeric baseline model, but it cannot receive current cast, crew, artwork, or genre enrichment until a live metadata provider is connected.
 
+## Deterministic today; AI integration next
+
+Cutline does **not** currently call an LLM or a trained predictive-ML service at runtime. “Automatic” means deterministic software automation: the same versioned inputs and rules produce the same model output.
+
+| Product behavior | Current implementation |
+| --- | --- |
+| Discover new trade ideas | Deterministic 60-second Kalshi polling |
+| Combine threshold contracts | Deterministic grouping by Kalshi event ticker |
+| Resolve movie identity | Deterministic configured-ticker precedence, then exact normalized title and release-window checks |
+| Calculate historical and talent scores | Deterministic eligibility rules, declared weights, and empirical-Bayes shrinkage |
+| Produce synthesis and recommendation copy | Deterministic interface templates using the connected score state |
+| Runtime generative AI or trained prediction model | **Not connected** |
+
+The intended AI layer is evidence assistance, kept separate from calibrated prediction:
+
+- rank possible movie-identity candidates when deterministic matching fails, while requiring an evidence-backed acceptance gate;
+- summarize sourced critic, trailer, search, and social observations into structured themes;
+- explain factor movement in plain language from the already calculated contribution trace; and
+- flag contradictory, stale, or unusually sparse evidence for human review.
+
+Any runtime AI result must be visibly labeled, cite its source observations, record provider/model and prompt versions, carry an observation timestamp, validate against a strict structured schema, and fall back to the deterministic product when unavailable. AI text must not fabricate a signal, silently change a numeric score, turn an LLM opinion into a Rotten Tomatoes probability, or place a trade.
+
 ## Why Cutline exists
 
 Movie prediction markets are easy to look at and surprisingly hard to reason about. A contract price alone does not explain:
@@ -382,9 +404,10 @@ Recommended next layers:
 2. **Larger critic crosswalk** — obtain a rights-cleared movie identifier mapping and reconstruct features using only data available before each historical release.
 3. **Forward calibration** — train and validate Tomatometer threshold probabilities on chronological splits before exposing probability or edge.
 4. **Early-signal jobs** — collect trailer, search, and social observations with provider, query, geography, window, and freshness metadata.
-5. **Scoring service** — version feature definitions, weights, transformations, and contribution traces across multiple configured movies.
-6. **Team idea store** — replace local browser storage only after identity and access rules are defined; retain JSON export/import for portability.
-7. **Scheduler and alerts** — refresh markets and recompute validated features under explicit user rules.
+5. **AI evidence synthesis** — convert only sourced observations into structured themes and explanations with provider, model, prompt version, citations, freshness, and deterministic fallback. Keep this separate from probability calibration.
+6. **Scoring service** — version feature definitions, weights, transformations, and contribution traces across multiple configured movies.
+7. **Team idea store** — replace local browser storage only after identity and access rules are defined; retain JSON export/import for portability.
+8. **Scheduler and alerts** — refresh markets and recompute validated features under explicit user rules.
 
 Every live response should preserve at least:
 
@@ -397,6 +420,9 @@ feature_version
 model_version
 contributions
 unavailable_fields
+ai_provider_model_if_used
+prompt_version_if_used
+evidence_references_if_used
 ```
 
 A connector failure must not silently reuse stale data as current.
@@ -417,6 +443,7 @@ The current suite verifies:
 - absence of fabricated Rotten Tomatoes probability output;
 - Kalshi price normalization and live-source grouping;
 - automatic model generation for previously unconfigured events, including title-family shrinkage and price independence;
+- deterministic behavior without a hidden runtime AI dependency;
 - Saved Ideas migration, export, import, and deduplication;
 - Sites asset serving and SPA fallbacks;
 - scoped Kalshi proxy success and fail-closed behavior; and

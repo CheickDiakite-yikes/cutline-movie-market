@@ -44,6 +44,23 @@ For visible UI changes, also inspect:
 
 Live Kalshi events receive either a conservative exact/date-consistent snapshot enrichment or the baseline automatic prior before a configured artifact exists. Preserve the tier, source date, match status, specificity, imputation, and price-independence language until these steps are complete.
 
+## Runtime AI contributions
+
+AI-assisted coding is not the same as runtime AI. The shipped application is currently deterministic: market intake, grouping, target resolution, scores, synthesis copy, and research dispositions do not call an LLM or trained prediction service.
+
+Any pull request that adds runtime AI must:
+
+- identify the exact user-facing task and explain why deterministic logic is insufficient;
+- keep sourced evidence synthesis separate from numeric probability calibration;
+- declare provider, model, prompt version, structured response schema, and timeout behavior;
+- attach source references and observation timestamps to every generated research claim;
+- label AI-authored output visibly and preserve the deterministic fallback when the provider fails;
+- keep API credentials server-side and out of source, browser bundles, logs, exports, and screenshots;
+- add fixtures for valid, malformed, unsupported, contradictory, unavailable, and stale responses; and
+- evaluate factual grounding and regression behavior before enabling the feature by default.
+
+Runtime AI must never invent market or critic observations, silently overwrite deterministic scores, convert uncalibrated model text into a trade edge, weaken the exact-match fail-closed rule, or place a trade.
+
 ### Share research ideas
 
 Use the Saved Ideas export/import controls for lightweight teammate sharing. The file is versioned, contains research snapshots only, and never contains credentials or trade instructions.
@@ -57,3 +74,4 @@ Explain:
 - what remains illustrative or unconnected;
 - which verification commands and browser states were checked; and
 - whether Sites packaging or hosting behavior changed.
+- whether the change introduces runtime AI; if so, list its provider/model, prompt version, evidence contract, evaluation results, and deterministic fallback.
