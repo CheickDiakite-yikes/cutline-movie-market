@@ -151,6 +151,46 @@ a:focus-visible {
   gap: 8px;
 }
 
+.topbar-status {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.account-status {
+  min-width: 112px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  color: var(--ink);
+  text-align: right;
+  text-decoration: none;
+}
+
+.account-status span,
+.account-status strong {
+  max-width: 178px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: "Arial Narrow", "Helvetica Neue", sans-serif;
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+}
+
+.account-status strong {
+  font-size: 9px;
+}
+
+.account-status.device strong,
+.account-status.warning span {
+  color: var(--red);
+}
+
 .freshness-dot {
   width: 7px;
   height: 7px;
@@ -681,6 +721,11 @@ a:focus-visible {
 
 .pass-button {
   background: transparent;
+  color: #fff;
+}
+
+.pass-button.passed {
+  background: #2b2d28;
   color: #fff;
 }
 
@@ -1239,6 +1284,10 @@ a:focus-visible {
     display: none;
   }
 
+  .topbar-status {
+    display: none;
+  }
+
   .slate-strip {
     grid-template-columns: 1fr minmax(340px, 1fr);
   }
@@ -1519,6 +1568,12 @@ a:focus-visible {
   .mobile-saved-tab span {
     color: var(--red);
     font-size: 9px;
+  }
+
+  .mobile-saved-tab small {
+    color: #77776f;
+    font-size: 7px;
+    letter-spacing: 0.7px;
   }
 
   .mobile-saved-tab.active {

@@ -31,6 +31,11 @@ test("preserves a later disposition so skipped ideas can be revisited", () => {
   assert.equal(parseIdeasExport(JSON.stringify(payload))[0].disposition, "later");
 });
 
+test("preserves a passed disposition so a signed-in decision can be remembered", () => {
+  const payload = createIdeasExport([{ ...idea(), disposition: "passed" }], "2026-08-21T12:00:00Z");
+  assert.equal(parseIdeasExport(JSON.stringify(payload))[0].disposition, "passed");
+});
+
 test("defaults legacy saved ideas to research", () => {
   assert.equal(normalizeIdea(idea()).disposition, "research");
 });

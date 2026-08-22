@@ -3,6 +3,38 @@ import { access } from "node:fs/promises";
 import test from "node:test";
 import worker from "../worker/index.js";
 
+const authenticatedHeaders = (id, email = `${id}@example.test`) => ({
+  "oai-authenticated-user-id": id,
+  "oai-authenticated-user-email": email,
+});
+
+function createMemoryIdeaStore() {
+  const rows = new Map();
+  const key = (userId, eventTicker) => `${userId}:${eventTicker}`;
+  return {
+    async list(userId) {
+      return [...rows.entries()]
+        .filter(([rowKey]) => rowKey.startsWith(`${userId}:`))
+        .map(([, item]) => item);
+    },
+    async put(userId, idea) {
+      rows.set(key(userId, idea.eventTicker), idea);
+      return idea;
+    },
+    async remove(userId, eventTicker) {
+      rows.delete(key(userId, eventTicker));
+    },
+  };
+}
+
+const residentEvilIdea = (disposition = "research") => ({
+  id: "KXRT-RES-80",
+  eventTicker: "KXRT-RES",
+  movie: "Resident Evil",
+  threshold: 80,
+  disposition,
+});
+
 test("serves existing static assets without a fallback", async () => {
   const calls = [];
   const response = await worker.fetch(new Request("https://example.test/assets/app.js"), {
@@ -107,8 +139,91 @@ test("fails closed when Kalshi is unavailable", async () => {
   assert.equal((await response.json()).status, "unavailable");
 });
 
+test("reports an anonymous device session without accepting account reads", async () => {
+  const env = {
+    IDEAS_STORE: createMemoryIdeaStore(),
+    ASSETS: { fetch: async () => new Response("missing", { status: 404 }) },
+  };
+  const session = await worker.fetch(new Request("https://example.test/api/session"), env);
+  assert.deepEqual(await session.json(), {
+    authenticated: false,
+    user: null,
+    persistence: "device",
+  });
+
+  const ideas = await worker.fetch(new Request("https://example.test/api/ideas"), env);
+  assert.equal(ideas.status, 401);
+});
+
+test("stores Saved, Later, and Pass decisions per authenticated user", async () => {
+  const env = {
+    IDEAS_STORE: createMemoryIdeaStore(),
+    ASSETS: { fetch: async () => new Response("missing", { status: 404 }) },
+  };
+  for (const [userId, disposition] of [["friend-one", "later"], ["friend-two", "passed"]]) {
+    const response = await worker.fetch(
+      new Request("https://example.test/api/ideas/KXRT-RES", {
+        method: "PUT",
+        headers: { ...authenticatedHeaders(userId), "content-type": "application/json" },
+        body: JSON.stringify({ idea: residentEvilIdea(disposition) }),
+      }),
+      env,
+    );
+    assert.equal(response.status, 200);
+  }
+
+  const first = await worker.fetch(
+    new Request("https://example.test/api/ideas", { headers: authenticatedHeaders("friend-one") }),
+    env,
+  );
+  const second = await worker.fetch(
+    new Request("https://example.test/api/ideas", { headers: authenticatedHeaders("friend-two") }),
+    env,
+  );
+  assert.equal((await first.json()).items[0].disposition, "later");
+  assert.equal((await second.json()).items[0].disposition, "passed");
+});
+
+test("validates account idea writes and lets only the owner remove them", async () => {
+  const env = {
+    IDEAS_STORE: createMemoryIdeaStore(),
+    ASSETS: { fetch: async () => new Response("missing", { status: 404 }) },
+  };
+  const invalid = await worker.fetch(
+    new Request("https://example.test/api/ideas/KXRT-RES", {
+      method: "PUT",
+      headers: { ...authenticatedHeaders("friend-one"), "content-type": "application/json" },
+      body: JSON.stringify({ idea: { ...residentEvilIdea(), eventTicker: "KXRT-OTHER" } }),
+    }),
+    env,
+  );
+  assert.equal(invalid.status, 400);
+
+  await worker.fetch(
+    new Request("https://example.test/api/ideas/KXRT-RES", {
+      method: "PUT",
+      headers: { ...authenticatedHeaders("friend-one"), "content-type": "application/json" },
+      body: JSON.stringify({ idea: residentEvilIdea() }),
+    }),
+    env,
+  );
+  await worker.fetch(
+    new Request("https://example.test/api/ideas/KXRT-RES", {
+      method: "DELETE",
+      headers: authenticatedHeaders("friend-two"),
+    }),
+    env,
+  );
+  const ownerIdeas = await worker.fetch(
+    new Request("https://example.test/api/ideas", { headers: authenticatedHeaders("friend-one") }),
+    env,
+  );
+  assert.equal((await ownerIdeas.json()).items.length, 1);
+});
+
 test("emits the files required by Sites packaging", async () => {
   await access(new URL("../dist/client/index.html", import.meta.url));
   await access(new URL("../dist/server/index.js", import.meta.url));
   await access(new URL("../dist/.openai/hosting.json", import.meta.url));
+  await access(new URL("../dist/.openai/drizzle/0000_wild_kat_farrell.sql", import.meta.url));
 });

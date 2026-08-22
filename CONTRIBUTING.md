@@ -24,6 +24,7 @@ For visible UI changes, also inspect:
 - configured, snapshot-enriched, and baseline automatic score-rationale states, especially imputed or unavailable signals;
 - Above 75 / 80 / 85 switching;
 - Save, Later, Review, Remove, Pass, and Saved Ideas navigation;
+- signed-in `SYNC` and anonymous `DEVICE` labels without leaking one user's ideas into another account;
 - left-to-pass, right-to-save, and keyboard-equivalent deck movement; and
 - browser console warnings and errors.
 
@@ -63,7 +64,11 @@ Runtime AI must never invent market or critic observations, silently overwrite d
 
 ### Share research ideas
 
-Use the Saved Ideas export/import controls for lightweight teammate sharing. The file is versioned, contains research snapshots only, and never contains credentials or trade instructions.
+Signed-in Sites users receive private Saved, Later, and Pass state through the platform identity headers and D1. Never trust a client-supplied user ID, expose the D1 binding to the browser, or turn personal state into shared team state without an explicit authorization model. Anonymous local and public visitors use the labeled device-only fallback.
+
+Use the Saved Ideas export/import controls for intentional teammate sharing. The file is versioned, contains research snapshots only, omits Pass decisions, and never contains credentials or trade instructions.
+
+When changing `db/schema.ts`, run `npm run db:generate`, inspect the SQL under `drizzle/`, and commit both the schema and generated migration. Keep one SQL statement per prepared D1 query and use batches when runtime initialization needs multiple statements.
 
 ## Pull-request notes
 

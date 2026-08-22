@@ -64,13 +64,19 @@ worker /api/kalshi/markets -------------->+
   - explicit unavailable response on failure
                                            |
                                            v
-                              Saved Ideas in localStorage
-                                           |
-                                           v
+                                  signed-in session?
+                                   /             \
+                                  v               v
+                     Sites identity headers    guest device state
+                                  |               |
+                                  v               v
+                        D1 private user ideas   localStorage
+                                  \               /
+                                   v             v
                                 versioned JSON export/import
 ```
 
-The historical, enrichment, and critic pipelines are deterministic offline batches. The Sites worker is the only live server boundary: it serves static assets, provides SPA fallback, and proxies a fixed unauthenticated Kalshi market-data request. It does not accept arbitrary upstream URLs, store credentials, or place trades.
+The historical, enrichment, and critic pipelines are deterministic offline batches. The Sites worker is the only live server boundary: it serves static assets, provides SPA fallback, proxies a fixed unauthenticated Kalshi market-data request, and exposes owner-scoped idea APIs. Sites supplies identity headers after ChatGPT sign-in; the browser never chooses the user ID. The worker does not accept arbitrary upstream URLs, store credentials, expose one user's records to another, or place trades.
 
 ## Multi-movie lifecycle
 
@@ -119,8 +125,10 @@ Target metadata comes only from the audited February 17, 2026 snapshot. The targ
 | Critic benchmark artifact | `src/data/critic-benchmark.json` |
 | Kalshi response normalization | `src/lib/kalshi.js` |
 | Saved Ideas file contract | `src/lib/ideas.js` |
+| Account synchronization client | `src/lib/account.js` |
 | Product UI and interactions | `src/App.jsx` and `src/styles.css` |
-| Sites runtime and Kalshi proxy | `worker/index.js` |
+| Sites runtime, identity boundary, idea API, and Kalshi proxy | `worker/index.js` |
+| D1 schema and migrations | `db/schema.ts` and `drizzle/` |
 | Sites packaging | `scripts/prepare-sites-build.mjs` |
 | Prototype constraints | `AGENTS.md` and `CLAUDE.md` |
 
@@ -136,16 +144,18 @@ Target metadata comes only from the audited February 17, 2026 snapshot. The targ
 - The critic benchmark remains descriptive until a larger identifier crosswalk and forward-time validation succeed.
 - Missing target data reduces coverage. A documented global-baseline imputation may be shown only with sample `n=0`, its factor contribution, and an enrichment-pending label.
 - No runtime path places orders or accepts brokerage credentials.
+- Signed-in Saved, Later, and Pass records are keyed from `oai-authenticated-user-id`; missing identity fails closed for account API routes.
+- Anonymous decisions remain explicitly device-only. Pass records are retained for deck continuity but excluded from the Saved view and JSON exports.
 
 ## Portability
 
 ### Sites
 
-`npm run build` writes Vite assets into `dist/client`, then copies the worker and hosting binding into the Sites layout. `tests/sites-worker.test.mjs` protects static asset handling, SPA fallback, the scoped Kalshi endpoint, fail-closed upstream behavior, and required artifacts.
+`npm run build` writes Vite assets into `dist/client`, then copies the worker, hosting binding, and generated D1 migrations into the Sites layout. `tests/sites-worker.test.mjs` protects static asset handling, SPA fallback, the scoped Kalshi endpoint, fail-closed upstream behavior, authenticated idea isolation, validation, and required artifacts.
 
 ### Other hosts
 
-Any host can serve `dist/client` with an SPA fallback. To preserve live markets, it must also implement the fixed `/api/kalshi/markets` boundary or an equivalent trusted server-side adapter. Without that adapter, the application remains useful for checked-in historical research but labels the market layer stale or unavailable.
+Any host can serve `dist/client` with an SPA fallback. To preserve live markets, it must implement the fixed `/api/kalshi/markets` boundary or an equivalent trusted server-side adapter. To preserve per-user sync, it must replace Sites identity headers and D1 with an authenticated, owner-scoped implementation of `/api/session` and `/api/ideas`. Without those adapters, the application remains useful for checked-in historical research, labels the market layer stale or unavailable, and uses the device-only guest persistence mode.
 
 ### Claude Code and local development
 
@@ -158,7 +168,7 @@ The repository uses standard React, Vite, Node, and Python files. Vite proxies `
 3. **Forward calibration** — recreate each film's features as of its release date and validate threshold probabilities chronologically.
 4. **Early-signal collectors** — collect trailer, search, and social observations with provider, query, geography, window, and timestamp.
 5. **Versioned scoring service** — return feature versions, model versions, contributions, samples, freshness, specificity, and unavailable fields.
-6. **Authenticated idea store** — add shared persistence only after identity and access requirements are defined; preserve portable JSON files.
+6. **Opt-in shared idea workspaces** — personal account persistence is connected. Add cross-user collaboration only after roles, invitations, ownership, and deletion requirements are defined; preserve portable JSON files.
 7. **Scheduler and alerts** — recompute after validated source changes and notify only under explicit user rules.
 
 Every future live response should carry:

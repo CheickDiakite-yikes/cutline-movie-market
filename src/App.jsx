@@ -9,6 +9,12 @@ import criticBenchmark from "./data/critic-benchmark.json";
 import targetEnrichment from "./data/target-enrichment.json";
 import { buildAutomaticModel } from "./lib/automatic-model.js";
 import {
+  fetchAccountIdeas,
+  fetchAccountSession,
+  removeAccountIdea,
+  upsertAccountIdea,
+} from "./lib/account.js";
+import {
   chooseThresholds,
   fetchKalshiSlate,
   groupKalshiEvents,
@@ -57,6 +63,14 @@ const hydrateIdeas = (items) =>
       talentPrior: item.talentPrior > 0 ? item.talentPrior : model.scores.talentPrior.value,
     };
   });
+
+const readDeviceIdeas = () => {
+  try {
+    return hydrateIdeas(JSON.parse(window.localStorage.getItem(IDEA_STORAGE_KEY)) || []);
+  } catch {
+    return [];
+  }
+};
 
 const displayScore = (value) => (typeof value === "number" ? Math.round(value) : "—");
 const money = (value) => (value ? `$${Math.round(value / 1_000_000)}M` : "N/A");
@@ -298,7 +312,29 @@ function createLiveScore(liveConnected, liveCached, liveState, criticCount, crit
   };
 }
 
-function Header({ view, setView, savedCount, liveState, position, total }) {
+function AccountStatus({ account }) {
+  const localHost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+  if (account.status === "loading") {
+    return <div className="account-status loading"><span>ACCOUNT</span><strong>CHECKING</strong></div>;
+  }
+  if (account.status === "signedIn") {
+    return (
+      <a className={account.syncError ? "account-status warning" : "account-status"} href="/signout-with-chatgpt?return_to=/" title="Sign out of Cutline">
+        <span>{account.syncError ? "SYNC PENDING" : "ACCOUNT SYNC"}</span>
+        <strong>{account.user?.name || account.user?.email || "SIGNED IN"}</strong>
+      </a>
+    );
+  }
+  return localHost ? (
+    <div className="account-status device"><span>LOCAL PREVIEW</span><strong>DEVICE ONLY</strong></div>
+  ) : (
+    <a className="account-status device" href="/signin-with-chatgpt?return_to=/">
+      <span>GUEST · DEVICE ONLY</span><strong>SIGN IN TO SYNC</strong>
+    </a>
+  );
+}
+
+function Header({ view, setView, savedCount, liveState, position, total, account }) {
   const freshness =
     liveState.status === "live"
       ? `KALSHI LIVE · ${compactDate(liveState.slate?.source?.observedAt)}`
@@ -313,16 +349,19 @@ function Header({ view, setView, savedCount, liveState, position, total }) {
           <span className="brand-sub">MOVIE MARKET INTELLIGENCE</span>
         </button>
         <button className={view === "saved" ? "mobile-saved-tab active" : "mobile-saved-tab"} onClick={() => setView("saved")}>
-          Saved <span>{String(savedCount).padStart(2, "0")}</span>
+          Saved <span>{String(savedCount).padStart(2, "0")}</span><small>{account.status === "signedIn" ? "SYNC" : "DEVICE"}</small>
         </button>
       </div>
       <nav className="primary-nav" aria-label="Primary navigation">
         <button className={view === "scout" ? "nav-link nav-scout active" : "nav-link nav-scout"} onClick={() => setView("scout")}>Scout</button>
         <button className={view === "saved" ? "nav-link nav-saved active" : "nav-link nav-saved"} onClick={() => setView("saved")}>Saved ideas <span className="nav-count">{String(savedCount).padStart(2, "0")}</span></button>
       </nav>
-      <div className={`freshness ${liveState.status}`}>
-        <span className="freshness-dot" aria-hidden="true" />
-        {freshness}
+      <div className="topbar-status">
+        <AccountStatus account={account} />
+        <div className={`freshness ${liveState.status}`}>
+          <span className="freshness-dot" aria-hidden="true" />
+          {freshness}
+        </div>
       </div>
       <div className="mobile-progress" aria-label={view === "scout" ? `Trade idea ${position} of ${total}` : `${savedCount} saved ideas`}>
         {view === "scout" ? <><strong>{String(position).padStart(2, "0")}</strong><span>/</span>{String(total).padStart(2, "0")}</> : <><strong>{String(savedCount).padStart(2, "0")}</strong><span>SAVED</span></>}
@@ -509,7 +548,7 @@ function MobileSwipeCard({
     setDragX(direction === "right" ? window.innerWidth * 1.15 : window.innerWidth * -1.15);
     animationTimerRef.current = window.setTimeout(() => {
       if (direction === "right") onSave({ threshold, market });
-      else onPass();
+      else onPass({ threshold, market });
       onAdvance(1);
       setDragX(0);
       setIsAnimating(false);
@@ -706,7 +745,7 @@ function ScoutView({ event, model, events, liveState, scoreDetails, ideaDisposit
           <div className="decision-actions">
             <button className={ideaDisposition === "research" ? "save-button saved" : "save-button"} onClick={() => onSave({ threshold, market })}>{ideaDisposition === "research" ? "Idea saved" : "Save research idea"}</button>
             <button className={ideaDisposition === "later" ? "later-button deferred" : "later-button"} onClick={() => onLater({ threshold, market })}>{ideaDisposition === "later" ? "Saved for later" : "Come back later"}</button>
-            <button className="pass-button" onClick={onPass}>Pass for now</button>
+            <button className={ideaDisposition === "passed" ? "pass-button passed" : "pass-button"} onClick={() => onPass({ threshold, market })}>{ideaDisposition === "passed" ? "Passed · revisit" : "Pass for now"}</button>
           </div>
         </aside>
       </section>
@@ -743,7 +782,7 @@ function SavedView({ items, onOpenScout, onReview, onRemove, onExport, onImport 
               <div className="idea-stat"><strong>{displayScore(item.historicalFit)}</strong><span>FIT / 100</span></div>
               <div className="idea-stat"><strong>{item.marketSnapshot?.lastPrice != null ? `${item.marketSnapshot.lastPrice}¢` : "—"}</strong><span>SAVED LAST TRADE</span></div>
               <div className={item.disposition === "later" ? "idea-status later" : "idea-status"}><span>{item.disposition === "later" ? "LATER" : "RESEARCH"}</span><small>SAVED {compactDate(item.savedAt)}</small></div>
-              <div className="idea-row-actions"><button className="review-idea" onClick={() => onReview(item)}>Review</button><button className="remove-idea" onClick={() => onRemove(item.id)}>Remove</button></div>
+              <div className="idea-row-actions"><button className="review-idea" onClick={() => onReview(item)}>Review</button><button className="remove-idea" onClick={() => onRemove(item)}>Remove</button></div>
             </article>
           ))}
         </section>
@@ -807,13 +846,8 @@ export function App() {
   const [view, setView] = useState("scout");
   const [selectedEventTicker, setSelectedEventTicker] = useState(DEFAULT_EVENT);
   const [scoreKey, setScoreKey] = useState(null);
-  const [savedItems, setSavedItems] = useState(() => {
-    try {
-      return hydrateIdeas(JSON.parse(window.localStorage.getItem(IDEA_STORAGE_KEY)) || []);
-    } catch {
-      return [];
-    }
-  });
+  const [savedItems, setSavedItems] = useState(readDeviceIdeas);
+  const [account, setAccount] = useState({ status: "loading", user: null, syncError: false });
   const [toast, setToast] = useState("");
 
   const events = useMemo(() => {
@@ -851,11 +885,48 @@ export function App() {
   const model = useMemo(() => resolveModel(selectedEvent), [selectedEvent]);
   const scoreDetails = useMemo(() => buildScoreDetails(model, liveState), [model, liveState]);
   const selectedIdea = savedItems.find((item) => item.eventTicker === selectedEvent?.eventTicker) || null;
+  const visibleIdeas = savedItems.filter((item) => item.disposition !== "passed");
   const selectedPosition = Math.max(1, events.findIndex((item) => item.eventTicker === selectedEvent?.eventTicker) + 1);
 
   useEffect(() => {
-    window.localStorage.setItem(IDEA_STORAGE_KEY, JSON.stringify(savedItems));
-  }, [savedItems]);
+    let active = true;
+    const connectAccount = async () => {
+      try {
+        const session = await fetchAccountSession();
+        if (!active) return;
+        if (!session.authenticated) {
+          setAccount({ status: "guest", user: null, syncError: false });
+          return;
+        }
+        const guestItems = readDeviceIdeas();
+        const serverItems = hydrateIdeas(await fetchAccountIdeas());
+        const migratedItems = [];
+        let syncError = false;
+        for (const item of guestItems) {
+          try {
+            migratedItems.push(...hydrateIdeas([await upsertAccountIdea(item)]));
+          } catch {
+            syncError = true;
+          }
+        }
+        if (!active) return;
+        const merged = mergeIdeas(serverItems, syncError ? guestItems : migratedItems);
+        setSavedItems(merged);
+        if (!syncError) window.localStorage.removeItem(IDEA_STORAGE_KEY);
+        setAccount({ status: "signedIn", user: session.user, syncError });
+      } catch {
+        if (!active) return;
+        setAccount({ status: "guest", user: null, syncError: true });
+      }
+    };
+    connectAccount();
+    return () => { active = false; };
+  }, []);
+  useEffect(() => {
+    if (account.status !== "signedIn") {
+      window.localStorage.setItem(IDEA_STORAGE_KEY, JSON.stringify(savedItems));
+    }
+  }, [account.status, savedItems]);
   useEffect(() => {
     const handleKey = (event) => event.key === "Escape" && setScoreKey(null);
     window.addEventListener("keydown", handleKey);
@@ -893,21 +964,50 @@ export function App() {
       savedAt: new Date().toISOString(),
     };
     setSavedItems((items) => [item, ...items.filter((existing) => existing.eventTicker !== item.eventTicker)]);
-    announce(disposition === "later" ? "Saved for later · return from Saved" : "Research idea saved · no trade placed");
+    if (account.status === "signedIn") {
+      upsertAccountIdea(item).catch(() => {
+        const pending = mergeIdeas([item], readDeviceIdeas());
+        window.localStorage.setItem(IDEA_STORAGE_KEY, JSON.stringify(pending));
+        setAccount((current) => ({ ...current, syncError: true }));
+        announce("Account sync paused · decision backed up on this device");
+      });
+    }
+    announce(
+      disposition === "later"
+        ? "Saved for later · return from Saved"
+        : disposition === "passed"
+          ? "Passed for now · decision remembered"
+          : "Research idea saved · no trade placed",
+    );
   };
 
   const saveIdea = (idea) => rememberIdea(idea, "research");
   const saveForLater = (idea) => rememberIdea(idea, "later");
+  const passIdea = (idea) => rememberIdea(idea, "passed");
+
+  const removeIdea = async (item) => {
+    if (account.status === "signedIn") {
+      try {
+        await removeAccountIdea(item.eventTicker);
+      } catch {
+        setAccount((current) => ({ ...current, syncError: true }));
+        announce("Could not remove this idea from account sync");
+        return;
+      }
+    }
+    setSavedItems((items) => items.filter((candidate) => candidate.eventTicker !== item.eventTicker));
+    announce("Idea removed");
+  };
 
   const exportIdeas = () => {
-    const payload = createIdeasExport(savedItems);
+    const payload = createIdeasExport(visibleIdeas);
     const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
     const anchor = document.createElement("a");
     anchor.href = url;
     anchor.download = `cutline-ideas-${new Date().toISOString().slice(0, 10)}.json`;
     anchor.click();
     URL.revokeObjectURL(url);
-    announce(`Exported ${savedItems.length} research idea${savedItems.length === 1 ? "" : "s"}`);
+    announce(`Exported ${visibleIdeas.length} research idea${visibleIdeas.length === 1 ? "" : "s"}`);
   };
 
   const importIdeas = async (event) => {
@@ -916,7 +1016,17 @@ export function App() {
     if (!file) return;
     try {
       const imported = parseIdeasExport(await file.text());
-      setSavedItems((items) => mergeIdeas(items, hydrateIdeas(imported)));
+      const hydrated = hydrateIdeas(imported);
+      setSavedItems((items) => mergeIdeas(items, hydrated));
+      if (account.status === "signedIn") {
+        const results = await Promise.allSettled(hydrated.map(upsertAccountIdea));
+        if (results.some((result) => result.status === "rejected")) {
+          window.localStorage.setItem(IDEA_STORAGE_KEY, JSON.stringify(hydrated));
+          setAccount((current) => ({ ...current, syncError: true }));
+          announce("Imported locally · some account sync writes are pending");
+          return;
+        }
+      }
       announce(`Imported ${imported.length} research idea${imported.length === 1 ? "" : "s"}`);
     } catch (error) {
       announce(error.message);
@@ -932,9 +1042,9 @@ export function App() {
 
   return (
     <div className="app-shell">
-      <Header view={view} setView={setView} savedCount={savedItems.length} liveState={liveState} position={selectedPosition} total={events.length} />
+      <Header view={view} setView={setView} savedCount={visibleIdeas.length} liveState={liveState} position={selectedPosition} total={events.length} account={account} />
       {view === "saved" ? (
-        <SavedView items={savedItems} onOpenScout={() => setView("scout")} onReview={(item) => { setSelectedEventTicker(item.eventTicker); setView("scout"); }} onRemove={(id) => setSavedItems((items) => items.filter((item) => item.id !== id))} onExport={exportIdeas} onImport={importIdeas} />
+        <SavedView items={visibleIdeas} onOpenScout={() => setView("scout")} onReview={(item) => { setSelectedEventTicker(item.eventTicker); setView("scout"); }} onRemove={removeIdea} onExport={exportIdeas} onImport={importIdeas} />
       ) : (
         <>
           <SlateStrip
@@ -945,7 +1055,7 @@ export function App() {
             enrichedCount={events.filter((event) => !MODEL_BY_EVENT.has(event.eventTicker) && isEnrichedModel(resolveModel(event))).length}
             liveState={liveState}
           />
-          <ScoutView event={selectedEvent} model={model} events={events} liveState={liveState} scoreDetails={scoreDetails} ideaDisposition={selectedIdea?.disposition || null} onSave={saveIdea} onLater={saveForLater} onPass={() => announce("Passed for now · moved to the next live market")} onAdvance={advanceEvent} onOpenScore={setScoreKey} />
+          <ScoutView event={selectedEvent} model={model} events={events} liveState={liveState} scoreDetails={scoreDetails} ideaDisposition={selectedIdea?.disposition || null} onSave={saveIdea} onLater={saveForLater} onPass={passIdea} onAdvance={advanceEvent} onOpenScore={setScoreKey} />
         </>
       )}
       {scoreKey && <ScoreDrawer scoreKey={scoreKey} scoreDetails={scoreDetails} model={model} liveState={liveState} onClose={() => setScoreKey(null)} />}

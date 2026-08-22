@@ -14,7 +14,7 @@ export function normalizeIdea(item) {
     eventTicker,
     movie,
     threshold,
-    disposition: item.disposition === "later" ? "later" : "research",
+    disposition: ["later", "passed"].includes(item.disposition) ? item.disposition : "research",
     marketUrl: item.marketUrl || null,
     artwork: item.artwork || null,
     releaseLabel: item.releaseLabel || null,

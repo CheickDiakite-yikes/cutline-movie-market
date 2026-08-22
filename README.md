@@ -75,7 +75,7 @@ The current prototype supports a repeatable multi-movie research loop:
 3. **Inspect the evidence.** Open Historical fit, Live heat, Talent prior, or Data coverage to trace the underlying evidence and source status.
 4. **Read the synthesis.** Cutline explains what the historical and critic layers support and what they cannot yet conclude.
 5. **Make a research decision.** Save the idea, pass, or hold it for Later without placing a trade. Later items appear in Saved Ideas with a Review action that returns to the original market.
-6. **Share research.** Saved Ideas persist locally and can be exported or merged from a versioned teammate JSON file.
+6. **Keep decisions personal.** On Sites, sign in with ChatGPT to sync Saved, Later, and Pass decisions to your own account. Anonymous guests remain device-only. JSON export/import stays available for portable research handoffs.
 
 ### Current test case
 
@@ -105,8 +105,9 @@ The first end-to-end case is the Kalshi market for whether **Resident Evil** fin
 | Rotten Tomatoes critic outcomes | Connected as a benchmark | 278 eligible labels from a July 18, 2025 snapshot |
 | Critic probability calibration | Not validated | Only 12 exact title/year joins; no probability is produced |
 | Trailer, search, and social indicators | Not connected | No placeholder values are produced |
-| Saved and Later Ideas | Connected locally and portable | Browser `localStorage` plus versioned JSON export/import |
-| Team accounts and shared idea storage | Not connected | No authentication or database exists yet |
+| Saved, Later, and Pass decisions | Connected per signed-in user | Sites user identity plus a D1 account store |
+| Anonymous guest decisions | Connected on one browser profile | Clearly labeled device-only `localStorage` fallback |
+| Portable idea sharing | Connected | Versioned JSON export/import; exports omit Pass decisions |
 | Trade execution | Intentionally unsupported | Decision support only |
 
 This boundary is deliberate. Missing target features are either unavailable or explicitly imputed from the audited global baseline with sample `n=0` and reduced coverage. They are never silently presented as verified movie-specific evidence.
@@ -226,21 +227,26 @@ flowchart LR
     F --> G
     H[Kalshi public market API] --> I[Scoped Sites worker adapter]
     I --> G
-    G --> J[Saved Ideas local storage]
-    J --> K[Versioned JSON export / import]
+    G --> J{Signed in?}
+    J -->|yes| Q[Sites identity headers]
+    Q --> R[D1 user idea store]
+    J -->|no| S[Device-only local storage]
+    R --> K[Versioned JSON export / import]
+    S --> K
 
     L[Trailer / search / social] -. not connected .-> G
 ```
 
-Cutline currently has five backend-like surfaces:
+Cutline currently has six backend-like surfaces:
 
 1. `scripts/historical_model.py` is the configuration-driven TMDB batch scoring layer.
 2. `scripts/automatic_prior.py` creates the reproducible hierarchical fallback used for every unconfigured live event.
 3. `scripts/target_enrichment.py` generates the conservative upcoming-title, genre, artwork, and talent-join catalog.
 4. `scripts/critic_outcomes.py` audits critic labels and proves why calibration remains unavailable.
-5. `worker/index.js` serves Sites assets, browser-route fallbacks, and a scoped read-only Kalshi market adapter.
+5. `worker/index.js` serves Sites assets, browser-route fallbacks, a scoped read-only Kalshi market adapter, and authenticated per-user idea APIs.
+6. Sites dispatch supplies ChatGPT identity headers; D1 stores each signed-in user's Saved, Later, and Pass state under that stable Site-specific user ID.
 
-There is no authenticated team database, live target-metadata provider, calibrated critic model, or trade-execution service. Snapshot matching and historical scoring run deterministically for every refreshed event. Recommended service boundaries are documented in [docs/architecture.md](docs/architecture.md).
+There is no shared team workspace, collaboration feed, live target-metadata provider, calibrated critic model, or trade-execution service. One user's ideas are intentionally private to that user; JSON export/import remains the explicit sharing mechanism. Snapshot matching and historical scoring run deterministically for every refreshed event. Recommended service boundaries are documented in [docs/architecture.md](docs/architecture.md).
 
 ## Repository map
 
@@ -248,6 +254,8 @@ There is no authenticated team database, live target-metadata provider, calibrat
 cutline-movie-market/
 ├── .github/workflows/ci.yml       # GitHub verification on pushes and PRs
 ├── .openai/hosting.json           # Canonical Sites project binding
+├── db/schema.ts                   # D1 user-idea schema source
+├── drizzle/                       # Generated, checked-in D1 migrations
 ├── config/
 │   ├── data-sources.json          # Source versions, rights, checksums, runtime boundaries
 │   └── markets/*.json             # One reviewed definition per modeled movie
@@ -255,7 +263,7 @@ cutline-movie-market/
 ├── src/
 │   ├── App.jsx                    # Scout, score drawers, decisions, Saved Ideas
 │   ├── styles.css                 # Editorial cinematic design system
-│   ├── lib/                       # Kalshi, automatic-model, and portable idea contracts
+│   ├── lib/                       # Kalshi, account, automatic-model, and portable idea contracts
 │   └── data/
 │       ├── automatic-prior.json   # Generated global/month/title-family historical prior
 │       ├── target-enrichment.json # Generated upcoming-title, genre, art, and talent catalog
@@ -326,6 +334,7 @@ npm test
 | `npm run data:critic` | Rebuild the critic benchmark from its existing raw CSV |
 | `npm run data:verify` | Recompute every artifact and compare it with the committed version |
 | `npm run data:download` | Download both audited snapshots, verify checksums, rebuild, and compare |
+| `npm run db:generate` | Generate a reviewed D1 migration from `db/schema.ts` |
 
 ## Rebuilding data artifacts
 
@@ -376,13 +385,21 @@ The build must emit:
 dist/client/index.html
 dist/server/index.js
 dist/.openai/hosting.json
+dist/.openai/drizzle/*.sql
 ```
 
-`.openai/hosting.json` points to the canonical Cutline Sites project. Teammates should create or select their own Sites project before publishing a fork. Do not overwrite the canonical deployment without explicit authorization.
+`.openai/hosting.json` points to the canonical Cutline Sites project and declares the logical `DB` binding. Sites owns the physical database and applies checked-in migrations during deployment. Teammates should create or select their own Sites project before publishing a fork. Do not overwrite the canonical deployment without explicit authorization.
+
+The public Site supports two truthful persistence modes:
+
+- **Signed in with ChatGPT:** Sites forwards a stable Site-specific user ID to the worker, and Cutline stores that user's Saved, Later, and Pass decisions in D1. API routes never accept a user ID from browser JSON.
+- **Guest:** Cutline stores decisions only in that browser profile and labels the state `DEVICE`. Signing in enables account sync; ordinary local Vite development deliberately exercises the guest boundary.
+
+Account sync is personal, not collaborative: friends do not see one another's ideas. Use the versioned export/import flow when a teammate intentionally wants to share a research snapshot.
 
 ### Other hosts
 
-The frontend can run anywhere that serves `dist/client` and routes unknown browser paths back to `index.html`. The historical and critic artifacts are compiled into small JSON assets, so production does not need a long-running Python process. To retain live Kalshi data, another host must also implement the same read-only `/api/kalshi/markets` HTTP boundary or an equivalent trusted server-side adapter; otherwise the interface fails closed to cached or unavailable market state.
+The frontend can run anywhere that serves `dist/client` and routes unknown browser paths back to `index.html`. The historical and critic artifacts are compiled into small JSON assets, so production does not need a long-running Python process. To retain live Kalshi data, another host must implement the same read-only `/api/kalshi/markets` boundary or an equivalent trusted server-side adapter. To retain account sync, it must also replace the Sites identity headers and D1 binding with an authenticated, owner-scoped implementation of `/api/session` and `/api/ideas`; otherwise Cutline truthfully remains in device-only guest mode.
 
 ### Claude Code, Codex, and ordinary editors
 
@@ -406,7 +423,7 @@ Recommended next layers:
 4. **Early-signal jobs** — collect trailer, search, and social observations with provider, query, geography, window, and freshness metadata.
 5. **AI evidence synthesis** — convert only sourced observations into structured themes and explanations with provider, model, prompt version, citations, freshness, and deterministic fallback. Keep this separate from probability calibration.
 6. **Scoring service** — version feature definitions, weights, transformations, and contribution traces across multiple configured movies.
-7. **Team idea store** — replace local browser storage only after identity and access rules are defined; retain JSON export/import for portability.
+7. **Opt-in shared workspaces** — add team-visible collections only after roles, invitations, ownership, and deletion rules are defined. Personal account ideas remain private by default.
 8. **Scheduler and alerts** — refresh markets and recompute validated features under explicit user rules.
 
 Every live response should preserve at least:
@@ -444,10 +461,12 @@ The current suite verifies:
 - Kalshi price normalization and live-source grouping;
 - automatic model generation for previously unconfigured events, including title-family shrinkage and price independence;
 - deterministic behavior without a hidden runtime AI dependency;
-- Saved Ideas migration, export, import, and deduplication;
+- Saved Ideas migration, export, import, deduplication, and Pass-state preservation;
+- anonymous-vs-authenticated account boundaries and cross-user isolation;
+- validated, owner-scoped idea writes and deletes;
 - Sites asset serving and SPA fallbacks;
 - scoped Kalshi proxy success and fail-closed behavior; and
-- required Sites packaging files.
+- required Sites packaging files, including D1 migrations.
 
 Visible UI changes should also be checked in a real browser at the 1440 × 900 desktop target and the 390 × 844 mobile target, including threshold switching, score drawers, Save, Later, Review, Remove, Pass, Saved navigation, swipe or keyboard-equivalent movement, layout overflow, and console errors.
 
