@@ -159,7 +159,7 @@ Any host can serve `dist/client` with an SPA fallback. To preserve live markets,
 
 ### Claude Code and local development
 
-The repository uses standard React, Vite, Node, and Python files. Vite proxies `/api/kalshi/markets` to Kalshi's public endpoint in local development. Claude Code or another agent can work directly from the repository without a Sites-specific local runtime.
+The repository uses standard React, Vite, Node, and Python files. Vite proxies `/api/kalshi/markets` to Kalshi's public endpoint in local development. In Sites, the worker shares a successful response across visitors for 60 seconds, tries Kalshi's officially supported compatibility host when the recommended host is rate-limited, and can expose a successful cached slate as stale for up to 15 minutes only when both upstream hosts fail. Claude Code or another agent can work directly from the repository without a Sites-specific local runtime.
 
 ## Next service boundaries
 

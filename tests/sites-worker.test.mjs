@@ -27,6 +27,18 @@ function createMemoryIdeaStore() {
   };
 }
 
+function createMemoryResponseCache() {
+  const responses = new Map();
+  return {
+    async match(request) {
+      return responses.get(request.url)?.clone() || null;
+    },
+    async put(request, response) {
+      responses.set(request.url, response.clone());
+    },
+  };
+}
+
 const residentEvilIdea = (disposition = "research") => ({
   id: "KXRT-RES-80",
   eventTicker: "KXRT-RES",
@@ -111,7 +123,54 @@ test("proxies only the public Kalshi movie-market slate with freshness metadata"
   assert.equal(response.headers.get("cache-control"), "public, max-age=15, stale-while-revalidate=45");
   const payload = await response.json();
   assert.equal(payload.source.provider, "Kalshi public market API");
+  assert.equal(payload.source.upstreamHost, "external-api.kalshi.com");
   assert.equal(payload.markets[0].ticker, "KXRT-RES-80");
+});
+
+test("uses Kalshi's supported compatibility host when the primary host is rate limited", async () => {
+  const upstreamUrls = [];
+  const response = await worker.fetch(new Request("https://example.test/api/kalshi/markets"), {
+    KALSHI_FETCH: async (url) => {
+      upstreamUrls.push(url);
+      if (new URL(url).host === "external-api.kalshi.com") {
+        return new Response("rate limited", { status: 429 });
+      }
+      return Response.json({
+        cursor: "",
+        markets: [{ ticker: "KXRT-VER-80", event_ticker: "KXRT-VER", floor_strike: 80 }],
+      });
+    },
+    ASSETS: { fetch: async () => new Response("missing", { status: 404 }) },
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(upstreamUrls.length, 2);
+  const payload = await response.json();
+  assert.equal(payload.source.upstreamHost, "api.elections.kalshi.com");
+  assert.equal(payload.markets[0].event_ticker, "KXRT-VER");
+});
+
+test("reuses a fresh server-side Kalshi response instead of polling upstream per visitor", async () => {
+  let upstreamCalls = 0;
+  const env = {
+    KALSHI_CACHE: createMemoryResponseCache(),
+    KALSHI_FETCH: async () => {
+      upstreamCalls += 1;
+      return Response.json({
+        cursor: "",
+        markets: [{ ticker: "KXRT-DIG-75", event_ticker: "KXRT-DIG", floor_strike: 75 }],
+      });
+    },
+    ASSETS: { fetch: async () => new Response("missing", { status: 404 }) },
+  };
+
+  const first = await worker.fetch(new Request("https://example.test/api/kalshi/markets"), env);
+  const second = await worker.fetch(new Request("https://example.test/api/kalshi/markets"), env);
+
+  assert.equal(first.status, 200);
+  assert.equal(second.status, 200);
+  assert.equal(upstreamCalls, 1);
+  assert.equal((await second.json()).markets[0].event_ticker, "KXRT-DIG");
 });
 
 test("forwards only an encoded Kalshi cursor when the client paginates", async () => {

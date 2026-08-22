@@ -1,5 +1,9 @@
-const KALSHI_MARKETS_URL =
-  "https://external-api.kalshi.com/trade-api/v2/markets?series_ticker=KXRT&status=open&limit=200";
+const KALSHI_MARKETS_URLS = [
+  "https://external-api.kalshi.com/trade-api/v2/markets?series_ticker=KXRT&status=open&limit=200",
+  "https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXRT&status=open&limit=200",
+];
+const KALSHI_CACHE_FRESH_MS = 60_000;
+const KALSHI_CACHE_STALE_SECONDS = 15 * 60;
 
 const CREATE_USER_IDEAS_SQL = `CREATE TABLE IF NOT EXISTS user_ideas (
   user_id TEXT NOT NULL,
@@ -216,50 +220,119 @@ async function handleAccountApi(request, env, url) {
   return json({ status: "method not allowed" }, 405, { allow: "PUT, DELETE" });
 }
 
-export async function handleKalshiMarkets(env, cursor = null) {
-  const upstreamFetch = env.KALSHI_FETCH || fetch;
-  try {
-    const upstreamUrl = new URL(KALSHI_MARKETS_URL);
-    if (cursor) upstreamUrl.searchParams.set("cursor", cursor);
-    const response = await upstreamFetch(upstreamUrl.toString(), {
-      headers: { accept: "application/json", "user-agent": "Cutline/0.2 market research" },
-    });
-    if (!response.ok) {
-      return json(
-        { status: "unavailable", reason: `Kalshi upstream returned ${response.status}` },
-        502,
-        { "cache-control": "no-store" },
-      );
-    }
-    const payload = await response.json();
-    if (!Array.isArray(payload.markets)) {
-      return json(
-        { status: "unavailable", reason: "Kalshi response did not contain markets" },
-        502,
-        { "cache-control": "no-store" },
-      );
-    }
-    return json(
-      {
-        source: {
-          provider: "Kalshi public market API",
-          observedAt: new Date().toISOString(),
-          mode: "live",
-          documentation: "https://docs.kalshi.com/getting_started/quick_start_market_data",
-        },
-        cursor: payload.cursor || null,
-        markets: payload.markets,
+function kalshiResponse(payload, observedAt, mode = "live", upstreamHost = null) {
+  return json(
+    {
+      source: {
+        provider: "Kalshi public market API",
+        observedAt,
+        mode,
+        upstreamHost,
+        documentation: "https://docs.kalshi.com/getting_started/quick_start_market_data",
       },
-      200,
-      { "cache-control": "public, max-age=15, stale-while-revalidate=45" },
+      cursor: payload.cursor || null,
+      markets: payload.markets,
+    },
+    200,
+    { "cache-control": "public, max-age=15, stale-while-revalidate=45" },
+  );
+}
+
+function kalshiCacheKey(origin, cursor) {
+  const key = new URL("/__cutline/cache/kalshi-markets", origin);
+  if (cursor) key.searchParams.set("cursor", cursor);
+  return new Request(key.toString());
+}
+
+async function readKalshiCache(cache, key) {
+  if (!cache) return null;
+  try {
+    const response = await cache.match(key);
+    if (!response?.ok) return null;
+    const cached = await response.json();
+    if (!Array.isArray(cached?.payload?.markets) || !cached?.observedAt) return null;
+    return cached;
+  } catch {
+    return null;
+  }
+}
+
+async function writeKalshiCache(cache, key, cached) {
+  if (!cache) return;
+  try {
+    await cache.put(
+      key,
+      new Response(JSON.stringify(cached), {
+        headers: {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": `public, max-age=${KALSHI_CACHE_STALE_SECONDS}`,
+        },
+      }),
     );
   } catch {
-    return json(
-      { status: "unavailable", reason: "Kalshi market data could not be reached" },
-      502,
-      { "cache-control": "no-store" },
-    );
+    // A cache failure must not turn a healthy upstream response into an outage.
   }
+}
+
+async function fetchKalshiPayload(upstreamFetch, cursor) {
+  const failures = [];
+  for (const baseUrl of KALSHI_MARKETS_URLS) {
+    const upstreamUrl = new URL(baseUrl);
+    if (cursor) upstreamUrl.searchParams.set("cursor", cursor);
+    try {
+      const response = await upstreamFetch(upstreamUrl.toString(), {
+        headers: { accept: "application/json", "user-agent": "Cutline/0.2 market research" },
+      });
+      if (!response.ok) {
+        failures.push(`${upstreamUrl.host}:${response.status}`);
+        continue;
+      }
+      const payload = await response.json();
+      if (!Array.isArray(payload.markets)) {
+        failures.push(`${upstreamUrl.host}:invalid response`);
+        continue;
+      }
+      return { payload, upstreamHost: upstreamUrl.host, failures };
+    } catch {
+      failures.push(`${upstreamUrl.host}:unreachable`);
+    }
+  }
+  return { payload: null, upstreamHost: null, failures };
+}
+
+export async function handleKalshiMarkets(env, cursor = null, origin = "https://cutline.local") {
+  const upstreamFetch = env.KALSHI_FETCH || fetch;
+  const cache = env.KALSHI_CACHE || globalThis.caches?.default || null;
+  const cacheKey = kalshiCacheKey(origin, cursor);
+  const cached = await readKalshiCache(cache, cacheKey);
+  const cachedAt = cached ? Date.parse(cached.observedAt) : Number.NaN;
+  if (cached && Number.isFinite(cachedAt) && Date.now() - cachedAt <= KALSHI_CACHE_FRESH_MS) {
+    return kalshiResponse(cached.payload, cached.observedAt, "live", cached.upstreamHost);
+  }
+
+  const result = await fetchKalshiPayload(upstreamFetch, cursor);
+  if (result.payload) {
+    const observedAt = new Date().toISOString();
+    await writeKalshiCache(cache, cacheKey, {
+      observedAt,
+      upstreamHost: result.upstreamHost,
+      payload: result.payload,
+    });
+    return kalshiResponse(result.payload, observedAt, "live", result.upstreamHost);
+  }
+
+  if (cached) {
+    return kalshiResponse(cached.payload, cached.observedAt, "stale cache", cached.upstreamHost);
+  }
+
+  return json(
+    {
+      status: "unavailable",
+      reason: `Kalshi market data could not be reached (${result.failures.join(", ")})`,
+    },
+    502,
+    { "cache-control": "no-store" },
+  );
 }
 
 export default {
@@ -271,7 +344,7 @@ export default {
       if (request.method !== "GET") {
         return json({ status: "method not allowed" }, 405, { allow: "GET" });
       }
-      return handleKalshiMarkets(env, url.searchParams.get("cursor"));
+      return handleKalshiMarkets(env, url.searchParams.get("cursor"), url.origin);
     }
 
     const response = await env.ASSETS.fetch(request);

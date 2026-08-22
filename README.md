@@ -24,7 +24,7 @@ Every live event receives a model immediately. A configured pack can use manuall
 
 ### How new trade ideas enter Cutline
 
-1. The Sites worker reads only open markets in Kalshi's public `KXRT` Rotten Tomatoes series.
+1. The Sites worker reads only open markets in Kalshi's public `KXRT` Rotten Tomatoes series. It shares a successful response across visitors for 60 seconds and can fall back to Kalshi's officially supported compatibility host when the recommended host is rate-limited.
 2. The client paginates the response and groups all threshold contracts with the same event ticker into one movie idea.
 3. The slate refreshes on load, every 60 seconds, and when the browser tab becomes visible; newly opened events therefore appear without a code change.
 4. A reviewed event ticker first receives its configured model. Otherwise Cutline attempts the conservative snapshot title/release match. If that fails, the global/month/title-family prior is generated immediately.
@@ -413,7 +413,7 @@ All environments should preserve the same contracts: standard React/Vite/Python 
 
 ## Next backend layers
 
-The first read-only live boundary is now connected: `worker/index.js` fetches active KXRT markets from Kalshi's public API, timestamps the response, and fails closed. The critic outcome store is also present as a benchmark, but not as a probability model.
+The first read-only live boundary is now connected: `worker/index.js` fetches active KXRT markets from Kalshi's public API, timestamps the response, shares a short server-side cache across visitors, and fails closed. Both the recommended Kalshi API host and its officially supported compatibility host are used; a successful cached slate may be served as visibly stale for up to 15 minutes only when both hosts are unavailable. The critic outcome store is also present as a benchmark, but not as a probability model.
 
 Recommended next layers:
 
