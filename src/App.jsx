@@ -29,6 +29,12 @@ import {
   parseIdeasExport,
 } from "./lib/ideas.js";
 import { classifySwipe } from "./lib/swipe.js";
+import {
+  explainScore,
+  plainFactorDetail,
+  plainFactorLabel,
+  plainScoreLabel,
+} from "./lib/plain-language.js";
 
 const marketModules = import.meta.glob("./data/markets/*.json", {
   eager: true,
@@ -44,8 +50,8 @@ const resolveModel = (event) => {
 const isAutomaticModel = (model) => model?.automation?.mode === "automatic-hierarchical-prior";
 const isEnrichedModel = (model) => model?.automation?.enrichmentMode === "audited-snapshot-exact-match";
 const modelTierLabel = (event) => {
-  if (MODEL_BY_EVENT.has(event?.eventTicker)) return "configured model";
-  return isEnrichedModel(resolveModel(event)) ? "snapshot-enriched prior" : "automatic baseline prior";
+  if (MODEL_BY_EVENT.has(event?.eventTicker)) return "deeper research";
+  return isEnrichedModel(resolveModel(event)) ? "more background" : "first look";
 };
 
 const hydrateIdeas = (items) =>
@@ -73,6 +79,10 @@ const readDeviceIdeas = () => {
 };
 
 const displayScore = (value) => (typeof value === "number" ? Math.round(value) : "—");
+const meaningFor = (scoreKey, value) => explainScore(
+  value,
+  scoreKey === "coverage" ? "coverage" : scoreKey === "live" ? "live" : "history",
+);
 const money = (value) => (value ? `$${Math.round(value / 1_000_000)}M` : "N/A");
 const marketUrl = (eventTicker) =>
   `https://kalshi.com/markets/kxrt/rotten-tomatoes-scores/${eventTicker.toLowerCase()}`;
@@ -164,22 +174,22 @@ function buildScoreDetails(model, liveState) {
     return {
       historical: {
         ...unmodeled,
-        kicker: "Historical 01",
-        label: "Historical fit",
-        summary: "This market is live, but its historical comparable cohort has not been generated yet.",
+        kicker: "Clue 01",
+        label: "Similar movies",
+        summary: "We have the live market, but we have not built a trustworthy group of similar movies yet.",
       },
       live: createLiveScore(liveConnected, liveCached, liveState, criticCount, criticJoin),
       talent: {
         ...unmodeled,
-        kicker: "Historical 03",
-        label: "Talent prior",
-        summary: "Cast, director, and producer histories are unavailable until this movie receives a market configuration.",
+        kicker: "Clue 03",
+        label: "Cast + crew",
+        summary: "We have not connected this movie's cast, director, and producers to their earlier movies yet.",
       },
       coverage: {
         ...unmodeled,
-        kicker: "Coverage 04",
-        label: "Data coverage",
-        summary: "Coverage cannot be assessed until target metadata and historical joins are generated.",
+        kicker: "Clue 04",
+        label: "How much we know",
+        summary: "We cannot tell how complete the background research is until this movie is matched to its source data.",
       },
     };
   }
@@ -193,15 +203,11 @@ function buildScoreDetails(model, liveState) {
   const specificity = model.automation?.specificity?.toUpperCase();
   return {
     historical: {
-      kicker: "Historical 01",
-      label: "Historical fit",
+      kicker: "Clue 01",
+      label: "Similar movies",
       value: historicalFit.value,
       sampleSize: historicalFit.sampleSize,
-      summary: automatic
-        ? enriched
-          ? `A snapshot-enriched ${displayScore(historicalFit.value)}/100 historical prior built from an exact target-title match, ${cohort.sampleSize.toLocaleString()} genre comparables, release context, and joined talent history.`
-          : `An automatic ${displayScore(historicalFit.value)}/100 historical context prior built from ${cohort.sampleSize.toLocaleString()} eligible releases, settlement-month context, and optional strongly-shrunk title-family evidence.`
-        : `A reproducible ${displayScore(historicalFit.value)}/100 historical context score from prior TMDB community ratings, grounded in a ${cohort.sampleSize}-film comparable cohort.`,
+      summary: `We compared this movie with ${cohort.sampleSize.toLocaleString()} relevant past releases. Their results look ${meaningFor("historical", historicalFit.value).phrase}—useful context, but not a critic-score prediction.`,
       status: automatic
         ? `${enriched ? "Snapshot-enriched automatic prior" : "Automatic hierarchical prior"} · ${specificity} specificity · ${model.source.snapshotDate}`
         : `Kaggle / TMDB historical prior · ${model.source.snapshotDate}`,
@@ -217,15 +223,13 @@ function buildScoreDetails(model, liveState) {
     },
     live: createLiveScore(liveConnected, liveCached, liveState, criticCount, criticJoin),
     talent: {
-      kicker: "Historical 03",
-      label: "Talent prior",
+      kicker: "Clue 03",
+      label: "Cast + crew",
       value: talentPrior.value,
       sampleSize: talentPrior.sampleSize,
-      summary: automatic
-        ? enriched
-          ? `The exact snapshot target joins named cast, director, and producer identities to ${talentPrior.sampleSize} prior-film observations after per-factor deduplication.`
-          : "Target cast, director, and producer identities are not connected yet. The visible talent value is an explicit global-baseline imputation, not invented filmography evidence."
-        : `The configured lead cast, director, and credited producers resolve to ${talentPrior.sampleSize} unique eligible prior films after deduplication.`,
+      summary: talentPrior.sampleSize > 0
+        ? `We checked ${talentPrior.sampleSize} earlier movie examples from the named cast and crew. That history looks ${meaningFor("talent", talentPrior.value).phrase}.`
+        : "We do not have reliable movie-specific cast and crew history yet, so this clue stays a rough baseline.",
       status: automatic
         ? enriched
           ? `Snapshot ID joins · ${specificity} specificity · ${model.source.snapshotDate}`
@@ -244,15 +248,11 @@ function buildScoreDetails(model, liveState) {
       factors: talentPrior.factors,
     },
     coverage: {
-      kicker: "Coverage 04",
-      label: "Data coverage",
+      kicker: "Clue 04",
+      label: "How much we know",
       value: dataCoverage.value,
       sampleSize: dataCoverage.sampleSize,
-      summary: automatic
-        ? enriched
-          ? `This ${displayScore(dataCoverage.value)}/100 availability score traces the exact target match, release, genres, talent history, and snapshot artwork that were actually present.`
-          : `This ${displayScore(dataCoverage.value)}/100 availability score exposes which automatic inputs are present. Target genre, talent, and artwork remain enrichment gaps.`
-        : "This is an availability score, not trade confidence. It measures historical fields, named-talent joins, and target context.",
+      summary: `${meaningFor("coverage", dataCoverage.value).phrase}. This only says how complete the background research is—not whether the trade will win.`,
       status: automatic
         ? `Availability only · ${specificity} specificity · automatic model ${model.automation.modelVersion}`
         : `Availability only · ${model.audit.rows.moviesParsed.toLocaleString()} parsed movies`,
@@ -266,13 +266,13 @@ function buildScoreDetails(model, liveState) {
 function createLiveScore(liveConnected, liveCached, liveState, criticCount, criticJoin) {
   const marketStatus = liveConnected ? "CONNECTED" : liveCached ? "STALE CACHE" : "UNAVAILABLE";
   return {
-    kicker: "Live 02",
-    label: "Live heat",
+    kicker: "Clue 02",
+    label: "Current buzz",
     value: null,
     sampleSize: null,
     summary:
-      "Kalshi market prices are connected as live context, and a Rotten Tomatoes outcome benchmark is audited. Trailer, search, social, and a validated critic calibration model remain unconnected.",
-    status: `${marketStatus} · no composite live score`,
+      "We can see the live market price, but trailer interest, searches, social media talk, and a trustworthy critic prediction are not connected yet.",
+    status: `${marketStatus} · current buzz score not ready`,
     formula: "No composite score runs until source-specific time windows, normalization, and validation rules are declared.",
     caveat: "Market price is context, not a model feature. Unavailable signals are never replaced with a neutral estimate.",
     factors: [
@@ -375,11 +375,11 @@ function SlateStrip({ events, selectedEventTicker, onSelect, configuredCount, en
   return (
     <section className="slate-strip" aria-label="Movie market slate">
       <div>
-        <p className="eyebrow">CONTINUOUS KXRT SLATE</p>
-        <span>{events.length} MODELED EVENTS · {configuredCount} CONFIGURED · {enrichedCount} ENRICHED · {baselineCount} BASELINE</span>
+        <p className="eyebrow">LIVE MOVIE MARKETS</p>
+        <span>{events.length} MOVIES TO REVIEW · {configuredCount + enrichedCount} WITH MORE BACKGROUND · {baselineCount} FIRST LOOKS</span>
       </div>
       <label>
-        <span>SELECT MOVIE MARKET</span>
+        <span>CHOOSE A MOVIE</span>
         <select value={selectedEventTicker} onChange={(event) => onSelect(event.target.value)}>
           {events.map((item) => (
             <option key={item.eventTicker} value={item.eventTicker}>
@@ -390,7 +390,7 @@ function SlateStrip({ events, selectedEventTicker, onSelect, configuredCount, en
       </label>
       <div className="slate-status">
         <strong>{liveState.status === "live" ? "LIVE" : liveState.status.toUpperCase()}</strong>
-        <span>PUBLIC API · NO TRADE EXECUTION</span>
+        <span>PRICES ONLY · CUTLINE NEVER PLACES A TRADE</span>
       </div>
     </section>
   );
@@ -398,10 +398,12 @@ function SlateStrip({ events, selectedEventTicker, onSelect, configuredCount, en
 
 function ScoreButton({ scoreKey, score, onOpen }) {
   const scoreLabel = displayScore(score.value);
+  const meaningValue = scoreKey === "talent" && score.sampleSize === 0 ? null : score.value;
+  const meaning = meaningFor(scoreKey, meaningValue);
   return (
     <button className={score.value === null ? "score-button unavailable" : "score-button"} onClick={() => onOpen(scoreKey)} aria-label={score.value === null ? `Explain why ${score.label} is unavailable` : `Explain ${score.label} score of ${scoreLabel}`}>
-      <span className="score-number">{scoreLabel}</span>
-      <span className="score-copy"><span>{score.label}</span><small>{score.value === null ? "OPEN SOURCE STATUS" : "OPEN RATIONALE"}</small></span>
+      <span className="score-number plain-score">{meaning.label}</span>
+      <span className="score-copy"><span>{plainScoreLabel(scoreKey)}</span><small>{score.value === null ? "SEE WHAT'S MISSING" : `${scoreLabel}/100 · HOW WE KNOW`}</small></span>
     </button>
   );
 }
@@ -419,36 +421,36 @@ function MarketPanel({ event, model, threshold, setThreshold, liveState }) {
     <section className="market-panel" aria-labelledby="market-heading">
       <div className="market-panel-head">
         <div>
-          <p className="eyebrow">KALSHI · ROTTEN TOMATOES</p>
-          <h2 id="market-heading">Will the score finish above {threshold}?</h2>
+          <p className="eyebrow">THE QUESTION PEOPLE ARE BETTING ON</p>
+          <h2 id="market-heading">Will the Rotten Tomatoes score finish above {threshold}?</h2>
         </div>
         <a href={link} target="_blank" rel="noreferrer" className="market-link">Open market</a>
       </div>
       <div className="thresholds" aria-label="Choose Rotten Tomatoes threshold" style={{ "--threshold-count": options.length }}>
         {options.map((item) => (
-          <button key={item} onClick={() => setThreshold(item)} className={threshold === item ? "threshold active" : "threshold"}>ABOVE {item}</button>
+          <button key={item} onClick={() => setThreshold(item)} className={threshold === item ? "threshold active" : "threshold"}>SCORE OVER {item}</button>
         ))}
       </div>
       <div className="probability-grid">
         <div className="probability-block market-probability">
-          <span>MARKET LAST TRADE</span>
-          <strong className={price === null || price === undefined ? "unavailable-value" : ""}>{price === null || price === undefined ? "—" : `${price}%`}</strong>
-          <small>{market ? `YES BID ${market.yesBid ?? "—"}¢ · ASK ${market.yesAsk ?? "—"}¢` : "LIVE CONTRACT UNAVAILABLE"}</small>
+          <span>YES SHARES LAST COST</span>
+          <strong className={price === null || price === undefined ? "unavailable-value" : ""}>{price === null || price === undefined ? "—" : `${price}¢`}</strong>
+          <small>{market ? `BUYERS OFFER ${market.yesBid ?? "—"}¢ · SELLERS ASK ${market.yesAsk ?? "—"}¢` : "THE LIVE PRICE IS UNAVAILABLE"}</small>
         </div>
         <div className="probability-block model-probability">
-          <span>RT PROBABILITY</span>
-          <strong className="unavailable-value">—</strong>
-          <small>{criticBenchmark.audit.eligibleOutcomeRows} LABEL BENCHMARK · NOT CALIBRATED</small>
+          <span>CUTLINE'S PREDICTION</span>
+          <strong className="plain-market-answer">NOT READY</strong>
+          <small>WE NEED MORE PAST MOVIES WE CAN COMPARE FAIRLY</small>
         </div>
         <div className="edge-block">
-          <span>MODEL EDGE</span>
-          <strong className="unavailable-value">—</strong>
-          <small>NOT CALCULATED</small>
+          <span>IS {price == null ? "THIS" : `${price}¢`} A GOOD PRICE?</span>
+          <strong className="plain-market-answer">CAN'T TELL YET</strong>
+          <small>WE DON'T HAVE A FAIR COMPARISON YET</small>
         </div>
       </div>
       <div className="market-foot">
-        <div><span className="market-meta-label">Market closes</span><strong>{compactDate(market?.closeTime || event?.closeTime)}</strong></div>
-        <div><span className="market-meta-label">Source freshness</span><strong>{liveState.status === "live" ? compactDate(liveState.slate?.source?.observedAt) : liveState.status.toUpperCase()}</strong></div>
+        <div><span className="market-meta-label">Betting ends</span><strong>{compactDate(market?.closeTime || event?.closeTime)}</strong></div>
+        <div><span className="market-meta-label">Market price checked</span><strong>{liveState.status === "live" ? compactDate(liveState.slate?.source?.observedAt) : liveState.status.toUpperCase()}</strong></div>
       </div>
     </section>
   );
@@ -465,7 +467,7 @@ function MoviePanel({ event, model, position, total }) {
         <img src={model.market.artwork} alt={model.market.artworkAlt} />
       ) : (
         <div className="unmodeled-art" aria-label={`${title} artwork is not configured`}>
-          <span>{automatic ? enriched ? "SNAPSHOT-ENRICHED PRIOR" : "AUTOMATIC HISTORICAL PRIOR" : "MARKET CONNECTED"}</span><strong>{title}</strong><small>{automatic ? enriched ? `${model.automation.specificity.toUpperCase()} SPECIFICITY · EXACT TARGET MATCH` : `${model.automation.specificity.toUpperCase()} SPECIFICITY · TARGET ENRICHMENT PENDING` : "POSTER + RESEARCH PACK NOT BUILT"}</small>
+          <span>{automatic ? enriched ? "MORE BACKGROUND FOUND" : "FIRST LOOK" : "LIVE MARKET FOUND"}</span><strong>{title}</strong><small>{automatic ? enriched ? "MOVIE, RELEASE, STYLE, CAST, AND CREW MATCHED" : "CAST, CREW, STYLE, AND POSTER STILL MISSING" : "MOVIE BACKGROUND IS NOT READY"}</small>
         </div>
       )}
       <div className="movie-overlay">
@@ -473,7 +475,7 @@ function MoviePanel({ event, model, position, total }) {
         <div className="movie-meta">
           <span>{model?.market.releaseDateLabel || shortDate(event?.closeTime)}</span>
           <span>{model?.market.genreLabel || "LIVE MARKET"}</span>
-          <span>{automatic ? enriched ? "ENRICHED AUTO" : "AUTO MODEL" : model ? "CONFIGURED MODEL" : "MARKET ONLY"}</span>
+          <span>{automatic ? enriched ? "MORE BACKGROUND" : "FIRST LOOK" : model ? "DEEPER RESEARCH" : "PRICE ONLY"}</span>
         </div>
       </div>
     </article>
@@ -509,24 +511,28 @@ function MobileSwipeCard({
     ? Math.round((market.yesBid + market.yesAsk) / 2)
     : null;
   const price = market?.lastPrice ?? midpoint;
+  const historicalMeaning = meaningFor("historical", model?.scores.historicalFit.value ?? null);
   const scoreRows = [
     {
       key: "historical",
-      label: "FIT",
+      label: "SIMILAR MOVIES",
       value: model?.scores.historicalFit.value ?? null,
-      detail: automatic ? enriched ? `${model.cohort.sampleSize.toLocaleString()} genre comparables anchor the enriched prior.` : `${model.cohort.sampleSize.toLocaleString()} releases anchor the automatic prior.` : model ? `${model.cohort.sampleSize} comparable releases anchor the prior.` : "Historical cohort not generated.",
+      meaning: meaningFor("historical", model?.scores.historicalFit.value ?? null),
+      detail: model ? `${model.cohort.sampleSize.toLocaleString()} relevant past movies were checked.` : "We have not found a trustworthy comparison group yet.",
     },
     {
       key: "talent",
-      label: "TALENT",
+      label: "CAST + CREW",
       value: model?.scores.talentPrior.value ?? null,
-      detail: automatic ? enriched ? "Exact snapshot cast and crew joins with shrunk prior-film histories." : "Global imputation; target talent enrichment is pending." : model ? "Cast, director, and producer track record." : "Named-talent joins are not generated.",
+      meaning: meaningFor("talent", model?.scores.talentPrior.value ?? null),
+      detail: model?.scores.talentPrior.sampleSize > 0 ? `${model.scores.talentPrior.sampleSize} earlier movie examples were checked.` : "We do not have this movie's people yet.",
     },
     {
       key: "coverage",
-      label: "COVERAGE",
+      label: "BACKGROUND INFO",
       value: model?.scores.dataCoverage.value ?? null,
-      detail: automatic ? `${model.automation.specificity} specificity · availability only.` : model ? "Availability only — not model confidence." : "Target data coverage is not assessed.",
+      meaning: meaningFor("coverage", model?.scores.dataCoverage.value ?? null),
+      detail: model ? "This says how complete our research is—not whether the bet will win." : "We have not checked the background yet.",
     },
   ];
 
@@ -597,14 +603,10 @@ function MobileSwipeCard({
   };
 
   const title = model?.market.title || event?.title || "Unconfigured movie";
-  const synthesis = automatic
-    ? enriched
-      ? "Exact snapshot target match is connected; live metadata and critic probability remain withheld."
-      : "Automatic prior is live; target enrichment and critic probability are withheld."
-    : model
-      ? "Market is live; historical fit is moderate; critic probability is withheld."
-    : "Market is live; movie-specific historical evidence is not generated."
-  const recommendation = model ? "PASS FOR NOW" : "RESEARCH ONLY";
+  const synthesis = model
+    ? `Similar movies look ${historicalMeaning.phrase}, but that is not enough to tell whether ${price == null ? "the current price" : `${price}¢`} is cheap or expensive.`
+    : "We can see the market, but we do not have enough movie background to judge the price."
+  const recommendation = "WAIT FOR NOW";
 
   return (
     <section className="mobile-scout" aria-label="Swipe through movie trade ideas">
@@ -631,7 +633,7 @@ function MobileSwipeCard({
           {model?.market.artwork ? (
             <img src={model.market.artwork} alt={model.market.artworkAlt} draggable="false" />
           ) : (
-            <div><span>{automatic ? enriched ? "SNAPSHOT-ENRICHED PRIOR" : "AUTOMATIC HISTORICAL PRIOR" : "LIVE MARKET ONLY"}</span><strong>{title}</strong><small>{automatic ? enriched ? `${model.automation.specificity.toUpperCase()} SPECIFICITY · EXACT TARGET MATCH` : `${model.automation.specificity.toUpperCase()} SPECIFICITY · ENRICHMENT PENDING` : "POSTER + RESEARCH PACK NOT BUILT"}</small></div>
+            <div><span>{automatic ? enriched ? "MORE BACKGROUND FOUND" : "FIRST LOOK" : "LIVE PRICE ONLY"}</span><strong>{title}</strong><small>{automatic ? enriched ? "MOVIE DETAILS AND PEOPLE MATCHED" : "CAST, CREW, STYLE, AND POSTER STILL MISSING" : "MOVIE BACKGROUND IS NOT READY"}</small></div>
           )}
         </div>
 
@@ -644,44 +646,44 @@ function MobileSwipeCard({
 
           <section className="mobile-market-ticket" aria-label="Active market snapshot">
             <button className="mobile-market-question" onClick={cycleThreshold} aria-label="Change Rotten Tomatoes score threshold">
-              <span>MARKET QUESTION</span>
-              <strong>ABOVE {threshold}?</strong>
+              <span>THE QUESTION PEOPLE ARE BETTING ON</span>
+              <strong>SCORE OVER {threshold}?</strong>
             </button>
             <div className="mobile-market-columns">
               <div className="mobile-live-price">
-                <span>LIVE MARKET</span>
+                <span>YES SHARES COST</span>
                 <strong className={price == null ? "unavailable-value" : ""}>{price == null ? "—" : `${price}¢`}</strong>
-                <p>{market ? `${market.yesBid ?? "—"}¢ / ${market.yesAsk ?? "—"}¢` : "— / —"}</p>
-                <small>BID / ASK</small>
+                <p>{market ? `BUYERS ${market.yesBid ?? "—"}¢ · SELLERS ${market.yesAsk ?? "—"}¢` : "LIVE PRICE UNAVAILABLE"}</p>
+                <small>WHAT THE MARKET PAYS</small>
               </div>
               <div className="mobile-model-score">
-                <span>{automatic ? enriched ? "ENRICHED HISTORICAL MODEL" : "AUTO HISTORICAL MODEL" : "HISTORICAL MODEL"}</span>
-                <strong className={model ? "" : "status-label"}>{model ? displayScore(model.scores.historicalFit.value) : "NOT BUILT"}</strong>
-                <button onClick={() => onOpenScore("historical")}>{model ? "TRACE SCORE" : "WHY UNAVAILABLE"} <CaretRight aria-hidden="true" weight="bold" /></button>
+                <span>WHAT SIMILAR MOVIES SAY</span>
+                <strong className="plain-signal">{historicalMeaning.label}</strong>
+                <button onClick={() => onOpenScore("historical")}>{model ? `${displayScore(model.scores.historicalFit.value)}/100 · HOW WE KNOW` : "SEE WHAT'S MISSING"} <CaretRight aria-hidden="true" weight="bold" /></button>
               </div>
             </div>
           </section>
 
           <section className="mobile-callout">
-            <div><span>RECOMMENDATION</span><strong>{recommendation}</strong><p>{model ? "No calibrated critic edge." : "Historical score withheld."}</p></div>
-            <div><span>SYNTHESIS</span><p>{synthesis}</p></div>
+            <div><span>BOTTOM LINE</span><strong>{recommendation}</strong><p>{price == null ? "We cannot judge the price yet." : `We cannot tell if ${price}¢ is a good deal yet.`}</p></div>
+            <div><span>WHY</span><p>{synthesis}</p></div>
           </section>
 
           <section className="mobile-score-list" aria-label="Explainable model scores">
             {scoreRows.map((row) => (
               <button key={row.key} onClick={() => onOpenScore(row.key)}>
                 <span>{row.label}</span>
-                <strong>{row.value == null ? "N/A" : displayScore(row.value)}</strong>
-                <p>{row.detail}</p>
+                <strong>{row.meaning.label}</strong>
+                <p>{row.value == null ? row.detail : `${displayScore(row.value)}/100 · ${row.detail}`}</p>
                 <CaretRight aria-hidden="true" weight="bold" />
               </button>
             ))}
           </section>
 
           <div className="mobile-actions" aria-label="Trade idea actions">
-            <button className="mobile-pass" onClick={() => completeSwipe("left")}><strong>PASS</strong><span>NO EDGE</span></button>
-            <button className={deferred ? "mobile-later deferred" : "mobile-later"} onClick={completeLater}><strong>LATER</strong><span>{deferred ? "IN IDEA BOOK" : "COME BACK"}</span></button>
-            <button className={saved ? "mobile-save saved" : "mobile-save"} onClick={() => completeSwipe("right")}><strong>{saved ? "SAVED" : "SAVE"}</strong><span>{saved ? "IN IDEA BOOK" : "ADD TO IDEAS"}</span></button>
+            <button className="mobile-pass" onClick={() => completeSwipe("left")}><strong>PASS</strong><span>SKIP THIS ONE</span></button>
+            <button className={deferred ? "mobile-later deferred" : "mobile-later"} onClick={completeLater}><strong>LATER</strong><span>{deferred ? "IN IDEA BOOK" : "REVIEW LATER"}</span></button>
+            <button className={saved ? "mobile-save saved" : "mobile-save"} onClick={() => completeSwipe("right")}><strong>{saved ? "SAVED" : "SAVE"}</strong><span>{saved ? "IN IDEA BOOK" : "WATCH THIS"}</span></button>
           </div>
           <div className="mobile-swipe-cue" aria-hidden="true"><ArrowLeft weight="bold" /><span>SWIPE LEFT / RIGHT</span><ArrowRight weight="bold" /></div>
         </div>
@@ -701,6 +703,13 @@ function ScoutView({ event, model, events, liveState, scoreDetails, ideaDisposit
   const market = event?.markets.find((item) => item.threshold === threshold);
   const historicalFit = model?.scores.historicalFit.value;
   const talentPrior = model?.scores.talentPrior.value;
+  const currentPrice = market?.lastPrice ?? (
+    market?.yesBid != null && market?.yesAsk != null
+      ? Math.round((market.yesBid + market.yesAsk) / 2)
+      : null
+  );
+  const historicalMeaning = meaningFor("historical", historicalFit ?? null);
+  const talentMeaning = meaningFor("talent", talentPrior ?? null);
   const title = model?.market.title || event?.title || event?.eventTicker;
   const eventPosition = Math.max(1, events.findIndex((item) => item.eventTicker === event?.eventTicker) + 1);
   const automatic = isAutomaticModel(model);
@@ -715,41 +724,41 @@ function ScoutView({ event, model, events, liveState, scoreDetails, ideaDisposit
       </section>
       <section className="analysis-grid desktop-scout" aria-label="Cutline analysis">
         <div className="score-rail">
-          <div className="score-rail-title"><p className="eyebrow">WHY THIS MODEL MOVED</p><span>SELECT A SCORE TO TRACE IT</span></div>
+          <div className="score-rail-title"><p className="eyebrow">WHAT THE EVIDENCE SAYS</p><span>CHOOSE A CLUE TO SEE HOW WE KNOW</span></div>
           <div className="scores">{Object.entries(scoreDetails).map(([key, score]) => <ScoreButton key={key} scoreKey={key} score={score} onOpen={onOpenScore} />)}</div>
         </div>
         <article className="thesis-panel">
-          <div className="stance-row"><p className="eyebrow">CUTLINE CALL · ABOVE {threshold}</p><span className="stance muted">RESEARCH ONLY</span></div>
+          <div className="stance-row"><p className="eyebrow">BOTTOM LINE · SCORE OVER {threshold}</p><span className="stance muted">WAIT FOR NOW</span></div>
           {automatic ? (
             <>
-              <h2>{enriched ? "An exact audited target match upgraded this automatic prior" : "Every live market receives an automatic prior"}; this one is {model.automation.specificity}-specificity.</h2>
+              <h2>{currentPrice == null ? "We do not have enough evidence to judge this market yet." : `We cannot tell if ${currentPrice}¢ is a good deal yet.`}</h2>
               <p>{enriched
-                ? `The snapshot resolved ${model.target.title}, its release date, genres, artwork, and named talent. Historical fit ${displayScore(historicalFit)} uses ${model.cohort.sampleSize.toLocaleString()} genre comparables plus shrunk cast and crew histories; talent scores ${displayScore(talentPrior)}. This is still not a live metadata refresh, critic probability, or edge.`
-                : `The automatic layer scores historical context at ${displayScore(historicalFit)} from ${model.cohort.sampleSize.toLocaleString()} eligible releases, settlement-month context, and any strongly-shrunk title-family evidence. The talent value is explicitly imputed until verified cast and crew metadata is joined. No critic probability or edge is produced.`}</p>
+                ? `We found the right movie and checked ${model.cohort.sampleSize.toLocaleString()} similar releases. Those movies look ${historicalMeaning.phrase}, and the cast and crew history looks ${talentMeaning.phrase}. That is useful background, but we still do not have enough matched critic results to predict whether the score will beat ${threshold}.`
+                : `This is only a rough first look based on ${model.cohort.sampleSize.toLocaleString()} older releases and timing. We have not verified this movie's cast, crew, or style yet, and we cannot predict whether the critic score will beat ${threshold}.`}</p>
             </>
           ) : model ? (
             <>
-              <h2>Live market context is connected; the critic probability is still withheld.</h2>
-              <p>The historical layer scores fit at {displayScore(historicalFit)} and talent at {displayScore(talentPrior)}, anchored to {model.cohort.sampleSize} comparable releases. Kalshi is live, and {criticBenchmark.audit.eligibleOutcomeRows} critic outcomes are audited, but the {criticBenchmark.audit.joinToTmdb.exactMatches}-film exact join is too small for defensible threshold calibration.</p>
+              <h2>{currentPrice == null ? "We do not have enough evidence to judge this market yet." : `We cannot tell if ${currentPrice}¢ is a good deal yet.`}</h2>
+              <p>We checked {model.cohort.sampleSize} similar movies, and their results were {historicalMeaning.phrase}. The cast and crew history is {talentMeaning.phrase}. But only {criticBenchmark.audit.joinToTmdb.exactMatches} older movies can be compared fairly across both sources. That is too few for a prediction we trust.</p>
             </>
           ) : (
             <>
-              <h2>This live market is ready for research, but not yet historically modeled.</h2>
-              <p>{title} is present in the live Kalshi slate. Cutline will not borrow Resident Evil’s cohort or talent score; add a movie-specific configuration and rebuild before using historical context.</p>
+              <h2>We can see the betting market, but we cannot judge it yet.</h2>
+              <p>We have not matched {title} to trustworthy movie background, so we will not borrow another movie's numbers or pretend to know more than we do.</p>
             </>
           )}
-          <div className="source-line"><span>MARKET: KALSHI PUBLIC API · {liveState.status.toUpperCase()}</span><span>CRITIC BENCHMARK: {criticBenchmark.audit.eligibleOutcomeRows} LABELS · CALIBRATION PENDING</span></div>
+          <div className="source-line"><span>WHAT'S LIVE: KALSHI MARKET PRICE · {liveState.status.toUpperCase()}</span><span>WHAT'S MISSING: A TRUSTWORTHY CRITIC-SCORE PREDICTION</span></div>
         </article>
         <aside className="decision-panel" aria-label="Trade idea actions">
-          <div><p className="eyebrow light">DECISION</p><span className="decision-price">NO CALIBRATED ENTRY</span><p className="decision-note">Decision support only. No trade is placed here.</p></div>
+          <div><p className="eyebrow light">WHAT TO DO</p><span className="decision-price">WAIT FOR NOW</span><p className="decision-note">The evidence is not strong enough to call the current price cheap or expensive. Cutline never places a trade.</p></div>
           <div className="decision-actions">
-            <button className={ideaDisposition === "research" ? "save-button saved" : "save-button"} onClick={() => onSave({ threshold, market })}>{ideaDisposition === "research" ? "Idea saved" : "Save research idea"}</button>
-            <button className={ideaDisposition === "later" ? "later-button deferred" : "later-button"} onClick={() => onLater({ threshold, market })}>{ideaDisposition === "later" ? "Saved for later" : "Come back later"}</button>
-            <button className={ideaDisposition === "passed" ? "pass-button passed" : "pass-button"} onClick={() => onPass({ threshold, market })}>{ideaDisposition === "passed" ? "Passed · revisit" : "Pass for now"}</button>
+            <button className={ideaDisposition === "research" ? "save-button saved" : "save-button"} onClick={() => onSave({ threshold, market })}>{ideaDisposition === "research" ? "Saved to watch" : "Save to watch"}</button>
+            <button className={ideaDisposition === "later" ? "later-button deferred" : "later-button"} onClick={() => onLater({ threshold, market })}>{ideaDisposition === "later" ? "Saved for later" : "Review later"}</button>
+            <button className={ideaDisposition === "passed" ? "pass-button passed" : "pass-button"} onClick={() => onPass({ threshold, market })}>{ideaDisposition === "passed" ? "Skipped · revisit" : "Skip this one"}</button>
           </div>
         </aside>
       </section>
-      <footer className="data-note desktop-scout"><span>KALSHI LIVE MARKET CONTEXT · PUBLIC API</span><span>TMDB PRIORS + RT OUTCOME BENCHMARK · PROBABILITY NOT CALIBRATED</span><span>NOT FINANCIAL ADVICE</span></footer>
+      <footer className="data-note desktop-scout"><span>LIVE PRICE FROM KALSHI</span><span>PAST MOVIE DATA FROM TMDB · CRITIC PREDICTION NOT READY</span><span>RESEARCH HELP ONLY · NO TRADE IS PLACED</span></footer>
     </main>
   );
 }
@@ -771,23 +780,23 @@ function SavedView({ items, onOpenScout, onReview, onRemove, onExport, onImport 
         <section className="empty-state"><span>00</span><h2>Your watchlist is clean.</h2><p>Save a thesis from any live movie market, or import a teammate’s Cutline ideas file.</p><button onClick={onOpenScout}>Review live markets</button></section>
       ) : (
         <section className="idea-table" aria-label="Saved movie trade ideas">
-          <div className="idea-table-head"><span>RELEASE</span><span>MARKET / THESIS</span><span>HISTORICAL</span><span>MARKET</span><span>STATUS</span><span>ACTION</span></div>
+          <div className="idea-table-head"><span>MOVIE</span><span>QUESTION</span><span>SIMILAR MOVIES</span><span>PRICE WHEN SAVED</span><span>YOUR CHOICE</span><span>ACTION</span></div>
           {items.map((item) => (
             <article className="idea-row" key={item.id}>
               <div className="idea-release">
                 {item.artwork ? <img src={item.artwork} alt="" /> : <span className="idea-art-placeholder">CUT</span>}
                 <div><strong>{item.movie}</strong><span>{item.releaseLabel || item.eventTicker}</span></div>
               </div>
-              <div className="idea-thesis"><strong>RT score above {item.threshold}</strong><span>{item.disposition === "later" ? "Held for another pass; no research decision has been made." : "Saved research snapshot; critic probability and entry remain withheld."}</span></div>
-              <div className="idea-stat"><strong>{displayScore(item.historicalFit)}</strong><span>FIT / 100</span></div>
+              <div className="idea-thesis"><strong>Will the critic score finish above {item.threshold}?</strong><span>{item.disposition === "later" ? "You saved this to review later." : "You saved this to watch. Cutline still cannot tell whether the price is cheap or expensive."}</span></div>
+              <div className="idea-stat plain"><strong>{explainScore(item.historicalFit).label}</strong><span>{displayScore(item.historicalFit)}/100 BACKGROUND SCORE</span></div>
               <div className="idea-stat"><strong>{item.marketSnapshot?.lastPrice != null ? `${item.marketSnapshot.lastPrice}¢` : "—"}</strong><span>SAVED LAST TRADE</span></div>
-              <div className={item.disposition === "later" ? "idea-status later" : "idea-status"}><span>{item.disposition === "later" ? "LATER" : "RESEARCH"}</span><small>SAVED {compactDate(item.savedAt)}</small></div>
+              <div className={item.disposition === "later" ? "idea-status later" : "idea-status"}><span>{item.disposition === "later" ? "REVIEW LATER" : "WATCHING"}</span><small>SAVED {compactDate(item.savedAt)}</small></div>
               <div className="idea-row-actions"><button className="review-idea" onClick={() => onReview(item)}>Review</button><button className="remove-idea" onClick={() => onRemove(item)}>Remove</button></div>
             </article>
           ))}
         </section>
       )}
-      <section className="saved-method"><p className="eyebrow">TEAM RESEARCH LOOP</p><div><span>01</span><p>Refresh live Kalshi price and volume</p><span>02</span><p>Export or merge teammate idea files</p><span>03</span><p>Calibrate only after forward validation</p></div></section>
+      <section className="saved-method"><p className="eyebrow">A SIMPLE REVIEW LOOP</p><div><span>01</span><p>Check whether the live price changed</p><span>02</span><p>Share ideas with your team when useful</p><span>03</span><p>Only act when the evidence becomes clear</p></div></section>
     </main>
   );
 }
@@ -797,45 +806,57 @@ function ScoreDrawer({ scoreKey, scoreDetails, model, liveState, onClose }) {
   if (!score) return null;
   const cohort = model?.cohort;
   const financial = cohort?.financialContext;
+  const meaningValue = scoreKey === "talent" && score.sampleSize === 0 ? null : score.value;
+  const meaning = meaningFor(scoreKey, meaningValue);
   return (
     <div className="drawer-backdrop" role="presentation" onMouseDown={onClose}>
       <aside className="score-drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" onMouseDown={(event) => event.stopPropagation()}>
-        <div className="drawer-head"><div><p className="eyebrow">{score.kicker}</p><h2 id="drawer-title">{score.label}</h2></div><button onClick={onClose} className="drawer-close">Close</button></div>
-        <div className="drawer-score"><strong className={score.value === null ? "unavailable-value" : ""}>{displayScore(score.value)}</strong><span>{score.value === null ? "NOT SCORED" : "/ 100"}</span></div>
+        <div className="drawer-head"><div><p className="eyebrow">{score.kicker} · PLAIN ENGLISH</p><h2 id="drawer-title">{plainScoreLabel(scoreKey)}</h2></div><button onClick={onClose} className="drawer-close">Close</button></div>
+        <div className="drawer-plain-result"><strong>{meaning.label}</strong><span>{score.value === null ? "NO SCORE YET" : `${displayScore(score.value)}/100 BACKGROUND SCORE`}</span></div>
         <p className="drawer-summary">{score.summary}</p>
         <div className="drawer-evidence-grid">
-          <div><span>{scoreKey === "live" ? "MARKET SOURCE" : "HISTORICAL COHORT"}</span><strong>{scoreKey === "live" ? liveState.status.toUpperCase() : cohort ? `${cohort.sampleSize} films` : "NOT GENERATED"}</strong></div>
-          <div><span>SCORE SAMPLE</span><strong>{score.sampleSize ?? "N/A"}</strong></div>
-          <div><span>FRESHNESS</span><strong>{scoreKey === "live" ? compactDate(liveState.slate?.source?.observedAt) : model?.source.snapshotDate || "N/A"}</strong></div>
-          <div><span>OUTCOME</span><strong>{scoreKey === "live" ? "NO COMPOSITE" : model ? "TMDB USER RATING" : "N/A"}</strong></div>
+          <div><span>{scoreKey === "live" ? "LIVE MARKET" : "SIMILAR MOVIES CHECKED"}</span><strong>{scoreKey === "live" ? liveState.status.toUpperCase() : cohort ? `${cohort.sampleSize} MOVIES` : "NOT READY"}</strong></div>
+          <div><span>PAST EXAMPLES USED</span><strong>{score.sampleSize ?? "NOT READY"}</strong></div>
+          <div><span>DATA CHECKED</span><strong>{scoreKey === "live" ? compactDate(liveState.slate?.source?.observedAt) : model?.source.snapshotDate || "UNKNOWN"}</strong></div>
+          <div><span>WHAT THIS LOOKS AT</span><strong>{scoreKey === "live" ? "CURRENT INTEREST" : model ? "PAST MOVIE RATINGS" : "NOT READY"}</strong></div>
         </div>
         <div className="factor-list">
-          {score.factors.map((factor) => (
-            <div className="factor" key={factor.label}>
-              <div className="factor-copy"><span>{factor.label}</span><span>{factor.value === null ? factor.status || "NOT CONNECTED" : `${factor.weight}% weight · ${factor.value}/100 · +${factor.contribution} pts${factor.status ? ` · ${factor.status}` : ""}`}</span></div>
-              {factor.value !== null && <div className="factor-track"><span style={{ width: `${factor.value}%` }} /></div>}
-              <p className="factor-detail">{factor.detail} {factor.sampleSize !== null && factor.sampleSize !== undefined && `Sample n=${factor.sampleSize}.`}</p>
-              {factor.titles?.length > 0 && <p className="factor-titles">Examples: {factor.titles.join(" · ")}</p>}
-            </div>
-          ))}
+          {score.factors.map((factor) => {
+            const factorMeaning = meaningFor(scoreKey, factor.value);
+            return (
+              <div className="factor" key={factor.label}>
+                <div className="factor-copy"><span>{plainFactorLabel(factor.label)}</span><span>{factor.value === null ? "NOT CONNECTED" : factorMeaning.label}</span></div>
+                {factor.value !== null && <div className="factor-track"><span style={{ width: `${factor.value}%` }} /></div>}
+                <p className="factor-detail">{plainFactorDetail(factor)}</p>
+                {factor.titles?.length > 0 && <p className="factor-titles">For example: {factor.titles.join(" · ")}</p>}
+                <details className="factor-technical">
+                  <summary>Show the math</summary>
+                  <p>{factor.value === null ? factor.status || "Not connected" : `${factor.value}/100 · ${factor.weight}% of the score · adds ${factor.contribution} points.`}</p>
+                  <p>{factor.detail}</p>
+                </details>
+              </div>
+            );
+          })}
         </div>
-        <div className="drawer-formula"><span>CALCULATION</span><p>{score.formula}</p></div>
-        {scoreKey === "historical" && cohort && (
-          <div className="cohort-context">
-            <div className="cohort-context-head"><span>{isEnrichedModel(model) ? "SNAPSHOT-ENRICHED GENRE COHORT" : isAutomaticModel(model) ? "AUTOMATIC REFERENCE COHORT" : "COMPARABLE-FILM COHORT"}</span><strong>N={cohort.sampleSize}</strong></div>
-            <p>{model.methodology.cohortRule}</p>
-            <div className="comparable-list">{cohort.recentComparables.map((movie) => <div key={movie.title}><span>{movie.title}</span><span>{movie.releaseDate.slice(0, 4)} · {movie.rating.toFixed(1)} / 10 · {movie.votes.toLocaleString()} votes</span></div>)}</div>
-            <div className="financial-line"><span>FINANCIAL CONTEXT · N={financial.completeSampleSize}</span><strong>Median budget {money(financial.medianBudgetUsd)} · revenue {money(financial.medianRevenueUsd)}</strong><small>{financial.caveat}</small></div>
-          </div>
-        )}
         <div className="critic-benchmark">
-          <span>CRITIC OUTCOME BENCHMARK</span>
-          <strong>{criticBenchmark.audit.eligibleOutcomeRows} eligible labels · {criticBenchmark.audit.joinToTmdb.exactMatches} exact TMDB joins</strong>
-          <p>{criticBenchmark.calibration.reason}</p>
-          <a href={criticBenchmark.source.kaggleUrl} target="_blank" rel="noreferrer">Review benchmark source</a>
+          <span>WHY WE DON'T PREDICT THE CRITIC SCORE YET</span>
+          <strong>Only {criticBenchmark.audit.joinToTmdb.exactMatches} older movies can be compared fairly across both data sources.</strong>
+          <p>That is too few examples for a prediction we would trust, so Cutline shows “not ready” instead of guessing.</p>
         </div>
-        <div className="drawer-provenance"><span>PROVENANCE & LIMITS</span><p>{score.caveat}</p>{model && <><p>{model.source.attribution}</p><div><a href={model.source.kaggleUrl} target="_blank" rel="noreferrer">TMDB dataset</a><a href={model.source.tmdbUrl} target="_blank" rel="noreferrer">TMDB source</a></div></>}</div>
-        <div className="drawer-status">{score.status}</div>
+        <details className="deep-dive">
+          <summary>See exact math, movie examples, and sources</summary>
+          <div className="drawer-formula"><span>EXACT CALCULATION</span><p>{score.formula}</p></div>
+          {scoreKey === "historical" && cohort && (
+            <div className="cohort-context">
+              <div className="cohort-context-head"><span>SIMILAR-MOVIE GROUP</span><strong>{cohort.sampleSize} MOVIES</strong></div>
+              <p>{model.methodology.cohortRule}</p>
+              <div className="comparable-list">{cohort.recentComparables.map((movie) => <div key={movie.title}><span>{movie.title}</span><span>{movie.releaseDate.slice(0, 4)} · {movie.rating.toFixed(1)} / 10 · {movie.votes.toLocaleString()} votes</span></div>)}</div>
+              <div className="financial-line"><span>FINANCIAL BACKGROUND · {financial.completeSampleSize} MOVIES</span><strong>Typical budget {money(financial.medianBudgetUsd)} · reported revenue {money(financial.medianRevenueUsd)}</strong><small>{financial.caveat}</small></div>
+            </div>
+          )}
+          <div className="drawer-provenance"><span>SOURCES & LIMITS</span><p>{score.caveat}</p>{model && <><p>{model.source.attribution}</p><div><a href={model.source.kaggleUrl} target="_blank" rel="noreferrer">Movie data</a><a href={model.source.tmdbUrl} target="_blank" rel="noreferrer">TMDB source</a><a href={criticBenchmark.source.kaggleUrl} target="_blank" rel="noreferrer">Critic data</a></div></>}</div>
+          <div className="drawer-status">TECHNICAL STATUS · {score.status}</div>
+        </details>
       </aside>
     </div>
   );

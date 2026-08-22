@@ -460,6 +460,16 @@ a:focus-visible {
   letter-spacing: -5px;
 }
 
+.probability-block strong.plain-market-answer,
+.edge-block strong.plain-market-answer {
+  max-width: 230px;
+  margin: 12px 0 8px;
+  font-size: clamp(20px, 2.2vw, 32px);
+  line-height: 0.95;
+  letter-spacing: -1.4px;
+  text-transform: uppercase;
+}
+
 .probability-block small,
 .edge-block small {
   font-size: 9px;
@@ -573,6 +583,13 @@ a:focus-visible {
   line-height: 0.82;
   font-weight: 900;
   letter-spacing: -5px;
+}
+
+.score-number.plain-score {
+  max-width: 125px;
+  font-size: clamp(17px, 1.75vw, 27px);
+  line-height: 0.95;
+  letter-spacing: -1px;
 }
 
 .score-button.unavailable .score-number {
@@ -890,6 +907,13 @@ a:focus-visible {
   letter-spacing: -1.6px;
 }
 
+.idea-stat.plain strong {
+  max-width: 120px;
+  font-size: 14px;
+  line-height: 1.05;
+  letter-spacing: -0.3px;
+}
+
 .idea-status > span {
   width: fit-content;
   padding: 6px 7px;
@@ -1007,6 +1031,27 @@ a:focus-visible {
   padding: 28px 0 20px;
 }
 
+.drawer-plain-result {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 26px 0 20px;
+}
+
+.drawer-plain-result strong {
+  max-width: 470px;
+  color: var(--red);
+  font-size: clamp(34px, 5vw, 58px);
+  line-height: 0.92;
+  letter-spacing: -3px;
+}
+
+.drawer-plain-result span {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
 .drawer-score strong {
   font-size: 110px;
   line-height: 0.72;
@@ -1102,6 +1147,41 @@ a:focus-visible {
   font-family: Georgia, "Times New Roman", serif;
   font-size: 11px;
   line-height: 1.4;
+}
+
+.factor-technical {
+  margin-top: 9px;
+  color: #5d6157;
+  font-size: 9px;
+}
+
+.factor-technical summary,
+.deep-dive > summary {
+  width: fit-content;
+  cursor: pointer;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.factor-technical p {
+  margin: 7px 0 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.deep-dive {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--ink);
+}
+
+.deep-dive > summary {
+  margin-bottom: 16px;
+  font-size: 10px;
 }
 
 .factor-titles {
@@ -1859,6 +1939,16 @@ a:focus-visible {
     letter-spacing: -2px;
   }
 
+  .mobile-model-score > strong.plain-signal {
+    max-width: 140px;
+    margin: 8px 0;
+    font-family: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+    font-size: 17px;
+    line-height: 0.95;
+    font-weight: 700;
+    letter-spacing: -0.25px;
+  }
+
   .mobile-model-score > strong.status-label {
     max-width: 120px;
     margin: 9px 0 8px;
@@ -1871,9 +1961,10 @@ a:focus-visible {
 
   .mobile-live-price p {
     margin: 6px 0 0;
-    font-size: 15px;
-    line-height: 1;
-    font-weight: 600;
+    font-size: 8px;
+    line-height: 1.15;
+    font-weight: 700;
+    letter-spacing: 0.35px;
   }
 
   .mobile-live-price small {
@@ -1949,7 +2040,7 @@ a:focus-visible {
   .mobile-score-list > button {
     min-width: 0;
     display: grid;
-    grid-template-columns: 52px 44px minmax(0, 1fr) 16px;
+    grid-template-columns: 70px 82px minmax(0, 1fr) 16px;
     align-items: center;
     gap: 6px;
     border: 0;
@@ -1965,16 +2056,16 @@ a:focus-visible {
   }
 
   .mobile-score-list > button > span {
-    font-size: 10px;
+    font-size: 8px;
     font-weight: 700;
     letter-spacing: 0.4px;
   }
 
   .mobile-score-list > button > strong {
-    font-family: "Anton", "Arial Narrow", sans-serif;
-    font-size: 23px;
-    line-height: 1;
-    font-weight: 400;
+    font-family: "IBM Plex Sans Condensed", "Arial Narrow", sans-serif;
+    font-size: 11px;
+    line-height: 1.05;
+    font-weight: 700;
   }
 
   .mobile-score-list > button > p {
